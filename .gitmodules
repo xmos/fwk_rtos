@@ -68,3 +68,9 @@
 [submodule "avona"]
 	path = modules/avona
 	url = git@github.com:xmos/sw_avona.git
+[submodule "modules/fwk_core"]
+	path = modules/fwk_core
+	url = git@github.com:xmos/fwk_core.git
+[submodule "modules/fwk_io"]
+	path = modules/fwk_io
+	url = git@github.com:xmos/fwk_io.git

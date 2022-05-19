@@ -14,6 +14,9 @@ enable_language(CXX C ASM)
 ## Project options
 option(XCORE_SDK_CI_TESTING     "Enable CI test applications"  OFF)
 
+## Setup a framework root path
+SET(SDK_XCORE_ROOT_PATH ${PROJECT_SOURCE_DIR})
+
 ## Import some helpful macros
 include(tools/cmake_utils/xmos_macros.cmake)
 

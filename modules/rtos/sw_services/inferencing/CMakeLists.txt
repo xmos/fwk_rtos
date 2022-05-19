@@ -1,4 +1,4 @@
-SET(LIB_TFLITE_MICRO_PATH ${PROJECT_SOURCE_DIR}/modules/inferencing/lib_tflite_micro/lib_tflite_micro)
+SET(LIB_TFLITE_MICRO_PATH ${SDK_XCORE_ROOT_PATH}/modules/fwk_core/inferencing/lib_tflite_micro/lib_tflite_micro)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## ******************************
