@@ -1,34 +1,34 @@
 [submodule "mbedtls"]
-	path = modules/rtos/sw_services/tls_support/thirdparty/mbedtls
+	path = modules/sw_services/tls_support/thirdparty/mbedtls
 	url = git@github.com:ARMmbed/mbedtls.git
 	shallow = true
 [submodule "paho.mqtt.embedded-c"]
-	path = modules/rtos/sw_services/mqtt/thirdparty/paho.mqtt.embedded-c
+	path = modules/sw_services/mqtt/thirdparty/paho.mqtt.embedded-c
 	url = git@github.com:eclipse/paho.mqtt.embedded-c.git
 	shallow = true
 [submodule "jsmn"]
-	path = modules/rtos/sw_services/json/thirdparty/jsmn
+	path = modules/sw_services/json/thirdparty/jsmn
 	url = git@github.com:zserge/jsmn.git
 	shallow = true
 [submodule "wfx-fullMAC-driver"]
-	path = modules/rtos/drivers/wifi/sl_wf200/thirdparty/wfx-fullMAC-driver
+	path = modules/drivers/wifi/sl_wf200/thirdparty/wfx-fullMAC-driver
 	url = git@github.com:SiliconLabs/wfx-fullMAC-driver.git
 [submodule "FreeRTOS-SMP-Kernel"]
-	path = modules/rtos/FreeRTOS/FreeRTOS-SMP-Kernel
+	path = modules/FreeRTOS/FreeRTOS-SMP-Kernel
 	url = git@github.com:FreeRTOS/FreeRTOS-Kernel.git
 	branch = smp
 [submodule "FreeRTOS-Plus-TCP"]
-	path = modules/rtos/FreeRTOS/FreeRTOS-Plus-TCP
+	path = modules/FreeRTOS/FreeRTOS-Plus-TCP
 	url = git@github.com:xmos/FreeRTOS-Plus-TCP.git
 	branch = main
 [submodule "wfx-firmware"]
-	path = modules/rtos/drivers/wifi/sl_wf200/thirdparty/wfx-firmware
+	path = modules/drivers/wifi/sl_wf200/thirdparty/wfx-firmware
 	url = git@github.com:SiliconLabs/wfx-firmware.git
 [submodule "coreHTTP"]
-	path = modules/rtos/sw_services/http/thirdparty/coreHTTP
+	path = modules/sw_services/http/thirdparty/coreHTTP
 	url = git@github.com:FreeRTOS/coreHTTP.git
 [submodule "tinyusb_src"]
-	path = modules/rtos/sw_services/usb/thirdparty/tinyusb_src
+	path = modules/sw_services/usb/thirdparty/tinyusb_src
 	url = git@github.com:hathach/tinyusb_src.git
 [submodule "test_support"]
 	path = test/modules/test_support
