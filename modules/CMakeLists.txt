@@ -1,7 +1,5 @@
 
-add_subdirectory(device_memory_support)
 add_subdirectory(legacy_compat)
-add_subdirectory(lib_src)
 add_subdirectory(multitile_support)
 add_subdirectory(rtos)
 add_subdirectory(thirdparty)
