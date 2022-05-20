@@ -1,4 +1,9 @@
-SET(LIB_TFLITE_MICRO_PATH ${SDK_XCORE_ROOT_PATH}/modules/fwk_core/inferencing/lib_tflite_micro/lib_tflite_micro)
+
+if(DEFINED FRAMEWORK_CORE_ROOT_PATH)
+    set(LIB_TFLITE_MICRO_PATH ${FRAMEWORK_CORE_ROOT_PATH}/inferencing/lib_tflite_micro/lib_tflite_micro)
+else()
+    message(FATAL_ERROR "FRAMEWORK_CORE_ROOT_PATH was not defined")
+endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## ******************************
