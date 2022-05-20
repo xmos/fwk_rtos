@@ -1,8 +1,8 @@
 
 if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS2A))
     ## Create library target
-    add_library(xcore_sdk_rtos_sw_services_mqtt INTERFACE)
-    target_sources(xcore_sdk_rtos_sw_services_mqtt
+    add_library(framework_rtos_sw_services_mqtt INTERFACE)
+    target_sources(framework_rtos_sw_services_mqtt
         INTERFACE
             thirdparty/paho.mqtt.embedded-c/MQTTPacket/src/MQTTConnectClient.c
             thirdparty/paho.mqtt.embedded-c/MQTTPacket/src/MQTTDeserializePublish.c
@@ -14,17 +14,17 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
             thirdparty/paho.mqtt.embedded-c/MQTTClient-C/src/MQTTClient.c
             FreeRTOS/MQTTFreeRTOS.c
     )
-    target_include_directories(xcore_sdk_rtos_sw_services_mqtt
+    target_include_directories(framework_rtos_sw_services_mqtt
         INTERFACE
             thirdparty/paho.mqtt.embedded-c/MQTTPacket/src
             thirdparty/paho.mqtt.embedded-c/MQTTClient-C/src
             FreeRTOS
     )
-    target_link_libraries(xcore_sdk_rtos_sw_services_mqtt
+    target_link_libraries(framework_rtos_sw_services_mqtt
         INTERFACE
-            sdk::rtos::FreeRTOS-Plus-TCP
+            rtos::FreeRTOS::FreeRTOS-Plus-TCP
     )
 
     ## Create an alias
-    add_library(sdk::rtos::sw_services::mqtt ALIAS xcore_sdk_rtos_sw_services_mqtt)
+    add_library(rtos::sw_services::mqtt ALIAS framework_rtos_sw_services_mqtt)
 endif()

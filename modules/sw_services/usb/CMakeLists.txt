@@ -6,8 +6,8 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     file(GLOB_RECURSE TUSB_DEVICE_SOURCES thirdparty/tinyusb_src/src/device/*.c)
 
     ## Create library target
-    add_library(xcore_sdk_rtos_sw_services_usb INTERFACE)
-    target_sources(xcore_sdk_rtos_sw_services_usb
+    add_library(framework_rtos_sw_services_usb INTERFACE)
+    target_sources(framework_rtos_sw_services_usb
         INTERFACE
             portable/dcd_xcore.c
             FreeRTOS/usb_support.c
@@ -16,20 +16,20 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
             ${TUSB_COMMON_SOURCES}
             ${TUSB_DEVICE_SOURCES}
     )
-    target_include_directories(xcore_sdk_rtos_sw_services_usb
+    target_include_directories(framework_rtos_sw_services_usb
         INTERFACE
             api
             portable
             thirdparty/tinyusb_src/src
     )
-    target_link_libraries(xcore_sdk_rtos_sw_services_usb
+    target_link_libraries(framework_rtos_sw_services_usb
         INTERFACE
-            sdk::rtos::osal
-            sdk::rtos::drivers::usb
-            sdk::rtos::FreeRTOS_SMP
+            rtos::osal
+            rtos::drivers::usb
+            rtos::FreeRTOS::FreeRTOS_SMP
     )
     ## These definitions are only needed while we our port is not upstreamed
-    target_compile_definitions(xcore_sdk_rtos_sw_services_usb
+    target_compile_definitions(framework_rtos_sw_services_usb
         INTERFACE
             CFG_TUSB_MCU=OPT_MCU_NONE
             CFG_TUSB_OS=OPT_OS_CUSTOM
@@ -40,5 +40,5 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
 
     ## Create an alias
-    add_library(sdk::rtos::sw_services::usb ALIAS xcore_sdk_rtos_sw_services_usb)
+    add_library(rtos::sw_services::usb ALIAS framework_rtos_sw_services_usb)
 endif()

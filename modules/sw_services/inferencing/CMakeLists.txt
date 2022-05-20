@@ -1,6 +1,6 @@
 
 if(DEFINED FRAMEWORK_CORE_ROOT_PATH)
-    set(LIB_TFLITE_MICRO_PATH ${FRAMEWORK_CORE_ROOT_PATH}/inferencing/lib_tflite_micro/lib_tflite_micro)
+    set(LIB_TFLITE_MICRO_PATH ${FRAMEWORK_CORE_ROOT_PATH}/modules/inferencing/lib_tflite_micro/lib_tflite_micro)
 else()
     message(FATAL_ERROR "FRAMEWORK_CORE_ROOT_PATH was not defined")
 endif()
@@ -9,10 +9,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## ******************************
     ## Create inferencing RTOS target
     ## ******************************
-    add_library(xcore_sdk_inferencing_rtos INTERFACE)
+    add_library(framework_rtos_inferencing INTERFACE)
 
     ## Source files
-    target_sources(xcore_sdk_inferencing_rtos
+    target_sources(framework_rtos_inferencing
         INTERFACE
             src/debug_log.cc
             src/xcore_rtos_conv2d_v2.cc
@@ -24,18 +24,18 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             ${LIB_TFLITE_MICRO_PATH}/src/tflite-xcore-kernels/xcore_profiler.cc
     )
 
-    target_include_directories(xcore_sdk_inferencing_rtos
+    target_include_directories(framework_rtos_inferencing
         INTERFACE
             api
             ${LIB_TFLITE_MICRO_PATH}/api
             ${LIB_TFLITE_MICRO_PATH}/src/tflite-xcore-kernels
     )
-    target_link_libraries(xcore_sdk_inferencing_rtos
+    target_link_libraries(framework_rtos_inferencing
         INTERFACE
-            sdk::inferencing::tflite_micro
-            sdk::inferencing::lib_nn
+            core::tflite_micro
+            core::lib_nn
     )
 
     ## Create an alias
-    add_library(sdk::inferencing::rtos ALIAS xcore_sdk_inferencing_rtos)
+    add_library(rtos::sw_services::inferencing ALIAS framework_rtos_inferencing)
 endif()

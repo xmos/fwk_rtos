@@ -1,8 +1,8 @@
 
 if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS2A))
     ## Create library target
-    add_library(xcore_sdk_rtos_sw_services_tls INTERFACE)
-    target_sources(xcore_sdk_rtos_sw_services_tls
+    add_library(framework_rtos_sw_services_tls INTERFACE)
+    target_sources(framework_rtos_sw_services_tls
         INTERFACE
             FreeRTOS/mbedtls_support.c
             thirdparty/port/mbedtls/FreeRTOS/mbedtls_xcore_platform.c
@@ -86,20 +86,20 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
             thirdparty/mbedtls/library/ssl_ticket.c
             thirdparty/mbedtls/library/ssl_tls.c
     )
-    target_include_directories(xcore_sdk_rtos_sw_services_tls
+    target_include_directories(framework_rtos_sw_services_tls
         INTERFACE
             api
             FreeRTOS/api
             thirdparty/mbedtls/include
             thirdparty/port/mbedtls/FreeRTOS
     )
-    target_link_libraries(xcore_sdk_rtos_sw_services_tls
+    target_link_libraries(framework_rtos_sw_services_tls
         INTERFACE
-            sdk::rtos::FreeRTOS-Plus-TCP
-            sdk::rtos::sw_services::fatfs
-            sdk::lib_random
+            rtos::FreeRTOS::FreeRTOS-Plus-TCP
+            rtos::sw_services::fatfs
+            core::random
     )
 
     ## Create an alias
-    add_library(sdk::rtos::sw_services::tls_support ALIAS xcore_sdk_rtos_sw_services_tls)
+    add_library(rtos::sw_services::tls_support ALIAS framework_rtos_sw_services_tls)
 endif()
