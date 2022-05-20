@@ -6,16 +6,16 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif()
 
 ## Project declaration
-project(xcore_sdk)
+project(framework_rtos)
 
 ## Enable languages for project
 enable_language(CXX C ASM)
 
 ## Project options
-option(XCORE_SDK_CI_TESTING     "Enable CI test applications"  OFF)
+option(FRAMEWORK_RTOS_TESTS     "Enable framework_core tests"  OFF)
 
 ## Setup a framework root path
-SET(SDK_XCORE_ROOT_PATH ${PROJECT_SOURCE_DIR})
+set(FRAMEWORK_RTOS_ROOT_PATH ${PROJECT_SOURCE_DIR} CACHE STRING "Root folder of framework_rtos in this cmake project tree")
 
 ## Import some helpful macros
 include(tools/cmake_utils/xmos_macros.cmake)
@@ -25,10 +25,9 @@ add_subdirectory(modules)
 
 ## Add top level project targets
 if(PROJECT_IS_TOP_LEVEL)
-    include(applications/applications.cmake)
-    include(examples/examples.cmake)
+    # None
+endif()
 
-    if(XCORE_SDK_CI_TESTING)
-        include(test/tests.cmake)
-    endif()
+if(FRAMEWORK_RTOS_TESTS)
+    include(test/tests.cmake)
 endif()
