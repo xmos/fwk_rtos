@@ -35,5 +35,5 @@
 	url = git@github.com:ACascarino/test_support.git
 	branch = cmake_additions
 [submodule "xmos_cmake_toolchain"]
-	path = tools/xmos_cmake_toolchain
+	path = xmos_cmake_toolchain
 	url = git@github.com:xmos/xmos_cmake_toolchain.git
