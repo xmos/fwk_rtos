@@ -1,8 +1,8 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#include "xcore_custom_options.h"
-#include "xcore_interpreter.h"
+#include "tflite-xcore-kernels/xcore_custom_options.h"
+#include "tflite-xcore-kernels/xcore_interpreter.h"
 
 #include "FlashLoader.hpp"
 

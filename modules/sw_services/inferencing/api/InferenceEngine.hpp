@@ -10,8 +10,8 @@
 #include "tensorflow/lite/micro/micro_error_reporter.h"
 #include "tensorflow/lite/micro/micro_mutable_op_resolver.h"
 #include "tensorflow/lite/micro/micro_op_resolver.h"
-#include "xcore_interpreter.h"
-#include "xcore_ops.h"
+#include "tflite-xcore-kernels/xcore_interpreter.h"
+#include "tflite-xcore-kernels/xcore_ops.h"
 #include "xcore_rtos_ops.h"
 
 #include "rtos_printf.h"
