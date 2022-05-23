@@ -13,7 +13,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_link_libraries(framework_rtos_sw_services_wifi_manager
         INTERFACE
-            rtos:FreeRTOS::FreeRTOS-Plus-TCP
+            rtos::FreeRTOS::FreeRTOS-Plus-TCP
             rtos::sw_services::dhcp
     )
 

@@ -4,7 +4,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     add_library(framework_rtos_drivers_trace INTERFACE)
     target_sources(framework_rtos_drivers_trace
         INTERFACE
-            ASCII/ascii_trace.c
+            FreeRTOS/ASCII/ascii_trace.c
     )
     target_include_directories(framework_rtos_drivers_trace
         INTERFACE
