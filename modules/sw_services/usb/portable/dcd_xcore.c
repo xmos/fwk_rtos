@@ -4,6 +4,12 @@
 #define DEBUG_UNIT TUSB_DCD
 #define DEBUG_PRINT_ENABLE_TUSB_DCD 0
 
+#include <xcore/hwtimer.h>
+
+#ifndef LIBXCORE_HWTIMER_HAS_REFERENCE_TIME
+#error This library requires reference time
+#endif
+
 #include "device/dcd.h"
 #include "device/usbd.h" /* For tud_descriptor_configuration_cb() */
 
@@ -99,14 +105,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                                   XUD_Result_t res)
 {
     /* Timestamp packets as they come in */
-
-    uint32_t cur_time;
-    asm volatile(
-           "{gettime %0}"
-           : "=r"(cur_time)
-           : /* no resources*/
-           : /* no clobbers */
-           );
+    uint32_t cur_time = get_reference_time();
 
     if (res == XUD_RES_RST) {
         rtos_printf("Reset received on %02x\n", ep_address);
@@ -114,7 +113,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         return;
     }
 
-    // rtos_printf("packet rx'd, timestamp %d\n", cur_time); 
+    // rtos_printf("packet rx'd, timestamp %d\n", cur_time);
 
     switch (packet_type) {
     case rtos_usb_data_packet: {
