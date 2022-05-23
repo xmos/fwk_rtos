@@ -5,7 +5,6 @@ add_subdirectory(FreeRTOS)
 add_subdirectory(osal)
 add_subdirectory(rtos_support)
 add_subdirectory(sw_services)
-add_subdirectory(multitile_support)
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## Create an aggregate of rtos drivers
@@ -65,7 +64,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             rtos::rtos_support
             rtos::sw_services::general
             rtos::FreeRTOS::FreeRTOS_SMP
-            rtos::multitile_support
+            core::multitile_support
     )
     add_library(rtos::freertos ALIAS framework_rtos_freertos)
 
