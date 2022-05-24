@@ -30,10 +30,6 @@
 [submodule "tinyusb_src"]
 	path = modules/sw_services/usb/thirdparty/tinyusb_src
 	url = git@github.com:hathach/tinyusb_src.git
-[submodule "test_support"]
-	path = test/modules/test_support
-	url = git@github.com:ACascarino/test_support.git
-	branch = cmake_additions
 [submodule "xmos_cmake_toolchain"]
 	path = xmos_cmake_toolchain
 	url = git@github.com:xmos/xmos_cmake_toolchain.git
