@@ -7,12 +7,6 @@ set(TARGET_NAME fatfs_mkimage)
 set(FATFS_HOST_PATH "${CMAKE_CURRENT_LIST_DIR}")
 cmake_path(GET FATFS_HOST_PATH PARENT_PATH FATFS_HOST_PATH)
 
-# Get the XCore SDK root directory
-execute_process(COMMAND git rev-parse --show-toplevel OUTPUT_VARIABLE XCORE_SDK_ROOT)
-# remove any crlf
-string(STRIP ${XCORE_SDK_ROOT} XCORE_SDK_ROOT)
-
-# Retrieve version number to create directory
 file(READ ${XCORE_SDK_ROOT}/settings.json JSON_STRING)
 # Get the "version" value from the JSON element
 string(JSON VERSION_VAL GET ${JSON_STRING} ${IDX} version)
