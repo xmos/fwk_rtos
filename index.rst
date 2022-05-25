@@ -1,26 +1,11 @@
-.. _xcore_sdk_user_guide:
+##############
+RTOS Framework
+##############
 
-####################
-XCore SDK User Guide
-####################
-
-This is the user guide for the `XCore Software Development Kit <https://github.com/xmos/xcore_sdk>`_. 
+Framework of FreeRTOS kernel, RTOS drivers, and software service libraries for XCORE.AI.
 
 .. toctree::
    :maxdepth: 2
 
-   doc/quick_start/index
-   doc/tutorials/index
-   doc/reference/index
-   doc/tools/index
-   doc/contributing
-   doc/versions
-   doc/copyright
-
-.. only:: html
-
-   ******************
-   Indices and tables
-   ******************
-
-   * :ref:`genindex`
+   doc/rtos_drivers/index
+   doc/rtos_services/index

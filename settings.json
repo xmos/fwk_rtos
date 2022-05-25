@@ -1,5 +1,5 @@
 {
-    "title": "XCore Software Development Kit",
-    "project": "xcore_sdk",
-    "version": "0.11.1"
+    "title": "XCore RTOS Framework",
+    "project": "fwk_rtos",
+    "version": "0.10.0"
 }
