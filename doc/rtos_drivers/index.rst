@@ -1,3 +1,5 @@
+.. _fwk_rtos-rtos_drivers:
+
 ############
 RTOS Drivers
 ############
