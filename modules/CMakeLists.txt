@@ -20,6 +20,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             rtos::drivers::rpc
             rtos::drivers::spi
             rtos::drivers::swmem
+            rtos::drivers::uart
     )
     add_library(rtos::drivers::general ALIAS framework_rtos_drivers_general)
 
