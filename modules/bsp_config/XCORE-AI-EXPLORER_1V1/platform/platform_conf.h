@@ -45,7 +45,7 @@
 #endif /* appconfMIC_ARRAY_RPC_PORT */
 
 #ifndef appconfMIC_ARRAY_RPC_PRIORITY
-#define appconfMIC_ARRAY_RPC_PRIORITY (configMAX_PRIORITIES/2)
+#define appconfMIC_ARRAY_RPC_PRIORITY ((configMAX_PRIORITIES/2) + 1)
 #endif /* appconfMIC_ARRAY_RPC_PRIORITY */
 
 /*****************************************/
@@ -77,6 +77,15 @@
 #ifndef appconfI2S_INTERRUPT_CORE
 #define appconfI2S_INTERRUPT_CORE               4 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
 #endif /* appconfI2S_INTERRUPT_CORE */
+
+#ifndef appconfUART_RX_IO_CORE
+#define appconfUART_RX_IO_CORE                  5 /* Must be kept off core 0 with the RTOS tick ISR */
+#endif /* appconfUART_RX_IO_CORE */
+
+#ifndef appconfUART_RX_INTERRUPT_CORE
+#define appconfUART_RX_INTERRUPT_CORE           6 /* Must be kept off I/O cores. Best kept off core 0 with the tick ISR. */
+#endif /* appconfUART_RX_INTERRUPT_CORE */
+
 
 /*****************************************/
 /*  I/O and interrupt cores for Tile 1   */
