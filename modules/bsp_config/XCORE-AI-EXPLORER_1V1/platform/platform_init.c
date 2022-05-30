@@ -32,6 +32,28 @@ static void mclk_init(void)
 static void flash_init(void)
 {
 #if ON_TILE(FLASH_TILE_NO)
+    qspi_flash_ctx->ctx.sfdp_skip = true;
+    qspi_flash_ctx->ctx.sfdp_supported = false;
+    qspi_flash_ctx->ctx.page_size_bytes = 256;
+    qspi_flash_ctx->ctx.page_count = 16384;
+    qspi_flash_ctx->ctx.flash_size_kbytes = 4096;
+    qspi_flash_ctx->ctx.address_bytes = 3;
+    qspi_flash_ctx->ctx.erase_info[0].size_log2 = 12;
+    qspi_flash_ctx->ctx.erase_info[0].cmd = 0xEEFEEEEE;
+    qspi_flash_ctx->ctx.erase_info[1].size_log2 = 15;
+    qspi_flash_ctx->ctx.erase_info[1].cmd = 0xEFEFEEFE;
+    qspi_flash_ctx->ctx.erase_info[2].size_log2 = 16;
+    qspi_flash_ctx->ctx.erase_info[2].cmd = 0xFFEFFEEE;
+    qspi_flash_ctx->ctx.erase_info[3].size_log2 = 0;
+    qspi_flash_ctx->ctx.erase_info[3].cmd = 0;
+    qspi_flash_ctx->ctx.busy_poll_cmd = 0xEEEEEFEF;
+    qspi_flash_ctx->ctx.busy_poll_bit = 0;
+    qspi_flash_ctx->ctx.busy_poll_ready_value = 0;
+    qspi_flash_ctx->ctx.qe_reg = 2;
+    qspi_flash_ctx->ctx.qe_bit = 1;
+    qspi_flash_ctx->ctx.sr2_read_cmd = 0xEEFFEFEF;
+    qspi_flash_ctx->ctx.sr2_write_cmd = 0xEEEEEEEE;
+
     rtos_qspi_flash_init(
             qspi_flash_ctx,
             FLASH_CLKBLK,
@@ -150,7 +172,7 @@ static void spi_init(void)
 static void mics_init(void)
 {
     static rtos_driver_rpc_t micarray_rpc_config;
-    
+
 #if ON_TILE(MICARRAY_TILE_NO)
     rtos_intertile_t *client_intertile_ctx[1] = {intertile_ctx};
 
@@ -193,6 +215,39 @@ static void i2s_init(void)
 #endif
 }
 
+
+static void uart_init(void)
+{
+#if ON_TILE(UART_TILE_NO)
+    hwtimer_t tmr_rx = hwtimer_alloc();
+
+    const unsigned baud_rate = 512000;
+
+    rtos_uart_rx_init(
+            uart_rx_ctx,
+            (1 << appconfUART_RX_IO_CORE),
+            XS1_PORT_1M, /* Looped back to 1P on tile 1 */
+            baud_rate,
+            8,
+            UART_PARITY_NONE,
+            1,
+            tmr_rx);
+
+
+    hwtimer_t tmr_tx = hwtimer_alloc();
+
+    rtos_uart_tx_init(
+            uart_tx_ctx,
+            XS1_PORT_1E,
+            baud_rate,
+            8,
+            UART_PARITY_NONE,
+            1,
+            tmr_tx);
+#endif
+}
+
+
 void platform_init(chanend_t other_tile_c)
 {
     rtos_intertile_init(intertile_ctx, other_tile_c);
@@ -204,4 +259,5 @@ void platform_init(chanend_t other_tile_c)
     mics_init();
     i2s_init();
     i2c_init();
+    uart_init();
 }
