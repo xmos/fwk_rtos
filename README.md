@@ -67,3 +67,6 @@ Information on building the documentation can be found in the docs [README](http
 ## License
 
 This Software is subject to the terms of the [XMOS Public Licence: Version 1](https://github.com/xmos/fwk_rtos/blob/develop/LICENSE.rst)
+
+Third party copyrighted code is specified in the XCore SDK [Copyrights and Licenses](https://github.com/xmos/xcore_sdk/blob/develop/doc/copyright.rst).  
+
