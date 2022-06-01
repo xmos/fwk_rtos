@@ -16,8 +16,6 @@ static void uart_tx_local_write(
 
     for(int i = 0; i < n; i++){
         uart_tx(&ctx->dev, buff[i]);
-        //interfame gap work around. TODO make Rx quick enough
-        hwtimer_delay(ctx->dev.tmr, 5000);//50 us!!
     }
     
     rtos_osal_mutex_put(&ctx->lock);

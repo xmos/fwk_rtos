@@ -47,7 +47,7 @@
  * app_byte_buffer_size which can be of any size, specified at device start.
  */
 #ifndef RTOS_UART_RX_BUF_LEN
-#define RTOS_UART_RX_BUF_LEN 8
+#define RTOS_UART_RX_BUF_LEN 32
 #endif
 
 /**
@@ -123,11 +123,13 @@ struct rtos_uart_rx_struct {
 
     streaming_channel_t c;
 
-    StreamBufferHandle_t isr_byte_buffer;
+    TaskHandle_t isr_notification_task;
+    uart_buffer_t isr_to_app_fifo;
+    uint8_t isr_to_app_fifo_storage[RTOS_UART_RX_BUF_LEN];
+    uint8_t cb_flags;
     StreamBufferHandle_t app_byte_buffer;
 
-    uint8_t cb_flags;
-    rtos_osal_event_group_t events;
+    // rtos_osal_event_group_t events;
     rtos_osal_thread_t hil_thread;
     rtos_osal_thread_t app_thread;
 };
