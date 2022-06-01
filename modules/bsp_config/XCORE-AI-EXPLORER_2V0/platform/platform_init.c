@@ -226,7 +226,7 @@ static void uart_init(void)
     rtos_uart_rx_init(
             uart_rx_ctx,
             (1 << appconfUART_RX_IO_CORE),
-            XS1_PORT_1M, /* Looped back to 1P on tile 1 */
+            XS1_PORT_1P, /* 1P = X1D39 */
             baud_rate,
             8,
             UART_PARITY_NONE,
@@ -238,7 +238,7 @@ static void uart_init(void)
 
     rtos_uart_tx_init(
             uart_tx_ctx,
-            XS1_PORT_1E,
+            XS1_PORT_1E, /* 1E = X1D12 */
             baud_rate,
             8,
             UART_PARITY_NONE,
