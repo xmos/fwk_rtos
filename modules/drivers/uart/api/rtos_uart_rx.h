@@ -45,8 +45,8 @@
 /**
  * The size of the byte buffer between the ISR and the appthread. It needs to be able to
  * hold sufficient bytes received until the app_thread is able to service it.
- * This is not the same as 
- * app_byte_buffer_size which can be of any size, specified by the user at device start.
+ * This is not the same as app_byte_buffer_size which can be of any size, specified by 
+ * the user at device start.
  */
 #ifndef RTOS_UART_RX_BUF_LEN
 #define RTOS_UART_RX_BUF_LEN 128

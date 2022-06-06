@@ -9,7 +9,7 @@
 RTOS_UART_TX_CALL_ATTR
 static void uart_tx_local_write(
         rtos_uart_tx_t *ctx,
-        uint8_t buff[],
+        const uint8_t buff[],
         size_t n)
 {
     rtos_osal_mutex_get(&ctx->lock, RTOS_OSAL_WAIT_FOREVER);

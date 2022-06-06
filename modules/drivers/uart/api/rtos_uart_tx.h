@@ -32,7 +32,7 @@ typedef struct rtos_uart_tx_struct rtos_uart_tx_t;
  * The members in this struct should not be accessed directly.
  */
 struct rtos_uart_tx_struct {
-    RTOS_UART_TX_CALL_ATTR void (*write)(rtos_uart_tx_t *, uint8_t buf[], size_t);
+    RTOS_UART_TX_CALL_ATTR void (*write)(rtos_uart_tx_t *, const uint8_t buf[], size_t);
     uart_tx_t dev;
     rtos_osal_mutex_t lock;
 };
@@ -55,7 +55,7 @@ struct rtos_uart_tx_struct {
  */
 inline void rtos_uart_tx_write(
         rtos_uart_tx_t *ctx,
-        uint8_t buf[],
+        const uint8_t buf[],
         size_t n)
 {
     ctx->write(ctx, buf, n);
