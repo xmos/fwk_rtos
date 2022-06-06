@@ -11,8 +11,9 @@
 #include "rtos_uart_rx.h"
 #include "task.h"
 
-#include <print.h>
-#include <xcore/hwtimer.h>
+//TODO REMOVE THESE DEBUG INCLUDES. Used for profiling
+// #include <print.h>
+// #include <xcore/hwtimer.h>
 
 
 DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
@@ -22,15 +23,10 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
     /* Grab byte received from rx which triggered ISR */
     uint8_t byte = s_chan_in_byte(ctx->c.end_b);
     uint8_t cb_flags = s_chan_in_byte(ctx->c.end_b);
-
-    /* Note only error flags are set so set complete flag too to eensure  */
-    cb_flags |= UR_COMPLETE_CB_FLAG;
     
-
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
-
-    uint32_t t0 = get_reference_time();
+    // uint32_t t0 = get_reference_time();
     vTaskNotifyGiveIndexedFromISR( ctx->isr_notification_task,
                                    1,
                                    &pxHigherPriorityTaskWoken );
@@ -38,29 +34,13 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
     if(err != UART_BUFFER_OK){
         cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
     }
-    ctx->cb_flags = cb_flags; /* These should only get reset by the app thread */
-    uint32_t t1 = get_reference_time();
+    ctx->cb_flags = cb_flags;
+    // uint32_t t1 = get_reference_time();
     // printintln(t1-t0);
-    // size_t xBytesSent = xStreamBufferSendFromISR(ctx->isr_byte_buffer, &byte, 1, &pxHigherPriorityTaskWoken);
-
-    // if(xBytesSent != 1){
-    //     cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
-    // }
-    // rtos_osal_event_group_set_bits(&ctx->events, cb_flags);
 
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }
 
-
-// void test_b(void){
-//     printstr("Task B about to unblock..\n");
-//     xTaskToNotify = xTaskGetCurrentTaskHandle();
-
-//     uint32_t val = ulTaskNotifyTakeIndexed( 1, pdTRUE, portMAX_DELAY );
-
-//     rtos_printf("Task B got notification: %u\n", val);
-//     while(1);
-// }
 
 
 
@@ -76,7 +56,7 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
 {
     /* consume token (synch with RTOS driver) */
     (void) s_chan_in_byte(ctx->c.end_a);
-    printstr("Grrr\n");
+
     /* We cannot afford for the RX task to be blocked or any ISRs in between frames */
     rtos_interrupt_mask_all();
     for (;;) {
@@ -91,19 +71,18 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
 
 static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 {
-    
-    if (ctx->rx_start_cb != NULL) {
-        ctx->rx_start_cb(ctx);
-    }
 
     /* Setup the receiving notification task handle (this!) */
     ctx->isr_notification_task = xTaskGetCurrentTaskHandle();
-    printstr("Grr\n");
-    printhexln(ctx->isr_notification_task);
     ctx->cb_flags = 0;
 
     /* send token (synch with HIL logical core) */
     s_chan_out_byte(ctx->c.end_b, 0);
+
+    /* signal that UART Rx is go */
+    if (ctx->rx_start_cb != NULL) {
+        ctx->rx_start_cb(ctx);
+    }
 
     for (;;) {
         /* Block until notification from ISR */
@@ -116,40 +95,22 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
             bytes_read += 1;
         } while(ret == UART_BUFFER_OK);
         bytes_read -= 1; /* important as we incremented this for the read fail too */
-
-
-
-        // uint8_t bytes[RTOS_UART_RX_BUF_LEN];
-        // size_t xBytesRead = xStreamBufferReceive(   ctx->isr_byte_buffer,
-        //                                             bytes,
-        //                                             RTOS_UART_RX_BUF_LEN,
-        //                                             portMAX_DELAY);
-
-        // /* This will not block ever because we set these immediately after stream buff push*/
-        // rtos_osal_event_group_get_bits(
-        //         &ctx->events,
-        //         RX_ALL_FLAGS,
-        //         RTOS_OSAL_OR_CLEAR,
-        //         &error_flags,
-        //         RTOS_OSAL_WAIT_FOREVER);
     
-        size_t xBytesSent = xStreamBufferSend(ctx->app_byte_buffer, bytes, bytes_read, 0);
+        if(bytes_read){
+            size_t xBytesSent = xStreamBufferSend(ctx->app_byte_buffer, bytes, bytes_read, 0);
 
-        if(xBytesSent != bytes_read){
-            ctx->cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
-        }
+            if(xBytesSent != bytes_read){
+                ctx->cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
+            }
 
+            if ((ctx->cb_flags & RX_ERROR_FLAGS) && ctx->rx_error_cb) {
+                (*ctx->rx_error_cb)(ctx, ctx->cb_flags & RX_ERROR_FLAGS);
+                ctx->cb_flags = 0;
+            }
 
-        if(ctx->cb_flags){
-            //TODO Handle ME
-        }
-
-        // if ((error_flags & RX_ERROR_FLAGS) && ctx->rx_error_cb) {
-        //     (*ctx->rx_error_cb)(ctx, error_flags & RX_ERROR_FLAGS);
-        // }
-
-        if (ctx->rx_complete_cb) {
-            (*ctx->rx_complete_cb)(ctx);
+            if (ctx->rx_complete_cb) {
+                (*ctx->rx_complete_cb)(ctx);
+            }
         }
     }
 }
@@ -188,15 +149,6 @@ void rtos_uart_rx_init(
 
     uart_rx_ctx->c = s_chan_alloc();
 
-    // rtos_osal_thread_create(
-    //                 NULL,
-    //                 "test_b",
-    //                 (rtos_osal_entry_function_t) test_b,
-    //                 NULL,
-    //                 RTOS_THREAD_STACK_SIZE(test_b),
-    //                 configMAX_PRIORITIES / 2
-    //                 );
-
     rtos_osal_thread_create(
             &uart_rx_ctx->hil_thread,
             "uart_rx_hil_thread",
@@ -230,8 +182,6 @@ void rtos_uart_rx_start(
 
     uart_rx_ctx->cb_flags = 0; /* Clear all cb code bits */
 
-    // rtos_osal_event_group_create(&uart_rx_ctx->events, "uart_rx_events");
-
     /* Ensure that the UART interrupt is enabled on the requested core */
     uint32_t core_exclude_map = 0;
     rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
@@ -243,10 +193,10 @@ void rtos_uart_rx_start(
     /* Restore the core exclusion map for the calling thread */
     rtos_osal_thread_core_exclusion_set(NULL, core_exclude_map);
 
-    /* Setup buffer between ISR and receiving thread and set to trigger on single byte */
-    // uart_rx_ctx->isr_byte_buffer = xStreamBufferCreate(RTOS_UART_RX_BUF_LEN, 1);
+    /* Setup buffer between ISR and receiving app driver thread */
     init_buffer(&uart_rx_ctx->isr_to_app_fifo, uart_rx_ctx->isr_to_app_fifo_storage, RTOS_UART_RX_BUF_LEN);
-    /* Setup buffer between uart_app_thread and app  */
+
+    /* Setup buffer between uart_app_thread and user app */
     uart_rx_ctx->app_byte_buffer = xStreamBufferCreate(app_rx_buff_size, 1);
 
     /* This will be setup in the driver_app_thread */

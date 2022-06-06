@@ -43,11 +43,13 @@
 
 
 /**
- * The size of the byte buffer between the ISR and the appthread. This is not the same as 
- * app_byte_buffer_size which can be of any size, specified at device start.
+ * The size of the byte buffer between the ISR and the appthread. It needs to be able to
+ * hold sufficient bytes received until the app_thread is able to service it.
+ * This is not the same as 
+ * app_byte_buffer_size which can be of any size, specified by the user at device start.
  */
 #ifndef RTOS_UART_RX_BUF_LEN
-#define RTOS_UART_RX_BUF_LEN 32
+#define RTOS_UART_RX_BUF_LEN 128
 #endif
 
 /**
@@ -129,7 +131,6 @@ struct rtos_uart_rx_struct {
     uint8_t cb_flags;
     StreamBufferHandle_t app_byte_buffer;
 
-    // rtos_osal_event_group_t events;
     rtos_osal_thread_t hil_thread;
     rtos_osal_thread_t app_thread;
 };
