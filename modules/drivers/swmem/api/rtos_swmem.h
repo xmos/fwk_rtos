@@ -133,6 +133,12 @@ void rtos_swmem_start(unsigned priority);
  */
 void rtos_swmem_init(uint32_t init_flags);
 
+
+/**
+ * Return the offset from XS1_SWMEM_BASE to the start of the software memory.
+ */
+unsigned int rtos_swmem_offset_get();
+
 /**@}*/
 
 #endif /* RTOS_SWMEM_H_ */
