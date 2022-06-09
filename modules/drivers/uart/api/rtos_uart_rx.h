@@ -36,7 +36,7 @@
 
 #if (UR_START_BIT_ERR_CB_CODE != UART_START_BIT_ERROR_VAL)
 #error Please align the HIL uart_callback_code_t with CB codes in rtos_uart_rx.c
-#endif
+#endif /* We use this alignment as an optimisation */
 
 #define RX_ERROR_FLAGS (UR_START_BIT_ERR_CB_FLAG | UR_PARITY_ERR_CB_FLAG | UR_FRAMING_ERR_CB_FLAG)
 #define RX_ALL_FLAGS (UR_COMPLETE_CB_FLAG | UR_STARTED_CB_FLAG | RX_ERROR_FLAGS)
@@ -47,9 +47,10 @@
  * hold sufficient bytes received until the app_thread is able to service it.
  * This is not the same as app_byte_buffer_size which can be of any size, specified by 
  * the user at device start.
+ * At 1Mbps we get a byte every 10us so 64B allows 640us for the app thread to respond
  */
 #ifndef RTOS_UART_RX_BUF_LEN
-#define RTOS_UART_RX_BUF_LEN 128
+#define RTOS_UART_RX_BUF_LEN 64
 #endif
 
 /**

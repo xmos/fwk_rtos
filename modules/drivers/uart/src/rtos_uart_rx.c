@@ -11,10 +11,6 @@
 #include "rtos_uart_rx.h"
 #include "task.h"
 
-//TODO REMOVE THESE DEBUG INCLUDES. Used for profiling
-#include <print.h>
-#include <xcore/hwtimer.h>
-
 
 DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
 {
@@ -26,7 +22,6 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
     
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
-    uint32_t t0 = get_reference_time();
     vTaskNotifyGiveIndexedFromISR( ctx->isr_notification_task,
                                    1,
                                    &pxHigherPriorityTaskWoken );
@@ -35,11 +30,6 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
         cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
     }
     ctx->cb_flags = cb_flags;
-    uint32_t t1 = get_reference_time();
-    if(t1-t0 > 1200) {
-        // printcharln('%');
-        // printintln(t1-t0);
-    }
 
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }
@@ -65,15 +55,9 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
         uint8_t byte = uart_rx(&ctx->dev);
 
         /*  Now store byte and send along with error flags. These will stay in synch. */
-        // uint32_t t0 = get_reference_time();
         s_chan_out_byte(ctx->c.end_a, byte);
         s_chan_out_byte(ctx->c.end_a, ctx->cb_flags);
         ctx->cb_flags = 0;
-        // uint32_t t1 = get_reference_time();
-        // if(t1-t0 > 10) {
-        //     printcharln('%');
-        //     printintln(t1-t0);
-        // }
     }
 }
 
