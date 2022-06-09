@@ -12,10 +12,14 @@ static void uart_tx_local_write(
         const uint8_t buff[],
         size_t n)
 {
+    //In case two threads try to access at the same time
     rtos_osal_mutex_get(&ctx->lock, RTOS_OSAL_WAIT_FOREVER);
 
+    //To prevent interruption of Tx frame
     for(int i = 0; i < n; i++){
+        interrupt_mask_all();
         uart_tx(&ctx->dev, buff[i]);
+        interrupt_unmask_all();
     }
     
     rtos_osal_mutex_put(&ctx->lock);
