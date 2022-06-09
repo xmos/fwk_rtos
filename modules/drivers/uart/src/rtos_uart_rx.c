@@ -12,8 +12,8 @@
 #include "task.h"
 
 //TODO REMOVE THESE DEBUG INCLUDES. Used for profiling
-// #include <print.h>
-// #include <xcore/hwtimer.h>
+#include <print.h>
+#include <xcore/hwtimer.h>
 
 
 DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
@@ -26,7 +26,7 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
     
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
-    // uint32_t t0 = get_reference_time();
+    uint32_t t0 = get_reference_time();
     vTaskNotifyGiveIndexedFromISR( ctx->isr_notification_task,
                                    1,
                                    &pxHigherPriorityTaskWoken );
@@ -35,8 +35,11 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
         cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
     }
     ctx->cb_flags = cb_flags;
-    // uint32_t t1 = get_reference_time();
-    // printintln(t1-t0);
+    uint32_t t1 = get_reference_time();
+    if(t1-t0 > 1200) {
+        // printcharln('%');
+        // printintln(t1-t0);
+    }
 
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }
@@ -46,10 +49,9 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
 
 /* There is no rx_complete callback setup and so cb_flags == 0  means rx_complete no issues */
 HIL_UART_RX_CALLBACK_ATTR
-static void uart_rx_error_callback(void * app_data){
+static void uart_rx_error_callback(uart_callback_code_t callback_code, void * app_data){
     rtos_uart_rx_t *ctx = (rtos_uart_rx_t*) app_data;
-    uart_callback_code_t cb_code = ctx->dev.cb_code;
-    ctx->cb_flags |= (1 << cb_code); /* Or into flag bits. This is an optimisation based on UR_START_BIT_ERR_CB_CODE == 2 */
+    ctx->cb_flags |= (1 << callback_code); /* Or into flag bits. This is an optimisation based on UR_START_BIT_ERR_CB_CODE == 2 */
 }
 
 static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
@@ -63,9 +65,15 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
         uint8_t byte = uart_rx(&ctx->dev);
 
         /*  Now store byte and send along with error flags. These will stay in synch. */
+        // uint32_t t0 = get_reference_time();
         s_chan_out_byte(ctx->c.end_a, byte);
         s_chan_out_byte(ctx->c.end_a, ctx->cb_flags);
         ctx->cb_flags = 0;
+        // uint32_t t1 = get_reference_time();
+        // if(t1-t0 > 10) {
+        //     printcharln('%');
+        //     printintln(t1-t0);
+        // }
     }
 }
 
@@ -86,7 +94,7 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 
     for (;;) {
         /* Block until notification from ISR */
-        uint32_t val = ulTaskNotifyTakeIndexed(1, pdTRUE, portMAX_DELAY);
+        ulTaskNotifyTakeIndexed(1, pdTRUE, portMAX_DELAY);
         uint8_t bytes[RTOS_UART_RX_BUF_LEN];
         unsigned bytes_read = 0;
         uart_buffer_error_t ret = UART_BUFFER_EMPTY;
