@@ -20,6 +20,7 @@
 #include "uart.h"
 
 #include "rtos_osal.h"
+#include "rtos_driver_rpc.h"
 
 /**
  * Typedef to the RTOS UART tx driver instance struct.
