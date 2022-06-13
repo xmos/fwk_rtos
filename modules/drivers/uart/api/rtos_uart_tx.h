@@ -32,6 +32,7 @@ typedef struct rtos_uart_tx_struct rtos_uart_tx_t;
  * The members in this struct should not be accessed directly.
  */
 struct rtos_uart_tx_struct {
+    rtos_driver_rpc_t *rpc_config;
     RTOS_UART_TX_CALL_ATTR void (*write)(rtos_uart_tx_t *, const uint8_t buf[], size_t);
     uart_tx_t dev;
     rtos_osal_mutex_t lock;
