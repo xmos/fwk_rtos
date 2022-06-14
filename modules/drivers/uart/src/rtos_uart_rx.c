@@ -65,9 +65,6 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
 
 static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 {
-
-    /* Setup the receiving notification task handle (this!) */
-    ctx->isr_notification_task = xTaskGetCurrentTaskHandle();
     ctx->cb_flags = 0;
 
     /* send token (synch with HIL logical core) */
@@ -192,9 +189,6 @@ void rtos_uart_rx_start(
 
     /* Setup buffer between uart_app_thread and user app */
     uart_rx_ctx->app_byte_buffer = xStreamBufferCreate(app_rx_buff_size, 1);
-
-    /* This will be setup in the driver_app_thread */
-    uart_rx_ctx->isr_notification_task = NULL;
 
     rtos_osal_thread_create(
             &uart_rx_ctx->app_thread,
