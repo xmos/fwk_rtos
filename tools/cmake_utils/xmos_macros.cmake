@@ -15,7 +15,7 @@ macro(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _TILE_NUM_TO
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OTHER_TILE_NAME}_split
         COMMAND xobjdump --split --split-dir ${OTHER_TILE_NAME}_split ${OTHER_TILE_NAME}.xe
         COMMAND xobjdump ${BASE_TILE_NAME}.xe -r 0,${_TILE_NUM_TO_MERGE},${OTHER_TILE_NAME}_split/image_n0c${_TILE_NUM_TO_MERGE}_2.elf
-        COMMAND cp ${BASE_TILE_NAME}.xe ${_OUTPUT_TARGET_NAME}.xe
+        COMMAND ${CMAKE_COMMAND} -E copy ${BASE_TILE_NAME}.xe ${_OUTPUT_TARGET_NAME}.xe
         DEPENDS
             ${_BASE_TARGET}
             ${_OTHER_TARGET}
