@@ -135,6 +135,29 @@ struct rtos_uart_rx_struct {
     rtos_osal_thread_t app_thread;
 };
 
+
+/**
+ * Reads data from a UART Rx instance. It will read up to n bytes or timeout,
+ * whichever comes first.
+ *
+ * \param ctx             A pointer to the UART Rx driver instance to use.
+ * \param buf             The buffer to be written with the read UART bytes.
+ * \param buf_len         The number of bytes to write.
+ * \param timeout         How long in ticks before the read operation should timeout.
+ * 
+ * \returns               The number of bytes read.
+ */
+size_t rtos_uart_rx_read(rtos_uart_rx_t *uart_rx_ctx, uint8_t *buf, size_t n, TickType_t timeout);
+
+
+/**
+ * Resets the receive buffer. Clears the contents and sets number of items rto zero.
+ *
+ * \param ctx             A pointer to the UART Rx driver instance to use.
+  */
+void rtos_uart_rx_reset_buffer(rtos_uart_rx_t *uart_rx_ctx);
+
+
 /**
  * Initializes an RTOS UART rx driver instance.
  * This must only be called by the tile that owns the driver instance. It should be

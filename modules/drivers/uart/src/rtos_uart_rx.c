@@ -107,6 +107,27 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 }
 
 
+size_t rtos_uart_rx_read(rtos_uart_rx_t *ctx, uint8_t *buf, size_t n, TickType_t timeout){
+    size_t num_read_total = 0;
+    TickType_t timeout_accumulated = 0;
+    while(num_read_total < n && timeout_accumulated < timeout){
+        TickType_t t0 = xTaskGetTickCount();
+        size_t num_rx = xStreamBufferReceive(ctx->app_byte_buffer,
+                                            &buf[num_read_total],
+                                            n - num_read_total,
+                                            timeout - timeout_accumulated);
+        TickType_t t1 = xTaskGetTickCount();
+
+        num_read_total += num_rx;
+        timeout_accumulated += t1 - t0;
+    }
+    return num_read_total;
+}
+
+void rtos_uart_rx_reset_buffer(rtos_uart_rx_t *ctx){
+    xStreamBufferReset(ctx->app_byte_buffer);
+}
+
 
 void rtos_uart_rx_init(
         rtos_uart_rx_t *uart_rx_ctx,
