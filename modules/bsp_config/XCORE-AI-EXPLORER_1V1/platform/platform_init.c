@@ -7,6 +7,10 @@
 #include "platform/app_pll_ctrl.h"
 #include "platform/driver_instances.h"
 
+#ifndef appconfUART_BAUD_RATE
+#define appconfUART_BAUD_RATE 115200
+#endif
+
 static void mclk_init(void)
 {
 #if ON_TILE(1)
@@ -199,13 +203,11 @@ static void uart_init(void)
 #if ON_TILE(UART_TILE_NO)
     hwtimer_t tmr_rx = hwtimer_alloc();
 
-    const unsigned baud_rate = 512000;
-
     rtos_uart_rx_init(
             uart_rx_ctx,
             (1 << appconfUART_RX_IO_CORE),
             XS1_PORT_1M, //X1D36
-            baud_rate,
+            appconfUART_BAUD_RATE,
             8,
             UART_PARITY_NONE,
             1,
@@ -217,7 +219,7 @@ static void uart_init(void)
     rtos_uart_tx_init(
             uart_tx_ctx,
             XS1_PORT_1P,  //X1D39
-            baud_rate,
+            appconfUART_BAUD_RATE,
             8,
             UART_PARITY_NONE,
             1,
