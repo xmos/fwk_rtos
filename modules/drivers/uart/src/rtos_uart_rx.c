@@ -22,7 +22,9 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
     
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
-    vTaskNotifyGiveIndexedFromISR( ctx->isr_notification_task,
+    /* We already know the task handle of the receiver so cast to correct type */
+    TaskHandle_t* notified_task = (TaskHandle_t*)&ctx->app_thread;
+    vTaskNotifyGiveIndexedFromISR( *notified_task,
                                    1,
                                    &pxHigherPriorityTaskWoken );
     uart_buffer_error_t err = push_byte_into_buffer(&ctx->isr_to_app_fifo, byte);

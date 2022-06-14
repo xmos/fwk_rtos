@@ -126,7 +126,6 @@ struct rtos_uart_rx_struct {
 
     streaming_channel_t c;
 
-    TaskHandle_t isr_notification_task;
     uart_buffer_t isr_to_app_fifo;
     uint8_t isr_to_app_fifo_storage[RTOS_UART_RX_BUF_LEN];
     uint8_t cb_flags;
