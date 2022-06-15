@@ -18,20 +18,16 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
 
     /* Grab byte received from rx which triggered ISR */
     uint8_t byte = s_chan_in_byte(ctx->c.end_b);
-    uint8_t cb_flags = s_chan_in_byte(ctx->c.end_b);
     
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
     /* We already know the task handle of the receiver so cast to correct type */
     TaskHandle_t* notified_task = (TaskHandle_t*)&ctx->app_thread;
-    vTaskNotifyGiveIndexedFromISR( *notified_task,
-                                   1,
-                                   &pxHigherPriorityTaskWoken );
+    vTaskNotifyGiveFromISR( *notified_task, &pxHigherPriorityTaskWoken);
     uart_buffer_error_t err = push_byte_into_buffer(&ctx->isr_to_app_fifo, byte);
     if(err != UART_BUFFER_OK){
-        cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
+        ctx->cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
     }
-    ctx->cb_flags = cb_flags;
 
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }
@@ -56,10 +52,8 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
     for (;;) {
         uint8_t byte = uart_rx(&ctx->dev);
 
-        /*  Now store byte and send along with error flags. These will stay in synch. */
+        /*  Now store byte and send to trigger ISR */
         s_chan_out_byte(ctx->c.end_a, byte);
-        s_chan_out_byte(ctx->c.end_a, ctx->cb_flags);
-        ctx->cb_flags = 0;
     }
 }
 
@@ -77,7 +71,7 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 
     for (;;) {
         /* Block until notification from ISR */
-        ulTaskNotifyTakeIndexed(1, pdTRUE, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         uint8_t bytes[RTOS_UART_RX_BUF_LEN];
         unsigned bytes_read = 0;
         uart_buffer_error_t ret = UART_BUFFER_EMPTY;
@@ -85,7 +79,7 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
             ret = pop_byte_from_buffer(&ctx->isr_to_app_fifo, &bytes[bytes_read]);
             bytes_read += 1;
         } while(ret == UART_BUFFER_OK);
-        bytes_read -= 1; /* important as we incremented this for the read fail too */
+        bytes_read -= 1; /* important as we incremented this for the last read fail too */
     
         if(bytes_read){
             size_t xBytesSent = xStreamBufferSend(ctx->app_byte_buffer, bytes, bytes_read, 0);
