@@ -147,7 +147,7 @@ struct rtos_uart_rx_struct {
  * 
  * \returns               The number of bytes read.
  */
-size_t rtos_uart_rx_read(rtos_uart_rx_t *uart_rx_ctx, uint8_t *buf, size_t n, TickType_t timeout);
+size_t rtos_uart_rx_read(rtos_uart_rx_t *uart_rx_ctx, uint8_t *buf, size_t n, rtos_osal_tick_t timeout);
 
 
 /**
