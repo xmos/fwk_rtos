@@ -51,6 +51,17 @@ macro(create_debug_target _EXECUTABLE_NAME)
     )
 endmacro()
 
+## Creates a filesystem file for a provided binary
+##   filename must end in "_fat.fs"
+macro(create_filesystem_target _EXECUTABLE_NAME)
+    add_custom_target(make_fs_${_EXECUTABLE_NAME}
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_NAME}_fat.fs ${_EXECUTABLE_NAME}_fat.fs
+      DEPENDS ${_EXECUTABLE_NAME}_fat.fs
+      COMMENT
+        "Make filesystem"
+    )
+endmacro()
+
 ## Creates a flash app target for a provided binary
 macro(create_flash_app_target _EXECUTABLE_NAME)
     add_custom_target(flash_app_${_EXECUTABLE_NAME}
