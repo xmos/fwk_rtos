@@ -109,7 +109,7 @@ size_t rtos_uart_rx_read(rtos_uart_rx_t *ctx, uint8_t *buf, size_t n, rtos_osal_
         size_t num_rx = xStreamBufferReceive(ctx->app_byte_buffer,
                                             &buf[num_read_total],
                                             n - num_read_total,
-                                            timeout - timeout_accumulated);
+                                            timeout - time_elapsed);
         num_read_total += num_rx;
         time_elapsed = rtos_osal_tick_get() - t_entry;
     }
