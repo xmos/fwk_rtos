@@ -29,3 +29,9 @@ rtos_i2c_master_t *i2c_master_ctx = &i2c_master_ctx_s;
 
 static rtos_i2s_t i2s_ctx_s;
 rtos_i2s_t *i2s_ctx = &i2s_ctx_s;
+
+static rtos_uart_tx_t uart_tx_ctx_s;
+rtos_uart_tx_t *uart_tx_ctx = &uart_tx_ctx_s;
+
+static rtos_uart_rx_t uart_rx_ctx_s;
+rtos_uart_rx_t *uart_rx_ctx = &uart_rx_ctx_s;
