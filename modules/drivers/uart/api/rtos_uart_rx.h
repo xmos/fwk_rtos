@@ -47,10 +47,11 @@
  * hold sufficient bytes received until the app_thread is able to service it.
  * This is not the same as app_byte_buffer_size which can be of any size, specified by 
  * the user at device start.
- * At 1Mbps we get a byte every 10us so 64B allows 640us for the app thread to respond
+ * At 1Mbps we get a byte every 10us so 64B allows 640us for the app thread to respond.
+ * Note buffer is size n+1 as required by lib_uart.
  */
 #ifndef RTOS_UART_RX_BUF_LEN
-#define RTOS_UART_RX_BUF_LEN 64
+#define RTOS_UART_RX_BUF_LEN (64 + 1)
 #endif
 
 /**
