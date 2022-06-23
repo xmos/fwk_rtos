@@ -38,16 +38,14 @@ struct rtos_uart_tx_struct {
 };
 
 
-/**
- * \addtogroup rtos_uart_tx_driver_core rtos_uart_tx_driver_core
- *
- * The core functions for using an RTOS UART tx driver instance after
- * it has been initialized and started. 
- * @{
- */
 
 /**
- * Writes data to an UART instance.
+ * Writes data to an initialized and started UART instance.
+ * Unlike the UART rx, an xcore logical core is not reserved. The UART transmission
+ * is a function call and the the function blocks until the stop bit of the last
+ * byte to be transmittted has completed. Interrupts are masked during this time
+ * to avoid stretching of the waveform. Consequently, the tx consumes cycles from
+ * the caller thread.
  *
  * \param ctx             A pointer to the UART Tx driver instance to use.
  * \param buf             The buffer containing data to write.
@@ -70,7 +68,7 @@ inline void rtos_uart_tx_write(
  * \param ctx           A pointer to the UART tx driver instance to initialise.
  * \param tx_port       The port containing the transmit pin
  * \param baud_rate     The baud rate of the UART in bits per second.
- * \param data_bits     The number of data bits per frame sent.
+ * \param num_data_bits The number of data bits per frame sent.
  * \param parity        The type of parity used. See uart_parity_t above.
  * \param stop_bits     The number of stop bits asserted at the of the frame. 
  * \param tmr           The resource id of the timer to be used by the UART tx. 
@@ -92,7 +90,7 @@ void rtos_uart_tx_init(
  *
  * rtos_uart_tx_init() must be called on this UART tx driver instance prior to calling this.
  *
- * \param rtos_uart_tx_t A pointer to the UART tx driver instance to start.
+ * \param ctx       A pointer to the UART tx driver instance to start.
  */
 void rtos_uart_tx_start(
         rtos_uart_tx_t *ctx);
