@@ -47,7 +47,12 @@ struct rtos_uart_tx_struct {
  */
 
 /**
- * Writes data to an UART instance.
+ * Writes data to an initialized and started UART instance.
+ * Unlike the UART rx, an xcore logical core is not reserved. The UART transmission
+ * is a function call and the the function blocks until the stop bit of the last
+ * byte to be transmittted has completed. Interrupts are masked during this time
+ * to avoid stretching of the waveform. Consequently, the tx consumes cycles from
+ * the caller thread.
  *
  * \param ctx             A pointer to the UART Tx driver instance to use.
  * \param buf             The buffer containing data to write.

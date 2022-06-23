@@ -163,6 +163,8 @@ void rtos_uart_rx_reset_buffer(rtos_uart_rx_t *uart_rx_ctx);
  * Initializes an RTOS UART rx driver instance.
  * This must only be called by the tile that owns the driver instance. It should be
  * called before starting the RTOS, and must be called before calling rtos_uart_rx_start().
+ * Note that UART rx requires a whole logical core for the underlying HIL UART Rx instance.
+ *  
  *
  * \param uart_rx_ctx A pointer to the UART rx driver instance to initialize.
  * \param io_core_mask  A bitmask representing the cores on which the low UART Rx thread
@@ -188,7 +190,7 @@ void rtos_uart_rx_init(
 
 /**
  * Starts an RTOS UART rx driver instance. This must only be called by the tile that
- * owns the driver instance. It must be called after starting the RTOS from an RTOS thread.
+ * owns the driver instance. It must be called after starting the RTOS and from an RTOS thread.
  *
  * rtos_uart_rx_init() must be called on this UART rx driver instance prior to calling this.
  *
