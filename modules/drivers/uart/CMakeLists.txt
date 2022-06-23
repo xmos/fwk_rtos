@@ -5,6 +5,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     target_sources(framework_rtos_drivers_uart
         INTERFACE
             src/rtos_uart_tx.c
+            src/rtos_uart_tx_rpc.c
             src/rtos_uart_rx.c
     )
     target_include_directories(framework_rtos_drivers_uart

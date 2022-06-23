@@ -9,7 +9,7 @@ enum {
 };
 
 RTOS_UART_TX_CALL_ATTR
-inline void rtos_uart_tx_remote_write(
+void rtos_uart_tx_remote_write(
         rtos_uart_tx_t *ctx,
         const uint8_t buf[],
         size_t n)
@@ -20,7 +20,7 @@ inline void rtos_uart_tx_remote_write(
     xassert(host_address->port >= 0);
 
     const rpc_param_desc_t rpc_param_desc[] = {
-            RPC_PARAM_TYPE(uart_tx_ctx),
+            RPC_PARAM_TYPE(ctx),
             RPC_PARAM_IN_BUFFER(buf, n),
             RPC_PARAM_LIST_END
     };
@@ -29,7 +29,6 @@ inline void rtos_uart_tx_remote_write(
             host_address->intertile_ctx, host_address->port, fcode_write, rpc_param_desc,
             &host_ctx_ptr, buf, &n);
 
-    return ret;
 }
 
 
@@ -45,7 +44,7 @@ static int uart_tx_write_rpc_host(rpc_msg_t *rpc_msg, uint8_t **resp_msg)
             rpc_msg,
             &ctx, &buf, &n);
 
-    ret = rtos_uart_tx_write(ctx, buf, n);
+    rtos_uart_tx_write(ctx, buf, n);
 
     msg_length = rpc_response_marshall(resp_msg, rpc_msg, ctx, buf, n);
 
