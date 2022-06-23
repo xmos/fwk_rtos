@@ -18,7 +18,7 @@
 #include "stream_buffer.h"
 
 /**
- * The callback code bit positions and flag masks available for RTOS UART Rx.
+ * The callback code bit positions available for RTOS UART Rx.
  */
 #define UR_COMPLETE_CB_CODE       0
 #define UR_STARTED_CB_CODE        1
@@ -27,6 +27,9 @@
 #define UR_FRAMING_ERR_CB_CODE    4
 #define UR_OVERRUN_ERR_CB_CODE    5
 
+/**
+ * The callback code flag masks available for RTOS UART Rx.
+ */
 #define UR_COMPLETE_CB_FLAG        (1 << UR_COMPLETE_CB_CODE)
 #define UR_STARTED_CB_FLAG         (1 << UR_STARTED_CB_CODE)
 #define UR_START_BIT_ERR_CB_FLAG   (1 << UR_START_BIT_ERR_CB_CODE)
@@ -116,7 +119,6 @@ typedef void (*rtos_uart_rx_error_t)(rtos_uart_rx_t *ctx, uint8_t err_flags);
 struct rtos_uart_rx_struct {
     uart_rx_t dev;
 
-    /* TODO Not currently used. Either incorporate or stick with streambuffer usages */
     RTOS_UART_RX_CALL_ATTR void (*read)(rtos_uart_rx_t *, uint8_t buf[], size_t *num_bytes);
 
     void *app_data;
@@ -141,9 +143,9 @@ struct rtos_uart_rx_struct {
  * Reads data from a UART Rx instance. It will read up to n bytes or timeout,
  * whichever comes first.
  *
- * \param ctx             A pointer to the UART Rx driver instance to use.
+ * \param uart_rx_ctx     A pointer to the UART Rx driver instance to use.
  * \param buf             The buffer to be written with the read UART bytes.
- * \param buf_len         The number of bytes to write.
+ * \param n               The number of bytes to write.
  * \param timeout         How long in ticks before the read operation should timeout.
  * 
  * \returns               The number of bytes read.
@@ -154,7 +156,7 @@ size_t rtos_uart_rx_read(rtos_uart_rx_t *uart_rx_ctx, uint8_t *buf, size_t n, rt
 /**
  * Resets the receive buffer. Clears the contents and sets number of items rto zero.
  *
- * \param ctx             A pointer to the UART Rx driver instance to use.
+ * \param uart_rx_ctx      A pointer to the UART Rx driver instance to use.
   */
 void rtos_uart_rx_reset_buffer(rtos_uart_rx_t *uart_rx_ctx);
 
@@ -199,7 +201,7 @@ void rtos_uart_rx_init(
  *                          the callback functions available in rtos_uart_rx_struct.
  * \param start             The callback function that is called when the driver's
  *                          thread starts. This is optional and may be NULL.
- * \param rx                The callback function to indicate data received by the UART.
+ * \param rx_complete       The callback function to indicate data received by the UART.
  * \param error             The callback function called when a reception error has occured.
  * \param interrupt_core_id The ID of the core on which to enable the UART rx interrupt.
  * \param priority          The priority of the task that gets created by the driver to
