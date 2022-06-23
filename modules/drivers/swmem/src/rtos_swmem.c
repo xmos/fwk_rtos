@@ -175,3 +175,8 @@ void rtos_swmem_init(uint32_t init_flags)
         swmem_evict_res = swmem_evict_get();
     }
 }
+
+unsigned int rtos_swmem_offset_get()
+{
+    return __swmem_address;
+}

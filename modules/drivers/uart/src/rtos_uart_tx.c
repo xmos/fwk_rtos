@@ -17,9 +17,9 @@ static void uart_tx_local_write(
 
     //To prevent interruption of Tx frame
     for(int i = 0; i < n; i++){
-        interrupt_mask_all();
+        rtos_interrupt_mask_all();
         uart_tx(&ctx->dev, buff[i]);
-        interrupt_unmask_all();
+        rtos_interrupt_unmask_all();
     }
     
     rtos_osal_mutex_put(&ctx->lock);

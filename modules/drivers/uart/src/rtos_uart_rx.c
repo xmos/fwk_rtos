@@ -18,18 +18,16 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
 
     /* Grab byte received from rx which triggered ISR */
     uint8_t byte = s_chan_in_byte(ctx->c.end_b);
-    uint8_t cb_flags = s_chan_in_byte(ctx->c.end_b);
     
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
-    vTaskNotifyGiveIndexedFromISR( ctx->isr_notification_task,
-                                   1,
-                                   &pxHigherPriorityTaskWoken );
+    /* We already know the task handle of the receiver so cast to correct type */
+    TaskHandle_t* notified_task = (TaskHandle_t*)&ctx->app_thread;
+    vTaskNotifyGiveFromISR( *notified_task, &pxHigherPriorityTaskWoken);
     uart_buffer_error_t err = push_byte_into_buffer(&ctx->isr_to_app_fifo, byte);
     if(err != UART_BUFFER_OK){
-        cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
+        ctx->cb_flags |= UR_OVERRUN_ERR_CB_FLAG;
     }
-    ctx->cb_flags = cb_flags;
 
     portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
 }
@@ -54,18 +52,13 @@ static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
     for (;;) {
         uint8_t byte = uart_rx(&ctx->dev);
 
-        /*  Now store byte and send along with error flags. These will stay in synch. */
+        /*  Now store byte and send to trigger ISR */
         s_chan_out_byte(ctx->c.end_a, byte);
-        s_chan_out_byte(ctx->c.end_a, ctx->cb_flags);
-        ctx->cb_flags = 0;
     }
 }
 
 static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 {
-
-    /* Setup the receiving notification task handle (this!) */
-    ctx->isr_notification_task = xTaskGetCurrentTaskHandle();
     ctx->cb_flags = 0;
 
     /* send token (synch with HIL logical core) */
@@ -78,7 +71,7 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
 
     for (;;) {
         /* Block until notification from ISR */
-        ulTaskNotifyTakeIndexed(1, pdTRUE, portMAX_DELAY);
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
         uint8_t bytes[RTOS_UART_RX_BUF_LEN];
         unsigned bytes_read = 0;
         uart_buffer_error_t ret = UART_BUFFER_EMPTY;
@@ -86,7 +79,7 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
             ret = pop_byte_from_buffer(&ctx->isr_to_app_fifo, &bytes[bytes_read]);
             bytes_read += 1;
         } while(ret == UART_BUFFER_OK);
-        bytes_read -= 1; /* important as we incremented this for the read fail too */
+        bytes_read -= 1; /* important as we incremented this for the last read fail too */
     
         if(bytes_read){
             size_t xBytesSent = xStreamBufferSend(ctx->app_byte_buffer, bytes, bytes_read, 0);
@@ -107,6 +100,25 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
     }
 }
 
+
+size_t rtos_uart_rx_read(rtos_uart_rx_t *ctx, uint8_t *buf, size_t n, rtos_osal_tick_t timeout){
+    rtos_osal_tick_t t_entry = rtos_osal_tick_get();
+    size_t num_read_total = 0;
+    rtos_osal_tick_t time_elapsed = 0;
+    while(num_read_total < n && time_elapsed < timeout){
+        size_t num_rx = xStreamBufferReceive(ctx->app_byte_buffer,
+                                            &buf[num_read_total],
+                                            n - num_read_total,
+                                            timeout - time_elapsed);
+        num_read_total += num_rx;
+        time_elapsed = rtos_osal_tick_get() - t_entry;
+    }
+    return num_read_total;
+}
+
+void rtos_uart_rx_reset_buffer(rtos_uart_rx_t *ctx){
+    xStreamBufferReset(ctx->app_byte_buffer);
+}
 
 
 void rtos_uart_rx_init(
@@ -190,9 +202,6 @@ void rtos_uart_rx_start(
 
     /* Setup buffer between uart_app_thread and user app */
     uart_rx_ctx->app_byte_buffer = xStreamBufferCreate(app_rx_buff_size, 1);
-
-    /* This will be setup in the driver_app_thread */
-    uart_rx_ctx->isr_notification_task = NULL;
 
     rtos_osal_thread_create(
             &uart_rx_ctx->app_thread,

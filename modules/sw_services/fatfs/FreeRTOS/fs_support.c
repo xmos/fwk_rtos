@@ -5,7 +5,7 @@
 
 #include "fs_support.h"
 
-rtos_qspi_flash_t *ff_qspi_flash_ctx;
+rtos_qspi_flash_t *ff_qspi_flash_ctx = NULL;
 
 #if RTOS_FREERTOS
 #include "FreeRTOS.h"
@@ -35,6 +35,8 @@ rtos_qspi_flash_t *ff_qspi_flash_ctx;
 
 int rtos_ff_get_file(const char* filename, FIL* outfile, unsigned int* len )
 {
+	xassert(ff_qspi_flash_ctx); // ensure rtos_fatfs_init has been called
+
 	int retval = FS_SUP_FAIL;
 
 	if( ( outfile != NULL ) && ( filename != NULL ) )

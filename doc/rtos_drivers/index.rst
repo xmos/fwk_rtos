@@ -18,6 +18,7 @@ I/O
    qspi_flash
    mic_array
    usb
+   uart/uart
 
 *****
 XCORE
