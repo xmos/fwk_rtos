@@ -22,6 +22,7 @@ void rtos_uart_tx_remote_write(
     const rpc_param_desc_t rpc_param_desc[] = {
             RPC_PARAM_TYPE(ctx),
             RPC_PARAM_IN_BUFFER(buf, n),
+            RPC_PARAM_TYPE(n),
             RPC_PARAM_LIST_END
     };
 
