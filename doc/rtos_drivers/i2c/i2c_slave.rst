@@ -4,7 +4,7 @@
 |I2C| Slave RTOS Driver
 #######################
 
-This driver can be used to instantiate and control an |I2C| slave I/O interface on XCore in an RTOS application.
+This driver can be used to instantiate and control an |I2C| slave I/O interface on xcore in an RTOS application.
 
 ***************
 |I2C| Slave API

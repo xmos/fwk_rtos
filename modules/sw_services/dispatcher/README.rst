@@ -2,7 +2,7 @@
 Dispatcher
 ##########
 
-The Dispatcher is a job queue for XCore that can simplify dispatching jobs. 
+The Dispatcher is a job queue for xcore that can simplify dispatching jobs. 
 
 **********
 Public API

@@ -4,7 +4,7 @@
 UART Rx RTOS Driver
 ###################
 
-This driver can be used to instantiate and control an UART Rx I/O interface on XCore in an RTOS application.
+This driver can be used to instantiate and control an UART Rx I/O interface on xcore in an RTOS application.
 
 ***********
 UART Rx API

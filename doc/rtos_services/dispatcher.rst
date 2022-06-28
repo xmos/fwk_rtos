@@ -2,7 +2,7 @@
 Dispatcher
 ##########
 
-The Dispatcher is a job queue for XCore that can simplify dispatching jobs. Two job worker configuration types are supported; threads or interrupt service routines (ISR). The thread worker configuration is the most flexible while the ISR worker configuration has the least runtime overhead.
+The Dispatcher is a job queue for xcore that can simplify dispatching jobs. Two job worker configuration types are supported; threads or interrupt service routines (ISR). The thread worker configuration is the most flexible while the ISR worker configuration has the least runtime overhead.
 
 This document covers the Dispatcher concepts and includes code snippets to demonstrate usage. A full dispatcher code example is provided at the end of this document.
 

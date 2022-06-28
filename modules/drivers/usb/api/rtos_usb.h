@@ -290,11 +290,11 @@ void rtos_usb_start(
  * the highest priority and with preemption disabled.
  *
  * \note Due to implementation details of lib_xud, it is only possible to have one
- * USB instance per application. Functionally this is not an issue, as no XCore chips
+ * USB instance per application. Functionally this is not an issue, as no xcore chips
  * have more than one USB interface.
  *
  * \note If using the Tiny USB stack, then this function should not be called directly
- * by the application. The XCore device port for Tiny USB takes care of calling this, as
+ * by the application. The xcore device port for Tiny USB takes care of calling this, as
  * well as all other USB driver functions.
  *
  * \param ctx               A pointer to the USB driver instance to start.
@@ -346,13 +346,13 @@ XUD_Result_t rtos_usb_simple_transfer_complete(rtos_usb_t *ctx,
  * is not using a USB stack. This allows application threads to wait for transfers to complete
  * with the rtos_usb_simple_transfer_complete() function. The application cannot provide its
  * own ISR callback when initialized with this function. This provides a similar programming
- * interface as a traditional bare metal XCore application using lib_xud.
+ * interface as a traditional bare metal xcore application using lib_xud.
  *
  * This will create an RTOS thread that runs lib_xud's main loop. This thread is created with
  * the highest priority and with preemption disabled.
  *
  * \note Due to implementation details of lib_xud, it is only possible to have one
- * USB instance per application. Functionally this is not an issue, as no XCore chips
+ * USB instance per application. Functionally this is not an issue, as no xcore chips
  * have more than one USB interface.
  *
  * \param ctx               A pointer to the USB driver instance to start.

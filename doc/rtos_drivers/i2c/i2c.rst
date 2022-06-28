@@ -4,7 +4,7 @@
 |I2C| RTOS Driver
 #################
 
-This driver can be used to instantiate and control an |I2C| master or slave mode I/O interface on XCore in an RTOS application.
+This driver can be used to instantiate and control an |I2C| master or slave mode I/O interface on xcore in an RTOS application.
 
 .. toctree::
    :maxdepth: 2
