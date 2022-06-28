@@ -254,7 +254,7 @@ inline void rtos_clock_control_reset_links(
  * VCO must be between 260MHz and 1.3GHz for XS2
  * Core freq = VCO / (OD + 1)
  *
- * Refer to the XCore Clock Frequency Control document for more details.
+ * Refer to the xcore Clock Frequency Control document for more details.
  *
  * Note: This function will not reset the chip and wait for the PLL to settle
  * before re-enabling the chip to allow for large frequency jumps.  This will

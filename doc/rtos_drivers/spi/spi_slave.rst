@@ -2,7 +2,7 @@
 SPI Slave RTOS Driver
 #####################
 
-This driver can be used to instantiate and control a SPI slave I/O interface on XCore in an RTOS application.
+This driver can be used to instantiate and control a SPI slave I/O interface on xcore in an RTOS application.
 
 *************
 SPI Slave API

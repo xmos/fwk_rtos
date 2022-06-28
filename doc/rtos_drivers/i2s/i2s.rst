@@ -4,7 +4,7 @@
 |I2S| RTOS Driver
 #################
 
-This driver can be used to instantiate and control an |I2S| master or slave mode I/O interface on XCore in an RTOS application.
+This driver can be used to instantiate and control an |I2S| master or slave mode I/O interface on xcore in an RTOS application.
 
 ******************
 Initialization API
@@ -34,7 +34,7 @@ The following functions are the core |I2S| driver functions that are used after 
 RPC Initialization API
 **********************
 
-The following functions may be used to share a |I2S| driver instance with other XCore tiles. Tiles that the
+The following functions may be used to share a |I2S| driver instance with other xcore tiles. Tiles that the
 driver instance is shared with may call any of the core functions listed above.
 
 .. doxygengroup:: rtos_i2s_driver_rpc

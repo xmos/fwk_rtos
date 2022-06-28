@@ -1,7 +1,7 @@
 .. include:: ../../../substitutions.rst
 
 ########################
-Device Control XCore API
+Device Control XCORE API
 ########################
 
 The following structures and functions are used to initialize and start a control instance on the xcore device. 
