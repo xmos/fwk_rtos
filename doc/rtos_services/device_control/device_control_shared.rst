@@ -1,4 +1,4 @@
-.. include:: ../../../substitutions.rst
+.. include:: ../../substitutions.rst
 
 #########################
 Device Control Shared API
