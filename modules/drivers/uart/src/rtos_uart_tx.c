@@ -30,6 +30,10 @@ void rtos_uart_tx_start(
         rtos_uart_tx_t *uart_tx_ctx)
 {
     rtos_osal_mutex_create(&uart_tx_ctx->lock, "uart_tx_lock", RTOS_OSAL_RECURSIVE);
+
+    if (uart_tx_ctx->rpc_config != NULL && uart_tx_ctx->rpc_config->rpc_host_start != NULL) {
+        uart_tx_ctx->rpc_config->rpc_host_start(uart_tx_ctx->rpc_config);
+    }
 }
 
 void rtos_uart_tx_init(
