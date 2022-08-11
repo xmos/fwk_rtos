@@ -49,6 +49,7 @@ struct rtos_spi_master_struct {
     spi_master_t ctx;
 
     unsigned op_task_priority;
+    uint32_t core_map;
     rtos_osal_thread_t op_task;
     rtos_osal_queue_t xfer_req_queue;
     rtos_osal_semaphore_t data_ready;

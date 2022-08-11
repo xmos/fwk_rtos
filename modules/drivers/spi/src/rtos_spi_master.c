@@ -37,6 +37,13 @@ static void spi_xfer_thread(rtos_spi_master_t *ctx)
                 current_priority = req.priority;
             }
 
+            /* Save current core map */
+            rtos_osal_thread_core_exclusion_get(NULL, &ctx->core_map);
+
+            /* SPI master transactions may be done in pieces.  For the duration
+             * of the transaction we must ensure that this thread stays on the same core */
+            rtos_osal_thread_core_exclusion_set(NULL, ~(1 << rtos_core_id_get()));
+
             spi_master_start_transaction(&req.ctx->dev_ctx);
             break;
 
@@ -68,6 +75,8 @@ static void spi_xfer_thread(rtos_spi_master_t *ctx)
 
         case SPI_OP_END:
             spi_master_end_transaction(&req.ctx->dev_ctx);
+
+            rtos_osal_thread_core_exclusion_set(NULL, ctx->core_map);
 
             if (current_priority != ctx->op_task_priority) {
                 rtos_osal_thread_priority_set(&ctx->op_task, ctx->op_task_priority);
