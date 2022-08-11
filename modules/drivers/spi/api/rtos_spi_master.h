@@ -83,6 +83,11 @@ struct rtos_spi_master_device_struct {
  * Starts a transaction with the specified SPI device on a SPI bus.
  * This leaves chip select asserted.
  *
+ * Note: When this is called, the servicer thread will be locked to the core
+ * that it executed on until rtos_spi_master_transaction_end() is called.
+ * This is because the underlying I/O software utilized fast mode and high
+ * priority.
+ *
  * \param ctx A pointer to the SPI device instance.
  */
 inline void rtos_spi_master_transaction_start(
