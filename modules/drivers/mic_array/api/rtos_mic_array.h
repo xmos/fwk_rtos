@@ -61,6 +61,8 @@ struct rtos_mic_array_struct {
         volatile size_t total_read;
         volatile size_t required_available_count;
     } recv_buffer;
+    
+    int32_t isr_decoupling_buf[MIC_ARRAY_CONFIG_SAMPLES_PER_FRAME * MIC_ARRAY_CONFIG_MIC_COUNT];
 };
 
 #include "rtos_mic_array_rpc.h"
