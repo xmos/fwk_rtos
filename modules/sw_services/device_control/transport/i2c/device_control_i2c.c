@@ -60,8 +60,9 @@ size_t device_control_i2c_tx_start_cb(rtos_i2c_slave_t *ctx,
     rtos_printf("I2C read started - device control status %d\n", ret);
 
     if (ret != CONTROL_SUCCESS) {
-        (*data)[0] = (control_status_t) ret;
-        len = 1;
+        //(*data)[0] = (control_status_t) ret;
+        //len = 1;
+        *data = NULL;
     }
 
     return len;
