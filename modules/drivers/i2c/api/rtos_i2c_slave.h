@@ -32,6 +32,12 @@
 #define RTOS_I2C_SLAVE_CALLBACK_ATTR __attribute__((fptrgroup("rtos_i2c_slave_cb_fptr_grp")))
 
 /**
+ * This attribute must be specified on all RTOS I2C slave rtos_i2c_slave_rx_byte_check_cb_t
+ * provided by the application.
+ */
+#define RTOS_I2C_SLAVE_RX_BYTE_CHECK_CALLBACK_ATTR __attribute__((fptrgroup("rtos_i2c_slave_rx_byte_check_cb_fptr_grp")))
+
+/**
  * Typedef to the RTOS I2C slave driver instance struct.
  */
 typedef struct rtos_i2c_slave_struct rtos_i2c_slave_t;
@@ -105,6 +111,27 @@ typedef size_t (*rtos_i2c_slave_tx_start_cb_t)(rtos_i2c_slave_t *ctx, void *app_
 typedef void (*rtos_i2c_slave_tx_done_cb_t)(rtos_i2c_slave_t *ctx, void *app_data, uint8_t *data, size_t len);
 
 /**
+ * Function pointer type for application provided function to check bytes received from master individually.
+ *
+ * This callback function is called once per byte received from the master device.
+ * 
+ * The application may want to use this, for example, to check byte by byte and force a NACK for an unexpected
+ * payload.
+ * 
+ * The user provided functions must be marked with RTOS_I2C_SLAVE_MASTER_SENT_BYTE_CHECK_CALLBACK_ATTR.
+ *
+ * \param ctx           A pointer to the associated I2C slave driver instance.
+ * \param app_data      A pointer to application specific data provided
+ *                      by the application. Used to share data between
+ *                      this callback function and the application.
+ * \param data          A copy of the most recent byte of data transmitted from the master.
+ * \param cur_status    A pointer to the current ACK/NACK response for this byte.
+ *                      The application may change this to I2C_SLAVE_ACK or I2C_SLAVE_NACK.
+ *                      If cur_status is returned as an invalid value, the driver will implicitly NACK.
+ */
+typedef void (*rtos_i2c_slave_rx_byte_check_cb_t)(rtos_i2c_slave_t *ctx, void *app_data, uint8_t data, i2c_slave_ack_t *cur_status);
+
+/**
  * Struct representing an RTOS I2C slave driver instance.
  *
  * The members in this struct should not be accessed directly.
@@ -130,6 +157,8 @@ struct rtos_i2c_slave_struct {
     RTOS_I2C_SLAVE_CALLBACK_ATTR rtos_i2c_slave_tx_start_cb_t tx_start;
     RTOS_I2C_SLAVE_CALLBACK_ATTR rtos_i2c_slave_tx_done_cb_t tx_done;
 
+    RTOS_I2C_SLAVE_RX_BYTE_CHECK_CALLBACK_ATTR rtos_i2c_slave_rx_byte_check_cb_t rx_byte_check;
+
     streaming_channel_t c;
     rtos_osal_event_group_t events;
     rtos_osal_thread_t hil_thread;
@@ -142,18 +171,19 @@ struct rtos_i2c_slave_struct {
  *
  * rtos_i2c_slave_init() must be called on this I2C slave driver instance prior to calling this.
  *
- * \param i2c_slave_ctx     A pointer to the I2C slave driver instance to start.
- * \param app_data          A pointer to application specific data to pass to
- *                          the callback functions.
- * \param start             The callback function that is called when the driver's
- *                          thread starts. This is optional and may be NULL.
- * \param rx                The callback function to receive data from the bus master.
- * \param tx_start          The callback function to transmit data to the bus master.
- * \param tx_done           The callback function that is notified when transmits are
- *                          complete. This is optional and may be NULL.
- * \param interrupt_core_id The ID of the core on which to enable the I2C interrupt.
- * \param priority          The priority of the task that gets created by the driver to
- *                          call the callback functions.
+ * \param i2c_slave_ctx         A pointer to the I2C slave driver instance to start.
+ * \param app_data              A pointer to application specific data to pass to
+ *                              the callback functions.
+ * \param start                 The callback function that is called when the driver's
+ *                              thread starts. This is optional and may be NULL.
+ * \param rx                    The callback function to receive data from the bus master.
+ * \param tx_start              The callback function to transmit data to the bus master.
+ * \param tx_done               The callback function that is notified when transmits are
+ *                              complete. This is optional and may be NULL.
+ * \param rx_byte_check         The callback function to check received bytes individually.
+ * \param interrupt_core_id     The ID of the core on which to enable the I2C interrupt.
+ * \param priority              The priority of the task that gets created by the driver to
+ *                              call the callback functions.
  */
 void rtos_i2c_slave_start(
         rtos_i2c_slave_t *i2c_slave_ctx,
@@ -162,6 +192,7 @@ void rtos_i2c_slave_start(
         rtos_i2c_slave_rx_cb_t rx,
         rtos_i2c_slave_tx_start_cb_t tx_start,
         rtos_i2c_slave_tx_done_cb_t tx_done,
+        rtos_i2c_slave_rx_byte_check_cb_t rx_byte_check,
         unsigned interrupt_core_id,
         unsigned priority);
 
