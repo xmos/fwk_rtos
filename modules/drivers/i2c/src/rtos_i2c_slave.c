@@ -168,7 +168,11 @@ static void i2c_slave_hil_thread(rtos_i2c_slave_t *ctx)
 
     (void) s_chan_in_byte(ctx->c.end_a);
 
+#ifdef THIS_XCORE_TILE
     rtos_printf("I2C slave on tile %d core %d\n", THIS_XCORE_TILE, rtos_core_id_get());
+#else
+    rtos_printf("I2C slave on tile 0x%x core %d\n", get_local_tile_id(), rtos_core_id_get());
+#endif
     i2c_slave(&i2c_cbg,
               ctx->p_scl,
               ctx->p_sda,
