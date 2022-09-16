@@ -1,8 +1,6 @@
 // Copyright 2021 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-#define DEBUG_UNIT RTOS_I2C
-
 #include <xcore/triggerable.h>
 
 #include "rtos_interrupt.h"
@@ -125,15 +123,26 @@ static uint8_t i2c_master_req_data(rtos_i2c_slave_t *ctx)
 
 static i2c_slave_ack_t i2c_master_sent_data(rtos_i2c_slave_t *ctx, uint8_t data)
 {
+    i2c_slave_ack_t retval = I2C_SLAVE_ACK;
+
     if (ctx->rx_data_i < RTOS_I2C_SLAVE_BUF_LEN) {
         ctx->data_buf[ctx->rx_data_i++] = data;
     }
 
     if (ctx->rx_data_i < RTOS_I2C_SLAVE_BUF_LEN) {
-        return I2C_SLAVE_ACK;
+        retval = I2C_SLAVE_ACK;
     } else {
-        return I2C_SLAVE_NACK;
+        retval = I2C_SLAVE_NACK;
     }
+
+    if (ctx->rx_byte_check != NULL) {
+        ctx->rx_byte_check(ctx, ctx->app_data, data, &retval);
+        if (!((retval == I2C_SLAVE_ACK) || (retval == I2C_SLAVE_NACK))) {
+            retval = I2C_SLAVE_NACK;
+        }
+    }
+
+    return retval;
 }
 
 static void i2c_stop_bit(rtos_i2c_slave_t *ctx)
@@ -210,6 +219,7 @@ void rtos_i2c_slave_start(
         rtos_i2c_slave_rx_cb_t rx,
         rtos_i2c_slave_tx_start_cb_t tx_start,
         rtos_i2c_slave_tx_done_cb_t tx_done,
+        rtos_i2c_slave_rx_byte_check_cb_t rx_byte_check,
         unsigned interrupt_core_id,
         unsigned priority)
 {
@@ -220,6 +230,7 @@ void rtos_i2c_slave_start(
     i2c_slave_ctx->rx = rx;
     i2c_slave_ctx->tx_start = tx_start;
     i2c_slave_ctx->tx_done = tx_done;
+    i2c_slave_ctx->rx_byte_check = rx_byte_check;
 
     i2c_slave_ctx->rx_data_i = 0;
     i2c_slave_ctx->tx_data = NULL;
