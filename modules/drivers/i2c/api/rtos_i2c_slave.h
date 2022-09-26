@@ -38,6 +38,13 @@
 #define RTOS_I2C_SLAVE_RX_BYTE_CHECK_CALLBACK_ATTR __attribute__((fptrgroup("rtos_i2c_slave_rx_byte_check_cb_fptr_grp")))
 
 /**
+ * This attribute must be specified on all RTOS I2C slave rtos_i2c_slave_write_addr_request_cb_t
+ * provided by the application.
+ */
+#define RTOS_I2C_SLAVE_WRITE_ADDR_REQUEST_CALLBACK_ATTR __attribute__((fptrgroup("rtos_i2c_slave_write_addr_request_cb_fptr_grp")))
+
+
+/**
  * Typedef to the RTOS I2C slave driver instance struct.
  */
 typedef struct rtos_i2c_slave_struct rtos_i2c_slave_t;
@@ -132,6 +139,24 @@ typedef void (*rtos_i2c_slave_tx_done_cb_t)(rtos_i2c_slave_t *ctx, void *app_dat
 typedef void (*rtos_i2c_slave_rx_byte_check_cb_t)(rtos_i2c_slave_t *ctx, void *app_data, uint8_t data, i2c_slave_ack_t *cur_status);
 
 /**
+ * Function pointer type for application provided function to alert application that there is a write transaction incoming from master
+ * 
+ * This allows an application to NACK if it is not ready for handling write requests.
+ * 
+ * The user provided functions must be marked with RTOS_I2C_SLAVE_WRITE_ADDR_REQUEST_CALLBACK_ATTR.
+ *
+ * \param ctx           A pointer to the associated I2C slave driver instance.
+ * \param app_data      A pointer to application specific data provided
+ *                      by the application. Used to share data between
+ *                      this callback function and the application.
+ * \param cur_status    A pointer to the current ACK/NACK response for this byte.
+ *                      The application may change this to I2C_SLAVE_ACK or I2C_SLAVE_NACK.
+ *                      If cur_status is returned as an invalid value, the driver will implicitly NACK.
+ *                      By default the driver will implicitly ACK.
+ */
+typedef void (*rtos_i2c_slave_write_addr_request_cb_t)(rtos_i2c_slave_t *ctx, void *app_data, i2c_slave_ack_t *cur_status);
+
+/**
  * Struct representing an RTOS I2C slave driver instance.
  *
  * The members in this struct should not be accessed directly.
@@ -158,6 +183,7 @@ struct rtos_i2c_slave_struct {
     RTOS_I2C_SLAVE_CALLBACK_ATTR rtos_i2c_slave_tx_done_cb_t tx_done;
 
     RTOS_I2C_SLAVE_RX_BYTE_CHECK_CALLBACK_ATTR rtos_i2c_slave_rx_byte_check_cb_t rx_byte_check;
+    RTOS_I2C_SLAVE_WRITE_ADDR_REQUEST_CALLBACK_ATTR rtos_i2c_slave_write_addr_request_cb_t write_addr_req;
 
     streaming_channel_t c;
     rtos_osal_event_group_t events;
@@ -181,6 +207,7 @@ struct rtos_i2c_slave_struct {
  * \param tx_done               The callback function that is notified when transmits are
  *                              complete. This is optional and may be NULL.
  * \param rx_byte_check         The callback function to check received bytes individually.
+ * \param write_addr_req        The callback function to alert an incoming write request
  * \param interrupt_core_id     The ID of the core on which to enable the I2C interrupt.
  * \param priority              The priority of the task that gets created by the driver to
  *                              call the callback functions.
@@ -193,6 +220,7 @@ void rtos_i2c_slave_start(
         rtos_i2c_slave_tx_start_cb_t tx_start,
         rtos_i2c_slave_tx_done_cb_t tx_done,
         rtos_i2c_slave_rx_byte_check_cb_t rx_byte_check,
+        rtos_i2c_slave_write_addr_request_cb_t write_addr_req,
         unsigned interrupt_core_id,
         unsigned priority);
 
