@@ -97,11 +97,20 @@ static i2c_slave_ack_t i2c_ack_read_req(rtos_i2c_slave_t *ctx)
 
 static i2c_slave_ack_t i2c_ack_write_req(rtos_i2c_slave_t *ctx)
 {
+    i2c_slave_ack_t retval = I2C_SLAVE_ACK;
+
     /* could be repeated start */
     xfer_complete_check(ctx, WAIT);
 
+    if (ctx->write_addr_req != NULL) {
+        ctx->write_addr_req(ctx, ctx->app_data, &retval);
+        if (!((retval == I2C_SLAVE_ACK) || (retval == I2C_SLAVE_NACK))) {
+            retval = I2C_SLAVE_NACK;
+        }
+    }
+
     ctx->rx_data_i = 0;
-    return I2C_SLAVE_ACK;
+    return retval;
 }
 
 static uint8_t i2c_master_req_data(rtos_i2c_slave_t *ctx)
@@ -224,6 +233,7 @@ void rtos_i2c_slave_start(
         rtos_i2c_slave_tx_start_cb_t tx_start,
         rtos_i2c_slave_tx_done_cb_t tx_done,
         rtos_i2c_slave_rx_byte_check_cb_t rx_byte_check,
+        rtos_i2c_slave_write_addr_request_cb_t write_addr_req,
         unsigned interrupt_core_id,
         unsigned priority)
 {
@@ -235,6 +245,7 @@ void rtos_i2c_slave_start(
     i2c_slave_ctx->tx_start = tx_start;
     i2c_slave_ctx->tx_done = tx_done;
     i2c_slave_ctx->rx_byte_check = rx_byte_check;
+    i2c_slave_ctx->write_addr_req = write_addr_req;
 
     i2c_slave_ctx->rx_data_i = 0;
     i2c_slave_ctx->tx_data = NULL;
