@@ -241,6 +241,55 @@ static control_ret_t do_command(device_control_t *ctx,
     }
 }
 
+control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
+                                              const uint8_t *rx_buf,
+                                              const size_t rx_size,
+                                              uint8_t *tx_buf,
+                                              size_t *tx_size)
+{
+    control_ret_t ret;
+    uint8_t servicer;
+
+    const size_t requested_payload_len = ctx->requested_payload_len;
+    const control_resid_t requested_resid = ctx->requested_resid;
+    const control_cmd_t requested_cmd = ctx->requested_cmd;
+
+    if (resource_table_search(ctx, requested_resid, &servicer) == 0) {
+        if(!IS_CONTROL_CMD_READ(requested_cmd)) // Write command
+        {
+            if(requested_payload_len > rx_size)
+            {
+                tx_buf[0] = CONTROL_DATA_LENGTH_ERROR;
+                return CONTROL_DATA_LENGTH_ERROR;
+            }
+            //printf("do_write_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len);
+            tx_buf[0] = ret;
+        }
+        else // Read command
+        {
+            //printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, tx_buf, requested_payload_len);
+            if(ret != CONTROL_SUCCESS) // If do_command() is successful the Servicer is responsible for updating tx_buf
+            {
+                tx_buf[0] = ret;
+            }
+            //printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d, tx_buf[0] = %d\n", requested_resid, requested_cmd, requested_payload_len, tx_buf[0]);
+            *tx_size = requested_payload_len;
+        }
+    }
+    else // Resource not found
+    {
+        //printf("resource %d not found\n", requested_resid);
+        tx_buf[0] = CONTROL_BAD_COMMAND;
+        return CONTROL_BAD_COMMAND;
+    }
+
+    ctx->last_status = ret;
+
+    return ret;
+}
+
 control_ret_t device_control_payload_transfer(device_control_t *ctx,
                                               uint8_t *payload_buf,
                                               size_t *buf_size,

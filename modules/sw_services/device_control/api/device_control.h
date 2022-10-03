@@ -167,6 +167,12 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
                                               size_t *buf_size,
                                               control_direction_t direction);
 
+control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
+                                              const uint8_t *rx_buf,
+                                              const size_t rx_size,
+                                              uint8_t *tx_buf,
+                                              size_t *tx_size);
+
 /**
  * This is called by servicers to wait for and receive any commands received by the transport layer
  * contain one of the resource IDs registered by the servicer. This is also responsible for responding

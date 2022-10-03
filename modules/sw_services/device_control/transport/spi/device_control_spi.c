@@ -1,0 +1,73 @@
+#include <platform.h>
+
+#include "rtos_spi_slave.h"
+
+#include "rtos_printf.h"
+#include "device_control.h"
+
+#define SPI_XFER_RX_SIZE (64)
+#define SPI_XFER_TX_SIZE (64)
+static uint8_t spi_xfer_rx_buf[SPI_XFER_RX_SIZE];
+static uint8_t spi_xfer_tx_buf[SPI_XFER_TX_SIZE];
+
+RTOS_SPI_SLAVE_CALLBACK_ATTR
+void device_control_spi_start_cb(rtos_spi_slave_t *ctx,
+                                 device_control_t *device_control_ctx)
+{
+    spi_xfer_tx_buf[0] = 5;
+    for(int i=0; i<8; i++)
+    {
+        spi_xfer_tx_buf[i] = 5;
+    }
+    spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);
+
+    control_ret_t dc_ret;
+    rtos_printf("Registering SPI device control resources now\n");
+    dc_ret = device_control_resources_register(device_control_ctx,
+                                               pdMS_TO_TICKS(5000));
+
+    if (dc_ret != CONTROL_SUCCESS) {
+        rtos_printf("Device control resources failed to register for SPI on tile %d\n", THIS_XCORE_TILE);
+    } else {
+        rtos_printf("Device control resources registered for SPI on tile %d\n", THIS_XCORE_TILE);
+    }
+    xassert(dc_ret == CONTROL_SUCCESS);
+}
+
+RTOS_SPI_SLAVE_CALLBACK_ATTR
+void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
+                                     device_control_t *device_control_ctx)
+{
+    //printintln(9999);
+    uint8_t *rx_buf, *tx_buf;
+    size_t rx_len, tx_len;
+
+    spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0);
+    //printf("spi_slave_xfer_complete(), tx_len = %d, rx_len = %d, rx_buf[0] = %d, tx_buf[0] = %d\n",tx_len, rx_len, rx_buf[0], tx_buf[0]);
+    //Check for NOP as the first thing
+    if ((rx_buf[0] == 0) && (rx_buf[1] == 0) && (rx_buf[2] == 0)) {
+        // This is a NOP. Let the previously updated tx_buf[0] value go out.
+        //printf("NOP: %d\n",tx_buf[0]);
+        return;
+    }
+    // In case its not a NOP, set tx_buf to retry in case it's not updated fast enough from the application so host can retry the command. Seems like the safest thing to do
+    tx_buf[0] = CONTROL_RETRY_COMMAND;
+    
+    control_ret_t ret;
+    /*rtos_printf("spi_slave_xfer_complete() - rx_buf[0] = 0x%x, rx_buf[1] = 0x%x, rx_buf[2] = 0x%x\n",rx_buf[0], rx_buf[1], rx_buf[2]);
+    for(int i=0;i<rx_len; i++) {
+        printf("rx_buf[%d] = 0x%x\n",i, rx_buf[i]);
+    }*/
+    if (rx_len >= 3) {
+        device_control_request(device_control_ctx,
+                               rx_buf[0],
+                               rx_buf[1],
+                               rx_buf[2]);
+        rx_len -= 3;
+        //printintln(2222);
+        ret = device_control_payload_transfer_bidir(device_control_ctx, &rx_buf[3], rx_len, tx_buf, &tx_len);
+        
+        //rtos_printf("SPI xfer completed - device control status %d\n", ret);
+    }
+    //printf("device_control_spi_xfer_done_cb. tx_buf[0] = %d\n",tx_buf[0]);
+}

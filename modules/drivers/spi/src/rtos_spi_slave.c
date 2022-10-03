@@ -36,12 +36,11 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
     item.bytes_read = ctx->bytes_read;
 
     isr_action = s_chan_in_byte(ctx->c.end_b);
-
-    if (rtos_osal_queue_send(&ctx->xfer_done_queue, &item, RTOS_OSAL_NO_WAIT) == RTOS_OSAL_SUCCESS) {
+    if (rtos_osal_queue_send(&ctx->xfer_done_queue, &item, RTOS_OSAL_NO_WAIT) == RTOS_OSAL_SUCCESS){
         if (ctx->xfer_done != NULL) {
             /*
              * TODO: FIXME, FreeRTOS specific, not using OSAL here
-             */
+             */ 
             xTaskNotifyGive(ctx->app_thread.thread);
         }
     } else {
@@ -162,7 +161,8 @@ void rtos_spi_slave_start(
     spi_slave_ctx->start = start;
     spi_slave_ctx->xfer_done = xfer_done;
 
-    rtos_osal_queue_create(&spi_slave_ctx->xfer_done_queue, "spi_slave_queue", 2, sizeof(xfer_done_queue_item_t));
+    //rtos_osal_queue_create(&spi_slave_ctx->xfer_done_queue, "spi_slave_queue", 2, sizeof(xfer_done_queue_item_t));
+    rtos_osal_queue_create(&spi_slave_ctx->xfer_done_queue, "spi_slave_queue", 1, sizeof(xfer_done_queue_item_t));
 
     /* Ensure that the SPI interrupt is enabled on the requested core */
     rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
