@@ -44,7 +44,7 @@ endmacro()
 ## Creates a debug target for a provided binary
 macro(create_debug_target _EXECUTABLE_NAME)
     add_custom_target(debug_${_EXECUTABLE_NAME}
-      COMMAND xgdb ${_EXECUTABLE_NAME}.xe -ex 'connect' -ex 'connect --xscope' -ex 'run'
+      COMMAND xgdb ${_EXECUTABLE_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
       DEPENDS ${_EXECUTABLE_NAME}.xe
       COMMENT
         "Debug application"

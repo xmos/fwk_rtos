@@ -49,6 +49,7 @@ struct rtos_spi_master_struct {
     spi_master_t ctx;
 
     unsigned op_task_priority;
+    uint32_t core_map;
     rtos_osal_thread_t op_task;
     rtos_osal_queue_t xfer_req_queue;
     rtos_osal_semaphore_t data_ready;
@@ -81,6 +82,11 @@ struct rtos_spi_master_device_struct {
 /**
  * Starts a transaction with the specified SPI device on a SPI bus.
  * This leaves chip select asserted.
+ *
+ * Note: When this is called, the servicer thread will be locked to the core
+ * that it executed on until rtos_spi_master_transaction_end() is called.
+ * This is because the underlying I/O software utilized fast mode and high
+ * priority.
  *
  * \param ctx A pointer to the SPI device instance.
  */

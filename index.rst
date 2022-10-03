@@ -1,3 +1,5 @@
+.. _fwk_rtos-framework:
+
 ##############
 RTOS Framework
 ##############

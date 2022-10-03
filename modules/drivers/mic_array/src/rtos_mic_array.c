@@ -40,16 +40,14 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_mic_array_isr, arg)
     size_t words_available = ctx->recv_buffer.total_written - ctx->recv_buffer.total_read;
     size_t words_free = ctx->recv_buffer.buf_size - words_available;
 
-    int32_t mic_samples[MIC_ARRAY_CONFIG_SAMPLES_PER_FRAME * MIC_ARRAY_CONFIG_MIC_COUNT];
-
     if (ctx->format == RTOS_MIC_ARRAY_CHANNEL_SAMPLE) {
-        ma_frame_rx(mic_samples, ctx->c_pdm_mic.end_b, MIC_ARRAY_CONFIG_SAMPLES_PER_FRAME, MIC_ARRAY_CONFIG_MIC_COUNT);
+        ma_frame_rx(ctx->isr_decoupling_buf, ctx->c_pdm_mic.end_b, MIC_ARRAY_CONFIG_SAMPLES_PER_FRAME, MIC_ARRAY_CONFIG_MIC_COUNT);
     } else if (ctx->format == RTOS_MIC_ARRAY_SAMPLE_CHANNEL) {
-        ma_frame_rx_transpose(mic_samples, ctx->c_pdm_mic.end_b, MIC_ARRAY_CONFIG_MIC_COUNT, MIC_ARRAY_CONFIG_SAMPLES_PER_FRAME);
+        ma_frame_rx_transpose(ctx->isr_decoupling_buf, ctx->c_pdm_mic.end_b, MIC_ARRAY_CONFIG_MIC_COUNT, MIC_ARRAY_CONFIG_SAMPLES_PER_FRAME);
     } else {
         xassert(0); /* Invalid format */
     }
-    int32_t *mic_sample_block = (int32_t *)&mic_samples;
+    int32_t *mic_sample_block = (int32_t *)&ctx->isr_decoupling_buf;
 
     if (words_remaining <= words_free) {
         while (words_remaining) {
