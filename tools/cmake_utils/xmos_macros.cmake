@@ -71,3 +71,42 @@ macro(create_flash_app_target _EXECUTABLE_NAME)
         "Flash application"
     )
 endmacro()
+
+## Query the version of the XTC Tools
+##
+##   Populates the following variables:
+##
+##     XTC_VERSION_MAJOR
+##     XTC_VERSION_MINOR
+##     XTC_VERSION_PATCH
+function(query_tools_version)
+    # Run xcc --version
+    execute_process(
+        COMMAND xcc --version
+        OUTPUT_VARIABLE XCC_VERSION_OUTPUT_STRING
+    )
+    # Split output into lines
+    string(REPLACE "\n" ";" XCC_VERSION_OUTPUT_LINES ${XCC_VERSION_OUTPUT_STRING})
+    # Get second line
+    list(GET XCC_VERSION_OUTPUT_LINES 1 XCC_VERSION_LINE)
+    message(STATUS ${XCC_VERSION_LINE})
+    # Parse version fields
+    string(SUBSTRING ${XCC_VERSION_LINE} 13 10 XCC_SEMVER)
+    string(REPLACE "." ";" XCC_SEMVER_FIELDS ${XCC_SEMVER})
+    list(LENGTH XCC_SEMVER_FIELDS XCC_SEMVER_FIELDS_LENGTH)
+    if (${XCC_SEMVER_FIELDS_LENGTH} EQUAL "3")
+        list(GET XCC_SEMVER_FIELDS 0 XCC_VERSION_MAJOR)
+        list(GET XCC_SEMVER_FIELDS 1 XCC_VERSION_MINOR)
+        list(GET XCC_SEMVER_FIELDS 2 XCC_VERSION_PATCH)
+        # Set XTC version env variables
+        set(XTC_VERSION_MAJOR ${XCC_VERSION_MAJOR} PARENT_SCOPE)
+        set(XTC_VERSION_MINOR ${XCC_VERSION_MINOR} PARENT_SCOPE)
+        set(XTC_VERSION_PATCH ${XCC_VERSION_PATCH} PARENT_SCOPE)
+    else()
+        # Unable to determine the version. Return 15.1.0 and hope for the best
+        # Note, 15.1.0 had a bug where the version was missing
+        set(XTC_VERSION_MAJOR "15" PARENT_SCOPE)
+        set(XTC_VERSION_MINOR "1" PARENT_SCOPE)
+        set(XTC_VERSION_PATCH "0" PARENT_SCOPE)
+    endif()
+endfunction()
