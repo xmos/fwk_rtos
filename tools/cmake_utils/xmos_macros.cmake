@@ -42,10 +42,10 @@ macro(create_run_target _EXECUTABLE_TARGET_NAME)
 endmacro()
 
 ## Creates a debug target for a provided binary
-macro(create_debug_target _EXECUTABLE_NAME)
-    add_custom_target(debug_${_EXECUTABLE_NAME}
-      COMMAND xgdb ${_EXECUTABLE_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
-      DEPENDS ${_EXECUTABLE_NAME}.xe
+macro(create_debug_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(debug_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xgdb ${_EXECUTABLE_TARGET_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Debug application"
     )
@@ -53,21 +53,71 @@ endmacro()
 
 ## Creates a filesystem file for a provided binary
 ##   filename must end in "_fat.fs"
-macro(create_filesystem_target _EXECUTABLE_NAME)
-    add_custom_target(make_fs_${_EXECUTABLE_NAME}
-      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_NAME}_fat.fs ${_EXECUTABLE_NAME}_fat.fs
-      DEPENDS ${_EXECUTABLE_NAME}_fat.fs
+macro(create_filesystem_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(make_fs_${_EXECUTABLE_TARGET_NAME}
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_TARGET_NAME}_fat.fs ${_EXECUTABLE_TARGET_NAME}_fat.fs
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}_fat.fs
       COMMENT
         "Make filesystem"
     )
 endmacro()
 
 ## Creates a flash app target for a provided binary
-macro(create_flash_app_target _EXECUTABLE_NAME)
-    add_custom_target(flash_app_${_EXECUTABLE_NAME}
-      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_NAME}.xe
-      DEPENDS ${_EXECUTABLE_NAME}.xe
+macro(create_flash_app_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(flash_app_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_TARGET_NAME}.xe
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Flash application"
     )
 endmacro()
+
+## Creates an install target for a provided binary
+macro(create_install_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(install_${_EXECUTABLE_TARGET_NAME}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/dist
+      COMMAND cp ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Install application"
+    )
+endmacro()
+
+## Query the version of the XTC Tools
+##
+##   Populates the following variables:
+##
+##     XTC_VERSION_MAJOR
+##     XTC_VERSION_MINOR
+##     XTC_VERSION_PATCH
+function(query_tools_version)
+    # Run xcc --version
+    execute_process(
+        COMMAND xcc --version
+        OUTPUT_VARIABLE XCC_VERSION_OUTPUT_STRING
+    )
+    # Split output into lines
+    string(REPLACE "\n" ";" XCC_VERSION_OUTPUT_LINES ${XCC_VERSION_OUTPUT_STRING})
+    # Get second line
+    list(GET XCC_VERSION_OUTPUT_LINES 1 XCC_VERSION_LINE)
+    message(STATUS ${XCC_VERSION_LINE})
+    # Parse version fields
+    string(SUBSTRING ${XCC_VERSION_LINE} 13 10 XCC_SEMVER)
+    string(REPLACE "." ";" XCC_SEMVER_FIELDS ${XCC_SEMVER})
+    list(LENGTH XCC_SEMVER_FIELDS XCC_SEMVER_FIELDS_LENGTH)
+    if (${XCC_SEMVER_FIELDS_LENGTH} EQUAL "3")
+        list(GET XCC_SEMVER_FIELDS 0 XCC_VERSION_MAJOR)
+        list(GET XCC_SEMVER_FIELDS 1 XCC_VERSION_MINOR)
+        list(GET XCC_SEMVER_FIELDS 2 XCC_VERSION_PATCH)
+        # Set XTC version env variables
+        set(XTC_VERSION_MAJOR ${XCC_VERSION_MAJOR} PARENT_SCOPE)
+        set(XTC_VERSION_MINOR ${XCC_VERSION_MINOR} PARENT_SCOPE)
+        set(XTC_VERSION_PATCH ${XCC_VERSION_PATCH} PARENT_SCOPE)
+    else()
+        # Unable to determine the version. Return 15.1.0 and hope for the best
+        # Note, 15.1.0 had a bug where the version was missing
+        set(XTC_VERSION_MAJOR "15" PARENT_SCOPE)
+        set(XTC_VERSION_MINOR "1" PARENT_SCOPE)
+        set(XTC_VERSION_PATCH "0" PARENT_SCOPE)
+    endif()
+endfunction()
