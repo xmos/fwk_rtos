@@ -42,10 +42,10 @@ macro(create_run_target _EXECUTABLE_TARGET_NAME)
 endmacro()
 
 ## Creates a debug target for a provided binary
-macro(create_debug_target _EXECUTABLE_NAME)
-    add_custom_target(debug_${_EXECUTABLE_NAME}
-      COMMAND xgdb ${_EXECUTABLE_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
-      DEPENDS ${_EXECUTABLE_NAME}.xe
+macro(create_debug_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(debug_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xgdb ${_EXECUTABLE_TARGET_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Debug application"
     )
@@ -53,22 +53,33 @@ endmacro()
 
 ## Creates a filesystem file for a provided binary
 ##   filename must end in "_fat.fs"
-macro(create_filesystem_target _EXECUTABLE_NAME)
-    add_custom_target(make_fs_${_EXECUTABLE_NAME}
-      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_NAME}_fat.fs ${_EXECUTABLE_NAME}_fat.fs
-      DEPENDS ${_EXECUTABLE_NAME}_fat.fs
+macro(create_filesystem_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(make_fs_${_EXECUTABLE_TARGET_NAME}
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_TARGET_NAME}_fat.fs ${_EXECUTABLE_TARGET_NAME}_fat.fs
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}_fat.fs
       COMMENT
         "Make filesystem"
     )
 endmacro()
 
 ## Creates a flash app target for a provided binary
-macro(create_flash_app_target _EXECUTABLE_NAME)
-    add_custom_target(flash_app_${_EXECUTABLE_NAME}
-      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_NAME}.xe
-      DEPENDS ${_EXECUTABLE_NAME}.xe
+macro(create_flash_app_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(flash_app_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_TARGET_NAME}.xe
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Flash application"
+    )
+endmacro()
+
+## Creates an install target for a provided binary
+macro(create_install_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(install_${_EXECUTABLE_TARGET_NAME}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/dist
+      COMMAND cp ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Install application"
     )
 endmacro()
 
