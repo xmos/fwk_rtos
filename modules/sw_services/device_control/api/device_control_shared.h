@@ -35,7 +35,6 @@ typedef uint8_t control_status_t;
  */
 typedef enum {
     CONTROL_SUCCESS = 0,
-    CONTROL_RETRY_COMMAND,
     CONTROL_REGISTRATION_FAILED,
     CONTROL_BAD_COMMAND,
     CONTROL_DATA_LENGTH_ERROR,
