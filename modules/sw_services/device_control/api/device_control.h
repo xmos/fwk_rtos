@@ -52,6 +52,7 @@ typedef struct {
             control_resid_t requested_resid;
             control_cmd_t requested_cmd;
             control_status_t last_status;
+            uint8_t servicer_last_status;
         };
     };
 } device_control_t;
@@ -95,7 +96,7 @@ typedef struct {
  * \returns                CONTROL_SUCCESS if the handling of the read data by the device was successful. An
  *                         error code otherwise.
  */
-typedef control_ret_t (*device_control_read_cmd_cb_t)(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data);
+typedef uint8_t (*device_control_read_cmd_cb_t)(control_resid_t resid, control_cmd_t cmd, uint8_t *payload, size_t payload_len, void *app_data);
 
 /**
  * Function pointer type for application provided device control write command handler callback functions.
@@ -114,7 +115,7 @@ typedef control_ret_t (*device_control_read_cmd_cb_t)(control_resid_t resid, con
  * \returns                CONTROL_SUCCESS if the handling of the read data by the device was successful. An
  *                         error code otherwise.
  */
-typedef control_ret_t (*device_control_write_cmd_cb_t)(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data);
+typedef uint8_t (*device_control_write_cmd_cb_t)(control_resid_t resid, control_cmd_t cmd, const uint8_t *payload, size_t payload_len, void *app_data);
 
 
 /**
@@ -191,7 +192,7 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
  * \retval             CONTROL_ERROR if no command is received before the function times out,
  *                     or if there was a problem communicating back to the transport layer thread.
  */
-control_ret_t device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
+void device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
                                                device_control_read_cmd_cb_t read_cmd_cb,
                                                device_control_write_cmd_cb_t write_cmd_cb,
                                                void *app_data,

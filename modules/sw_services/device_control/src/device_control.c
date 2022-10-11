@@ -42,14 +42,13 @@ int resource_table_search(device_control_t *ctx,
                           control_resid_t resid,
                           uint8_t *servicer);
 
-control_ret_t device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
+void device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
                                                DEVICE_CONTROL_CALLBACK_ATTR device_control_read_cmd_cb_t read_cmd_cb,
                                                DEVICE_CONTROL_CALLBACK_ATTR device_control_write_cmd_cb_t write_cmd_cb,
                                                void *app_data,
                                                unsigned timeout)
 {
     rtos_osal_status_t status;
-    control_ret_t ret = CONTROL_ERROR;
     cmd_to_servicer_t *c_ptr;
 
     status = rtos_osal_queue_receive(&ctx->queue, &c_ptr, timeout);
@@ -93,8 +92,6 @@ control_ret_t device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
             rtos_osal_free(c_ptr);
         }
     }
-
-    return status == RTOS_OSAL_SUCCESS ? CONTROL_SUCCESS : CONTROL_ERROR;
 }
 
 static void device_control_client_thread(device_control_t *ctx)
@@ -169,9 +166,10 @@ static control_ret_t do_command(device_control_t *ctx,
                                 control_resid_t resid,
                                 control_cmd_t cmd,
                                 uint8_t payload[],
-                                unsigned payload_len)
+                                unsigned payload_len,
+                                uint8_t *servicer_ret)
 {
-    control_ret_t ret;
+    control_ret_t ret = CONTROL_SUCCESS;
 
     if (resid == CONTROL_SPECIAL_RESID) {
         if (IS_CONTROL_CMD_READ(cmd)) {
@@ -199,7 +197,7 @@ static control_ret_t do_command(device_control_t *ctx,
         if (intertile_ctx == NULL) { /* on tile case */
 
             rtos_osal_queue_send(queue, &c_ptr, RTOS_OSAL_WAIT_FOREVER);
-            rtos_osal_queue_receive(&ctx->gateway_queue, &ret, RTOS_OSAL_WAIT_FOREVER);
+            rtos_osal_queue_receive(&ctx->gateway_queue, servicer_ret, RTOS_OSAL_WAIT_FOREVER);
 
         } else { /* off tile case */
             size_t xfer_len = sizeof(cmd_to_servicer_t);
@@ -216,14 +214,14 @@ static control_ret_t do_command(device_control_t *ctx,
 
             xfer_len = rtos_intertile_rx_len(intertile_ctx, ctx->intertile_port, RTOS_OSAL_WAIT_FOREVER);
 
-            if (xfer_len >= sizeof(ret)) {
-                rtos_intertile_rx_data(intertile_ctx, &ret, sizeof(ret));
+            if (xfer_len >= sizeof(*servicer_ret)) {
+                rtos_intertile_rx_data(intertile_ctx, servicer_ret, sizeof(*servicer_ret));
 
                 if (IS_CONTROL_CMD_READ(cmd)) {
-                    xassert(payload_len == xfer_len - sizeof(ret));
+                    xassert(payload_len == xfer_len - sizeof(*servicer_ret));
                     rtos_intertile_rx_data(intertile_ctx, payload, payload_len);
                 } else {
-                    xassert(xfer_len == sizeof(ret));
+                    xassert(xfer_len == sizeof(*servicer_ret));
                 }
 
             } else {
@@ -248,6 +246,7 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
                                               size_t *tx_size)
 {
     control_ret_t ret;
+    uint8_t servicer_ret = 0;
     uint8_t servicer;
 
     const size_t requested_payload_len = ctx->requested_payload_len;
@@ -262,30 +261,28 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
                 tx_buf[0] = CONTROL_DATA_LENGTH_ERROR;
                 return CONTROL_DATA_LENGTH_ERROR;
             }
-            //printf("do_write_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
-            ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len);
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len, &servicer_ret);
             tx_buf[0] = ret;
+            tx_buf[1] = servicer_ret;
         }
         else // Read command
         {
-            //printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
-            ret = do_command(ctx, servicer, requested_resid, requested_cmd, tx_buf, requested_payload_len);
-            if(ret != CONTROL_SUCCESS) // If do_command() is successful the Servicer is responsible for updating tx_buf
-            {
-                tx_buf[0] = ret;
-            }
-            //printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d, tx_buf[0] = %d\n", requested_resid, requested_cmd, requested_payload_len, tx_buf[0]);
+            printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, &tx_buf[2], requested_payload_len-2, &servicer_ret);
+            tx_buf[0] = ret;
+            tx_buf[1] = servicer_ret;
             *tx_size = requested_payload_len;
         }
     }
     else // Resource not found
     {
         //printf("resource %d not found\n", requested_resid);
-        tx_buf[0] = CONTROL_BAD_COMMAND;
-        return CONTROL_BAD_COMMAND;
+        tx_buf[0] = CONTROL_BAD_RESOURCE;
+        return CONTROL_ERROR;
     }
 
     ctx->last_status = ret;
+    ctx->servicer_last_status = servicer_ret;
 
     return ret;
 }
@@ -296,6 +293,7 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
                                               control_direction_t direction)
 {
     control_ret_t ret;
+    uint8_t servicer_ret = 0;
     uint8_t servicer;
 
     const size_t requested_payload_len = ctx->requested_payload_len;
@@ -303,35 +301,54 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
     const control_cmd_t requested_cmd = ctx->requested_cmd;
 
     if (resource_table_search(ctx, requested_resid, &servicer) == 0) {
-
-        if ((direction == CONTROL_DEVICE_TO_HOST && IS_CONTROL_CMD_READ(requested_cmd)) ||
-            (direction == CONTROL_HOST_TO_DEVICE && !IS_CONTROL_CMD_READ(requested_cmd))) {
-
-            if (requested_payload_len <= *buf_size) {
-                ret = do_command(ctx, servicer, requested_resid, requested_cmd, payload_buf, requested_payload_len);
-                if (direction == CONTROL_DEVICE_TO_HOST) {
-                    *buf_size = requested_payload_len;
+        if(direction == CONTROL_HOST_TO_DEVICE) //Write request from host
+        {
+            if(!IS_CONTROL_CMD_READ(requested_cmd)) // Write request for a write command
+            {
+                // Forward the command to the servicer. Save the status
+                if (requested_payload_len <= *buf_size) {
+                    ret = do_command(ctx, servicer, requested_resid, requested_cmd, payload_buf, requested_payload_len, &servicer_ret);
                 }
-            } else {
-                ret = CONTROL_DATA_LENGTH_ERROR;
+                else {
+                    ret = CONTROL_DATA_LENGTH_ERROR;
+                }
+                // Save status to return if the host follows up with a read request
+                ctx->last_status = ret;
+                ctx->servicer_last_status = servicer_ret;
             }
-        } else {
-            if (*buf_size > 0) {
-                ret = CONTROL_BAD_COMMAND;
-            } else {
-                /*
-                 * return early here since we don't want to
-                 * save the status in this case.
-                 */
-                return CONTROL_SUCCESS;
+            else // Write request for a read command
+            {
+                // Do nothing. Command only forwarded to the servicer when there's a read request for a read command
             }
         }
-    } else {
-        rtos_printf("resource %d not found\n", requested_resid);
-        ret = CONTROL_BAD_COMMAND;
-    }
+        else //Read request from host
+        {
+            if(!IS_CONTROL_CMD_READ(requested_cmd)) // Read request for a write command
+            {
+                // Return status
+                payload_buf[0] = ctx->last_status;
+                payload_buf[1] = ctx->servicer_last_status;
+                // TODO - Should we clear last_status and servicer_last_status 
+            }
+            else // Read request for a read command
+            {
+                // Forward the command to the servicer. Update returned status in the first 2 bytes of payload
+                ret = do_command(ctx, servicer, requested_resid, requested_cmd, &payload_buf[2], requested_payload_len-2, &servicer_ret);
+                payload_buf[0] = ret;
+                payload_buf[1] = servicer_ret;
+            }
 
-    ctx->last_status = ret;
+        }
+
+    }
+    else 
+    {
+        ctx->last_status = CONTROL_BAD_RESOURCE;
+        if(direction == CONTROL_DEVICE_TO_HOST) //read request from host
+        {
+            payload_buf[0] = ctx->last_status;
+        }
+    }
 
     return ret;
 }
