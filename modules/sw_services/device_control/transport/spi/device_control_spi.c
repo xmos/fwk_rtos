@@ -41,6 +41,12 @@ void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
     size_t rx_len, tx_len;
 
     spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0);
+
+    if(rx_len < 3)
+    {
+        // Received packet length has to be atleast 3
+        tx_buf[0] = CONTROL_MALFORMED_PACKET;
+    }
     //Check for NOP as the first thing
     if ((rx_buf[0] == 0) && (rx_buf[1] == 0) && (rx_buf[2] == 0)) {
         // This is a NOP sent for reading tx_buf updated in the previous command.

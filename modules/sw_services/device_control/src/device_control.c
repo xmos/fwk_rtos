@@ -320,6 +320,9 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
             else // Write request for a read command
             {
                 // Do nothing. Command only forwarded to the servicer when there's a read request for a read command
+                // Set last_status to Success
+                ctx->last_status = CONTROL_SUCCESS;
+                ctx->servicer_last_status = 0;
             }
         }
         else //Read request from host
