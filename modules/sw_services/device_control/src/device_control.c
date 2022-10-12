@@ -50,6 +50,7 @@ void device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
 {
     rtos_osal_status_t status;
     cmd_to_servicer_t *c_ptr;
+    uint8_t ret;
 
     status = rtos_osal_queue_receive(&ctx->queue, &c_ptr, timeout);
     if (status == RTOS_OSAL_SUCCESS) {
