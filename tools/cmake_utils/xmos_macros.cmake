@@ -42,6 +42,17 @@ macro(create_run_target _EXECUTABLE_TARGET_NAME)
     )
 endmacro()
 
+## Creates a run target for a provided binary. The first argument specifies the file to save to (no extension).
+macro(create_run_xscope_to_file_target _EXECUTABLE_TARGET_NAME _XSCOPE_FILE)
+    add_custom_target(run_xscope_to_file_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xrun --xscope-file ${_XSCOPE_FILE} ${_EXECUTABLE_TARGET_NAME}.xe
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Run application"
+      VERBATIM
+    )
+endmacro()
+
 ## Creates a debug target for a provided binary
 macro(create_debug_target _EXECUTABLE_TARGET_NAME)
     add_custom_target(debug_${_EXECUTABLE_TARGET_NAME}
