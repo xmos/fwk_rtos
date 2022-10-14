@@ -23,6 +23,10 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
         INTERFACE
             rtos::FreeRTOS::FreeRTOS_SMP
     )
+    target_compile_definitions(framework_rtos_drivers_trace
+        INTERFACE
+            portBASE_TYPE=int
+    )
 
     ## Create an alias
     add_library(rtos::drivers::trace ALIAS framework_rtos_drivers_trace)
