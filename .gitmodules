@@ -33,3 +33,6 @@
 [submodule "xmos_cmake_toolchain"]
 	path = xmos_cmake_toolchain
 	url = git@github.com:xmos/xmos_cmake_toolchain.git
+[submodule "tracealyzer"]
+	path = modules/drivers/trace/FreeRTOS/tracealyzer
+	url = git@github.com:percepio/TraceRecorderSource.git
