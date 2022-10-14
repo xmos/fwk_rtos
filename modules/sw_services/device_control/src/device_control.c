@@ -49,8 +49,8 @@ void device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
                                                unsigned timeout)
 {
     rtos_osal_status_t status;
+    control_ret_t ret = CONTROL_ERROR;
     cmd_to_servicer_t *c_ptr;
-    uint8_t ret;
 
     status = rtos_osal_queue_receive(&ctx->queue, &c_ptr, timeout);
     if (status == RTOS_OSAL_SUCCESS) {
@@ -167,10 +167,9 @@ static control_ret_t do_command(device_control_t *ctx,
                                 control_resid_t resid,
                                 control_cmd_t cmd,
                                 uint8_t payload[],
-                                unsigned payload_len,
-                                uint8_t *servicer_ret)
+                                unsigned payload_len)
 {
-    control_ret_t ret = CONTROL_SUCCESS;
+    control_ret_t ret;
 
     if (resid == CONTROL_SPECIAL_RESID) {
         if (IS_CONTROL_CMD_READ(cmd)) {
@@ -198,7 +197,7 @@ static control_ret_t do_command(device_control_t *ctx,
         if (intertile_ctx == NULL) { /* on tile case */
 
             rtos_osal_queue_send(queue, &c_ptr, RTOS_OSAL_WAIT_FOREVER);
-            rtos_osal_queue_receive(&ctx->gateway_queue, servicer_ret, RTOS_OSAL_WAIT_FOREVER);
+            rtos_osal_queue_receive(&ctx->gateway_queue, &ret, RTOS_OSAL_WAIT_FOREVER);
 
         } else { /* off tile case */
             size_t xfer_len = sizeof(cmd_to_servicer_t);
@@ -215,14 +214,14 @@ static control_ret_t do_command(device_control_t *ctx,
 
             xfer_len = rtos_intertile_rx_len(intertile_ctx, ctx->intertile_port, RTOS_OSAL_WAIT_FOREVER);
 
-            if (xfer_len >= sizeof(*servicer_ret)) {
-                rtos_intertile_rx_data(intertile_ctx, servicer_ret, sizeof(*servicer_ret));
+            if (xfer_len >= sizeof(ret)) {
+                rtos_intertile_rx_data(intertile_ctx, &ret, sizeof(ret));
 
                 if (IS_CONTROL_CMD_READ(cmd)) {
-                    xassert(payload_len == xfer_len - sizeof(*servicer_ret));
+                    xassert(payload_len == xfer_len - sizeof(ret));
                     rtos_intertile_rx_data(intertile_ctx, payload, payload_len);
                 } else {
-                    xassert(xfer_len == sizeof(*servicer_ret));
+                    xassert(xfer_len == sizeof(ret));
                 }
 
             } else {
@@ -247,7 +246,6 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
                                               size_t *tx_size)
 {
     control_ret_t ret;
-    uint8_t servicer_ret = 0;
     uint8_t servicer;
 
     const size_t requested_payload_len = ctx->requested_payload_len;
@@ -262,16 +260,14 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
                 tx_buf[0] = CONTROL_DATA_LENGTH_ERROR;
                 return CONTROL_DATA_LENGTH_ERROR;
             }
-            ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len, &servicer_ret);
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len);
             tx_buf[0] = ret;
-            tx_buf[1] = servicer_ret;
         }
         else // Read command
         {
             printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
-            ret = do_command(ctx, servicer, requested_resid, requested_cmd, &tx_buf[2], requested_payload_len-2, &servicer_ret);
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, &tx_buf[1], requested_payload_len-1);
             tx_buf[0] = ret;
-            tx_buf[1] = servicer_ret;
             *tx_size = requested_payload_len;
         }
     }
@@ -283,9 +279,8 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
     }
 
     ctx->last_status = ret;
-    ctx->servicer_last_status = servicer_ret;
 
-    return ret;
+    return CONTROL_SUCCESS;
 }
 
 control_ret_t device_control_payload_transfer(device_control_t *ctx,
@@ -294,7 +289,6 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
                                               control_direction_t direction)
 {
     control_ret_t ret;
-    uint8_t servicer_ret = 0;
     uint8_t servicer;
 
     const size_t requested_payload_len = ctx->requested_payload_len;
@@ -306,40 +300,39 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
         {
             if(!IS_CONTROL_CMD_READ(requested_cmd)) // Write request for a write command
             {
+                printf("Write request for write command %d\n", requested_cmd);
                 // Forward the command to the servicer. Save the status
                 if (requested_payload_len <= *buf_size) {
-                    ret = do_command(ctx, servicer, requested_resid, requested_cmd, payload_buf, requested_payload_len, &servicer_ret);
+                    ret = do_command(ctx, servicer, requested_resid, requested_cmd, payload_buf, requested_payload_len);
                 }
                 else {
                     ret = CONTROL_DATA_LENGTH_ERROR;
                 }
                 // Save status to return if the host follows up with a read request
                 ctx->last_status = ret;
-                ctx->servicer_last_status = servicer_ret;
             }
             else // Write request for a read command
             {
+                printf("Write request for read command %d\n", requested_cmd);
                 // Do nothing. Command only forwarded to the servicer when there's a read request for a read command
                 // Set last_status to Success
                 ctx->last_status = CONTROL_SUCCESS;
-                ctx->servicer_last_status = 0;
             }
         }
         else //Read request from host
         {
             if(!IS_CONTROL_CMD_READ(requested_cmd)) // Read request for a write command
             {
+                printf("Read request for write command %d\n", requested_cmd);
                 // Return status
                 payload_buf[0] = ctx->last_status;
-                payload_buf[1] = ctx->servicer_last_status;
-                // TODO - Should we clear last_status and servicer_last_status 
             }
             else // Read request for a read command
             {
-                // Forward the command to the servicer. Update returned status in the first 2 bytes of payload
-                ret = do_command(ctx, servicer, requested_resid, requested_cmd, &payload_buf[2], requested_payload_len-2, &servicer_ret);
+                printf("Read request for read command %d\n", requested_cmd);
+                // Forward the command to the servicer. Update returned status in the first byte of payload
+                ret = do_command(ctx, servicer, requested_resid, requested_cmd, &payload_buf[1], requested_payload_len-1);
                 payload_buf[0] = ret;
-                payload_buf[1] = servicer_ret;
             }
 
         }
@@ -354,7 +347,7 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
         }
     }
 
-    return ret;
+    return CONTROL_SUCCESS;
 }
 
 control_ret_t device_control_request(device_control_t *ctx,
