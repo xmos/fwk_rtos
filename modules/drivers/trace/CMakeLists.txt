@@ -8,7 +8,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_include_directories(framework_rtos_drivers_trace
         INTERFACE
-            api
+        FreeRTOS/api
     )
     target_link_libraries(framework_rtos_drivers_trace
         INTERFACE
