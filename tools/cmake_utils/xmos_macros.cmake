@@ -1,3 +1,4 @@
+include_guard(DIRECTORY)
 
 ## merge_binaries combines multiple xcore applications into one by extracting
 ## a tile elf and recombining it into another binary.
