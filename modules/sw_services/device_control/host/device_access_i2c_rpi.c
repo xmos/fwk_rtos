@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include "control_host.h"
+#include "device_control_host.h"
 #include "control_host_support.h"
 #include "util.h"
 
@@ -66,7 +66,7 @@ control_ret_t
 control_write_command(control_resid_t resid, control_cmd_t cmd,
                       const uint8_t payload[], size_t payload_len)
 {
-    printf("control write command: resid %d, cmd %d\n", resid, cmd);
+  DBG(printf("control write command: resid %d, cmd %d\n", resid, cmd));
   unsigned char command_status[1]; // status
   unsigned char buffer_to_send[I2C_TRANSACTION_MAX_BYTES + 3];
   int len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
@@ -108,7 +108,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
 
   num_commands++;
 
-  printf("write command status = %d\n",command_status[0]);
+  DBG(printf("write command status = %d\n",command_status[0]));
 
   return CONTROL_SUCCESS;
 }
@@ -117,7 +117,7 @@ control_ret_t
 control_read_command(control_resid_t resid, control_cmd_t cmd,
                      uint8_t payload[], size_t payload_len)
 {
-    printf("control read command: resid %d, cmd %d\n", resid, cmd);
+  DBG(printf("control read command: resid %d, cmd %d\n", resid, cmd));
   unsigned char read_hdr[I2C_TRANSACTION_MAX_BYTES];
   unsigned len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
   if (len != 3){
@@ -160,7 +160,7 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   DBG(printf("read command received: "));
   DBG(print_bytes(payload, payload_len));
 
-  printf("read command status = %d\n",payload[0]);
+  DBG(printf("read command status = %d\n",payload[0]));
 
   num_commands++;
 
