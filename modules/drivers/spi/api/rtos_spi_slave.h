@@ -223,6 +223,9 @@ void rtos_spi_slave_start(
  * This must only be called by the tile that owns the driver instance. It should be
  * called before starting the RTOS, and must be called before calling rtos_spi_slave_start().
  *
+ * For timing parameters and maximum clock rate, refer to the underlying HIL IO
+ * API.
+ * 
  * \param spi_slave_ctx A pointer to the SPI slave driver instance to initialize.
  * \param io_core_mask  A bitmask representing the cores on which the low level SPI I/O thread
  *                      created by the driver is allowed to run. Bit 0 is core 0, bit 1 is core 1,
