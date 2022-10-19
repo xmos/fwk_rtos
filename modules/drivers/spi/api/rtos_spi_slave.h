@@ -59,6 +59,18 @@ typedef void (*rtos_spi_slave_start_cb_t)(rtos_spi_slave_t *ctx, void *app_data)
 typedef void (*rtos_spi_slave_xfer_done_cb_t)(rtos_spi_slave_t *ctx, void *app_data);
 
 /**
+ * Internally used struct representing an received data packet.
+ *
+ * The members in this struct should not be accessed directly.
+ */
+typedef struct xfer_done_queue_item {
+    uint8_t *out_buf;
+    size_t bytes_written;
+    uint8_t *in_buf;
+    size_t bytes_read;
+} xfer_done_queue_item_t;
+
+/**
  * Struct representing an RTOS SPI slave driver instance.
  *
  * The members in this struct should not be accessed directly.
@@ -79,13 +91,16 @@ struct rtos_spi_slave_struct {
     uint8_t *in_buf;
     size_t inbuf_len;
     size_t bytes_read;
-
+    
     uint8_t *default_out_buf;
     size_t default_outbuf_len;
+    size_t default_bytes_written;
     uint8_t *default_in_buf;
     size_t default_inbuf_len;
+    size_t default_bytes_read;
 
     volatile int user_data_ready;
+    xfer_done_queue_item_t item[2];
 
     RTOS_SPI_SLAVE_CALLBACK_ATTR rtos_spi_slave_start_cb_t start;
     RTOS_SPI_SLAVE_CALLBACK_ATTR rtos_spi_slave_xfer_done_cb_t xfer_done;
