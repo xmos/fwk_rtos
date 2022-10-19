@@ -9,20 +9,25 @@
 #include "rtos_interrupt.h"
 #include "rtos_spi_slave.h"
 
-#define XFER_DONE_CB_CODE       0
+#define XFER_DONE_DEFAULT_BUF_CB_CODE   0
+#define XFER_DONE_USER_BUF_CB_CODE      1
 
-#define XFER_DONE_CB_FLAG  (1 << XFER_DONE_CB_CODE)
+#define XFER_DONE_DEFAULT_BUF_CB_FLAG   (1 << XFER_DONE_DEFAULT_BUF_CB_CODE)
+#define XFER_DONE_USER_BUF_CB_FLAG      (1 << XFER_DONE_USER_BUF_CB_CODE)
 
-#define ALL_FLAGS (XFER_DONE_CB_FLAG)
+#define ALL_FLAGS (XFER_DONE_DEFAULT_BUF_CB_FLAG | XFER_DONE_USER_BUF_CB_FLAG)
 
 #define CLRSR(c) asm volatile("clrsr %0" : : "n"(c));
 
-typedef struct {
-    uint8_t *out_buf;
-    size_t bytes_written;
-    uint8_t *in_buf;
-    size_t bytes_read;
-} xfer_done_queue_item_t;
+#ifndef RTOS_SPI_SLAVE_XFER_DONE_QUEUE_SIZE
+/* A default value of 2 allows an application and default buffer 
+ * transaction to be captured before risk of corrupting data 
+ * A value greater than 2 would have no impact on the driver, as
+ * the next transfer would still overwrite the default buffer.
+ * A value of 1 would
+ */
+#define RTOS_SPI_SLAVE_XFER_DONE_QUEUE_SIZE 2
+#endif
 
 DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
 {
@@ -30,12 +35,23 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
     int isr_action;
     xfer_done_queue_item_t item;
 
-    item.out_buf = ctx->out_buf;
-    item.bytes_written = ctx->bytes_written;
-    item.in_buf = ctx->in_buf;
-    item.bytes_read = ctx->bytes_read;
-
     isr_action = s_chan_in_byte(ctx->c.end_b);
+
+    switch(isr_action) {
+        default: /* Default to default */
+        case XFER_DONE_DEFAULT_BUF_CB_CODE:
+            item.out_buf = ctx->default_out_buf;
+            item.bytes_written = ctx->default_bytes_written;
+            item.in_buf = ctx->default_in_buf;
+            item.bytes_read = ctx->default_bytes_read;
+            break;
+        case XFER_DONE_USER_BUF_CB_CODE:
+            item.out_buf = ctx->out_buf;
+            item.bytes_written = ctx->bytes_written;
+            item.in_buf = ctx->in_buf;
+            item.bytes_read = ctx->bytes_read;
+            break;
+    }
 
     if (rtos_osal_queue_send(&ctx->xfer_done_queue, &item, RTOS_OSAL_NO_WAIT) == RTOS_OSAL_SUCCESS) {
         if (ctx->xfer_done != NULL) {
@@ -58,6 +74,8 @@ void slave_transaction_started(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t 
         *in_buf = ctx->in_buf;
         *inbuf_len = ctx->inbuf_len;
         ctx->user_data_ready = 0;
+        rtos_printf("item to write %d, to read %d\n", ctx->outbuf_len, ctx->inbuf_len);
+
     } else {
         rtos_printf("Slave transaction started with default data\n");
         *out_buf = ctx->default_out_buf;
@@ -69,9 +87,17 @@ void slave_transaction_started(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t 
 
 void slave_transaction_ended(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t bytes_written, uint8_t **in_buf, size_t bytes_read, size_t read_bits)
 {
-    ctx->bytes_written = bytes_written;
-    ctx->bytes_read = bytes_read;
-    s_chan_out_byte(ctx->c.end_a, XFER_DONE_CB_CODE);
+    if ((*out_buf == ctx->default_out_buf) && (*in_buf == ctx->default_in_buf)) {
+        ctx->default_bytes_written = bytes_written;
+        ctx->default_bytes_read = bytes_read;
+        rtos_printf("default transaction ended\n");
+        s_chan_out_byte(ctx->c.end_a, XFER_DONE_DEFAULT_BUF_CB_CODE);
+    } else {
+        ctx->bytes_written = bytes_written;
+        ctx->bytes_read = bytes_read;
+        rtos_printf("app transaction ended\n");
+        s_chan_out_byte(ctx->c.end_a, XFER_DONE_USER_BUF_CB_CODE);
+    }
 }
 
 static void spi_slave_hil_thread(rtos_spi_slave_t *ctx)
@@ -176,7 +202,7 @@ void rtos_spi_slave_start(
     spi_slave_ctx->start = start;
     spi_slave_ctx->xfer_done = xfer_done;
 
-    rtos_osal_queue_create(&spi_slave_ctx->xfer_done_queue, "spi_slave_queue", 2, sizeof(xfer_done_queue_item_t));
+    rtos_osal_queue_create(&spi_slave_ctx->xfer_done_queue, "spi_slave_queue", RTOS_SPI_SLAVE_XFER_DONE_QUEUE_SIZE, sizeof(xfer_done_queue_item_t));
 
     /* Ensure that the SPI interrupt is enabled on the requested core */
     rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
