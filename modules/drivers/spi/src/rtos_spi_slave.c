@@ -46,25 +46,30 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
     } else {
         rtos_printf("Lost SPI slave transfer\n");
     }
-
-    ctx->waiting_for_isr = 0;
 }
 
 void slave_transaction_started(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t *outbuf_len, uint8_t **in_buf, size_t *inbuf_len)
 {
-    while (ctx->waiting_for_isr);
-
-    *out_buf = ctx->out_buf;
-    *outbuf_len = ctx->outbuf_len;
-    *in_buf = ctx->in_buf;
-    *inbuf_len = ctx->inbuf_len;
+    if (ctx->user_data_ready) {
+        rtos_printf("Slave transaction started with user data\n");
+        *out_buf = ctx->out_buf;
+        *outbuf_len = ctx->outbuf_len;
+        *in_buf = ctx->in_buf;
+        *inbuf_len = ctx->inbuf_len;
+        ctx->user_data_ready = 0;
+    } else {
+        rtos_printf("Slave transaction started with default data\n");
+        *out_buf = ctx->default_out_buf;
+        *outbuf_len = ctx->default_outbuf_len;
+        *in_buf = ctx->default_in_buf;
+        *inbuf_len = ctx->default_inbuf_len;
+    }
 }
 
 void slave_transaction_ended(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t bytes_written, uint8_t **in_buf, size_t bytes_read, size_t read_bits)
 {
     ctx->bytes_written = bytes_written;
     ctx->bytes_read = bytes_read;
-    ctx->waiting_for_isr = 1;
     s_chan_out_byte(ctx->c.end_a, XFER_DONE_CB_CODE);
 }
 
@@ -129,6 +134,15 @@ void spi_slave_xfer_prepare(rtos_spi_slave_t *ctx, void *rx_buf, size_t rx_buf_l
     ctx->inbuf_len = rx_buf_len;
     ctx->out_buf = tx_buf;
     ctx->outbuf_len = tx_buf_len;
+    ctx->user_data_ready = 1;
+}
+
+void spi_slave_xfer_prepare_default_buffers(rtos_spi_slave_t *ctx, void *rx_buf, size_t rx_buf_len, void *tx_buf, size_t tx_buf_len)
+{
+    ctx->default_in_buf = rx_buf;
+    ctx->default_inbuf_len = rx_buf_len;
+    ctx->default_out_buf = tx_buf;
+    ctx->default_outbuf_len = tx_buf_len;
 }
 
 int spi_slave_xfer_complete(rtos_spi_slave_t *ctx, void **rx_buf, size_t *rx_len, void **tx_buf, size_t *tx_len, unsigned timeout)

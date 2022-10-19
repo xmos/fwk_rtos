@@ -80,7 +80,12 @@ struct rtos_spi_slave_struct {
     size_t inbuf_len;
     size_t bytes_read;
 
-    volatile int waiting_for_isr;
+    uint8_t *default_out_buf;
+    size_t default_outbuf_len;
+    uint8_t *default_in_buf;
+    size_t default_inbuf_len;
+
+    volatile int user_data_ready;
 
     RTOS_SPI_SLAVE_CALLBACK_ATTR rtos_spi_slave_start_cb_t start;
     RTOS_SPI_SLAVE_CALLBACK_ATTR rtos_spi_slave_xfer_done_cb_t xfer_done;
@@ -99,6 +104,10 @@ struct rtos_spi_slave_struct {
  *
  * This only needs to be called when the buffers need to be changed. If all transfers
  * will use the same buffers, then this only needs to be called once during initialization.
+ * 
+ * If the application has not processed the previous transaction, the buffers will be
+ * held, and default buffers set by spi_slave_xfer_prepare_default_buffers() will be
+ * used if a new transaction starts.
  *
  * \param ctx        A pointer to the SPI slave driver instance to use.
  * \param rx_buf     The buffer to receive data into for any subsequent transfers.
@@ -118,10 +127,43 @@ void spi_slave_xfer_prepare(
         size_t tx_buf_len);
 
 /**
+ * Prepares an RTOS SPI slave driver instance with default buffers for subsequent transfers.
+ * Before this is called for the first time, any transfers initiated by a master device
+ * with result in all received data over MOSI being dropped, and all data sent over
+ * MISO being zeros.
+ *
+ * This only needs to be called when the buffers need to be changed.
+ * 
+ * The default buffer will be used in the event that the application has not
+ * yet processed the previous transfer.  This enables the application to have
+ * a default buffer to implement a sort of NACK over SPI in the event that the
+ * device was busy and had not yet finished handling the previous transaction
+ * before a new one started.
+ *
+ * \param ctx        A pointer to the SPI slave driver instance to use.
+ * \param rx_buf     The buffer to receive data into for any subsequent transfers.
+ * \param rx_buf_    The length in bytes of \p rx_buf. If the master transfers more than
+ *                   this during a single transfer, then the bytes that do not fit within
+ *                   \p rx_buf will be lost.
+ * \param tx_buf     The buffer to send data from for any subsequent transfers.
+ * \param tx_buf_len The length in bytes of \p tx_buf. If the master transfers more than
+ *                   this during a single transfer, zeros will be sent following the last
+ *                   byte \p tx_buf.
+ */
+void spi_slave_xfer_prepare_default_buffers(
+        rtos_spi_slave_t *ctx,
+        void *rx_buf,
+        size_t rx_buf_len,
+        void *tx_buf,
+        size_t tx_buf_len);
+
+/**
  * Waits for a SPI transfer to complete. Returns either when the timeout is reached, or
  * when a transfer completes, whichever comes first. If a transfer does complete, then
  * the buffers and the number of bytes read from or written to them are returned via
  * the parameters.
+ * 
+ * \note The duration of this callback will effect the minimum duration between SPI transactions
  *
  * \param ctx     A pointer to the SPI slave driver instance to use.
  * \param rx_buf  The receive buffer used for the completed transfer. This is set by
@@ -161,6 +203,9 @@ int spi_slave_xfer_complete(
  * \param xfer_done         The callback function that is notified when transfers are
  *                          complete. This is optional and may be NULL.
  * \param interrupt_core_id The ID of the core on which to enable the SPI interrupt.
+ *                          This core should not be shared with threads that disable
+ *                          interrupts for long periods of time, nor enable other
+ *                          interrupts.
  * \param priority          The priority of the task that gets created by the driver to
  *                          call the callback functions. If both callback functions are
  *                          NULL, then this is unused.
@@ -178,6 +223,9 @@ void rtos_spi_slave_start(
  * This must only be called by the tile that owns the driver instance. It should be
  * called before starting the RTOS, and must be called before calling rtos_spi_slave_start().
  *
+ * For timing parameters and maximum clock rate, refer to the underlying HIL IO
+ * API.
+ * 
  * \param spi_slave_ctx A pointer to the SPI slave driver instance to initialize.
  * \param io_core_mask  A bitmask representing the cores on which the low level SPI I/O thread
  *                      created by the driver is allowed to run. Bit 0 is core 0, bit 1 is core 1,

@@ -1,3 +1,4 @@
+include_guard(DIRECTORY)
 
 ## merge_binaries combines multiple xcore applications into one by extracting
 ## a tile elf and recombining it into another binary.
@@ -42,10 +43,10 @@ macro(create_run_target _EXECUTABLE_TARGET_NAME)
 endmacro()
 
 ## Creates a debug target for a provided binary
-macro(create_debug_target _EXECUTABLE_NAME)
-    add_custom_target(debug_${_EXECUTABLE_NAME}
-      COMMAND xgdb ${_EXECUTABLE_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
-      DEPENDS ${_EXECUTABLE_NAME}.xe
+macro(create_debug_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(debug_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xgdb ${_EXECUTABLE_TARGET_NAME}.xe -ex "connect" -ex "connect --xscope" -ex "run"
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Debug application"
     )
@@ -53,21 +54,61 @@ endmacro()
 
 ## Creates a filesystem file for a provided binary
 ##   filename must end in "_fat.fs"
-macro(create_filesystem_target _EXECUTABLE_NAME)
-    add_custom_target(make_fs_${_EXECUTABLE_NAME}
-      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_NAME}_fat.fs ${_EXECUTABLE_NAME}_fat.fs
-      DEPENDS ${_EXECUTABLE_NAME}_fat.fs
+macro(create_filesystem_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(make_fs_${_EXECUTABLE_TARGET_NAME}
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_TARGET_NAME}_fat.fs ${_EXECUTABLE_TARGET_NAME}_fat.fs
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}_fat.fs
       COMMENT
         "Make filesystem"
     )
 endmacro()
 
 ## Creates a flash app target for a provided binary
-macro(create_flash_app_target _EXECUTABLE_NAME)
-    add_custom_target(flash_app_${_EXECUTABLE_NAME}
-      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_NAME}.xe
-      DEPENDS ${_EXECUTABLE_NAME}.xe
+macro(create_flash_app_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(flash_app_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_TARGET_NAME}.xe
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Flash application"
     )
 endmacro()
+
+## Creates an install target for a provided binary
+macro(create_install_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(install_${_EXECUTABLE_TARGET_NAME}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/dist
+      COMMAND cp ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Install application"
+    )
+endmacro()
+
+## Query the version of the XTC Tools
+##
+##   Populates the following variables:
+##
+##     XTC_VERSION_MAJOR
+##     XTC_VERSION_MINOR
+##     XTC_VERSION_PATCH
+function(query_tools_version)
+    # Run cat "$XMOS_TOOL_PATH"/doc/version.txt
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E cat $ENV{XMOS_TOOL_PATH}/doc/version.txt
+        OUTPUT_VARIABLE XCC_VERSION_OUTPUT_STRING
+    )
+    # Split output semver
+    string(FIND ${XCC_VERSION_OUTPUT_STRING} " " SPACE_POSITION)
+    string(SUBSTRING ${XCC_VERSION_OUTPUT_STRING} 0 ${SPACE_POSITION} XCC_SEMVER)
+    message(STATUS "XTC version: ${XCC_SEMVER}")
+    # Parse version fields
+    string(REPLACE "." ";" XCC_SEMVER_FIELDS ${XCC_SEMVER})
+    list(LENGTH XCC_SEMVER_FIELDS XCC_SEMVER_FIELDS_LENGTH)
+    list(GET XCC_SEMVER_FIELDS 0 XCC_VERSION_MAJOR)
+    list(GET XCC_SEMVER_FIELDS 1 XCC_VERSION_MINOR)
+    list(GET XCC_SEMVER_FIELDS 2 XCC_VERSION_PATCH)
+    # Set XTC version env variables
+    set(XTC_VERSION_MAJOR ${XCC_VERSION_MAJOR} PARENT_SCOPE)
+    set(XTC_VERSION_MINOR ${XCC_VERSION_MINOR} PARENT_SCOPE)
+    set(XTC_VERSION_PATCH ${XCC_VERSION_PATCH} PARENT_SCOPE)
+endfunction()
