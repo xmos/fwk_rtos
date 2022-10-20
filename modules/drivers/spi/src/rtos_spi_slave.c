@@ -91,13 +91,23 @@ void slave_transaction_ended(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t by
         ctx->default_bytes_written = bytes_written;
         ctx->default_bytes_read = bytes_read;
         rtos_printf("default transaction ended\n");
-        s_chan_out_byte(ctx->c.end_a, XFER_DONE_DEFAULT_BUF_CB_CODE);
+        if (!(ctx->drop_default_buffers)) {
+            s_chan_out_byte(ctx->c.end_a, XFER_DONE_DEFAULT_BUF_CB_CODE);
+        }
     } else {
         ctx->bytes_written = bytes_written;
         ctx->bytes_read = bytes_read;
         rtos_printf("app transaction ended\n");
         s_chan_out_byte(ctx->c.end_a, XFER_DONE_USER_BUF_CB_CODE);
     }
+}
+
+void spi_slave_default_buf_xfer_ended_disable(rtos_spi_slave_t *ctx) {
+    ctx->drop_default_buffers = 1;
+}
+
+void spi_slave_default_buf_xfer_ended_enable(rtos_spi_slave_t *ctx) {
+    ctx->drop_default_buffers = 0;
 }
 
 static void spi_slave_hil_thread(rtos_spi_slave_t *ctx)
