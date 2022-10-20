@@ -9,6 +9,8 @@
 #define SPI_XFER_TX_SIZE (64)
 static uint8_t spi_xfer_rx_buf[SPI_XFER_RX_SIZE];
 static uint8_t spi_xfer_tx_buf[SPI_XFER_TX_SIZE];
+static uint8_t spi_xfer_rx_default_buf[SPI_XFER_RX_SIZE];
+static uint8_t spi_xfer_tx_default_buf[SPI_XFER_TX_SIZE];
 
 RTOS_SPI_SLAVE_CALLBACK_ATTR
 void device_control_spi_start_cb(rtos_spi_slave_t *ctx,
@@ -18,6 +20,13 @@ void device_control_spi_start_cb(rtos_spi_slave_t *ctx,
     {
         spi_xfer_tx_buf[i] = 5;
     }
+    spi_xfer_tx_default_buf[0] = CONTROL_COMMAND_IGNORED_IN_DEVICE; // Fill error code indicating packet dropped in device
+    for(int i=1; i<8; i++)
+    {
+        spi_xfer_tx_default_buf[i] = 6;
+    }
+
+    spi_slave_xfer_prepare_default_buffers(ctx, spi_xfer_rx_default_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_default_buf, SPI_XFER_TX_SIZE);
     spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);
 
     control_ret_t dc_ret;
@@ -41,6 +50,13 @@ void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
     size_t rx_len, tx_len;
 
     spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0);
+    printf("rx_buf[0] = 0x%x, rx_buf[1] = 0x%x, rx_buf[2] = 0x%x\n",rx_buf[0], rx_buf[1], rx_buf[2]);
+    if(rx_buf == &spi_xfer_tx_default_buf[0])
+    {
+        printf("default buf. return\n");
+        // xfer completed in default buffer. Ignore
+        return;
+    }
 
     if(rx_len < 3)
     {
@@ -50,16 +66,18 @@ void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
     //Check for NOP as the first thing
     if ((rx_buf[0] == 0) && (rx_buf[1] == 0) && (rx_buf[2] == 0)) {
         // This is a NOP sent for reading tx_buf updated in the previous command.
-        return;
     }
-    
-    control_ret_t ret;
-    if (rx_len >= 3) {
-        device_control_request(device_control_ctx,
-                               rx_buf[0],
-                               rx_buf[1],
-                               rx_buf[2]);
-        rx_len -= 3;
-        ret = device_control_payload_transfer_bidir(device_control_ctx, &rx_buf[3], rx_len, tx_buf, &tx_len);
+    else
+    {
+        control_ret_t ret;
+        if (rx_len >= 3) {
+            device_control_request(device_control_ctx,
+                                rx_buf[0],
+                                rx_buf[1],
+                                rx_buf[2]);
+            rx_len -= 3;
+            ret = device_control_payload_transfer_bidir(device_control_ctx, &rx_buf[3], rx_len, tx_buf, &tx_len);
+        }
     }
+    spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);
 }
