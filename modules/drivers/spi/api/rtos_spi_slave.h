@@ -91,7 +91,7 @@ struct rtos_spi_slave_struct {
     uint8_t *in_buf;
     size_t inbuf_len;
     size_t bytes_read;
-    
+
     uint8_t *default_out_buf;
     size_t default_outbuf_len;
     size_t default_bytes_written;
@@ -101,6 +101,7 @@ struct rtos_spi_slave_struct {
 
     volatile int user_data_ready;
     xfer_done_queue_item_t item[2];
+    uint8_t drop_default_buffers;
 
     RTOS_SPI_SLAVE_CALLBACK_ATTR rtos_spi_slave_start_cb_t start;
     RTOS_SPI_SLAVE_CALLBACK_ATTR rtos_spi_slave_xfer_done_cb_t xfer_done;
@@ -203,6 +204,32 @@ int spi_slave_xfer_complete(
         void **tx_buf,
         size_t *tx_len,
         unsigned timeout);
+
+/**
+ * Sets the driver to use callbacks for all default transactions.
+ * This will result in transfers done with the default buffer
+ * generating callbacks to the application to xfer_done.
+ * This will require default buffer transaction items to be
+ * processed with spi_slave_xfer_complete()
+ * 
+ * \note This is the default setting
+ *
+ * \param ctx     A pointer to the SPI slave driver instance to use.
+ */
+void spi_slave_default_buf_xfer_ended_enable(
+        rtos_spi_slave_t *ctx);
+
+/**
+ * Sets the driver to drop all default transactions.  This will result
+ * in transfers done with the default buffer not generating callbacks
+ * to the application to xfer_done.  This will also stop default
+ * buffer transaction items from being required to be processed with
+ * spi_slave_xfer_complete()
+ *
+ * \param ctx     A pointer to the SPI slave driver instance to use.
+ */
+void spi_slave_default_buf_xfer_ended_disable(
+        rtos_spi_slave_t *ctx);
 
 /**
  * Starts an RTOS SPI slave driver instance. This must only be called by the tile that
