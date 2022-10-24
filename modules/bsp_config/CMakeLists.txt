@@ -20,7 +20,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             rtos::freertos
             rtos::drivers::general
             rtos::drivers::audio
-            rtos::drivers::trace
             rtos::drivers::usb
     )
     target_compile_definitions(framework_rtos_board_support_config_xcore_ai_explorer_1V1
@@ -69,7 +68,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             rtos::freertos
             rtos::drivers::general
             rtos::drivers::audio
-            rtos::drivers::trace
             rtos::drivers::usb
     )
     target_compile_definitions(framework_rtos_board_support_config_xcore_ai_explorer_2V0
