@@ -430,7 +430,6 @@ control_ret_t device_control_resources_register(device_control_t *ctx,
     rtos_osal_tick_t start_time;
 
     ctx->servicer_table = rtos_osal_malloc(ctx->servicer_count * sizeof(*ctx->servicer_table));
-
     start_time = rtos_osal_tick_get();
     while (registered_count < ctx->servicer_count && ret == 0 && rtos_osal_tick_get() - start_time < timeout) {
 

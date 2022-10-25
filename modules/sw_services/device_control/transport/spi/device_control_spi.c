@@ -25,7 +25,7 @@ void device_control_spi_start_cb(rtos_spi_slave_t *ctx,
     {
         spi_xfer_tx_default_buf[i] = 6;
     }
-
+    spi_slave_default_buf_xfer_ended_disable(ctx);
     spi_slave_xfer_prepare_default_buffers(ctx, spi_xfer_rx_default_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_default_buf, SPI_XFER_TX_SIZE);
     spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);
 
@@ -50,10 +50,9 @@ void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
     size_t rx_len, tx_len;
 
     spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0);
-    printf("rx_buf[0] = 0x%x, rx_buf[1] = 0x%x, rx_buf[2] = 0x%x\n",rx_buf[0], rx_buf[1], rx_buf[2]);
+    
     if(rx_buf == &spi_xfer_tx_default_buf[0])
     {
-        printf("default buf. return\n");
         // xfer completed in default buffer. Ignore
         return;
     }

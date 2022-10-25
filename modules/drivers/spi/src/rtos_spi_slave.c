@@ -26,7 +26,7 @@
  * the next transfer would still overwrite the default buffer.
  * A value of 1 would
  */
-#define RTOS_SPI_SLAVE_XFER_DONE_QUEUE_SIZE 1
+#define RTOS_SPI_SLAVE_XFER_DONE_QUEUE_SIZE 2
 #endif
 
 DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
@@ -167,7 +167,6 @@ static void spi_slave_app_thread(rtos_spi_slave_t *ctx)
 
 void spi_slave_xfer_prepare(rtos_spi_slave_t *ctx, void *rx_buf, size_t rx_buf_len, void *tx_buf, size_t tx_buf_len)
 {
-    printf("\nspi_slave_xfer_prepare\n\n");
     ctx->in_buf = rx_buf;
     ctx->inbuf_len = rx_buf_len;
     ctx->out_buf = tx_buf;
