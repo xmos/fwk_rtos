@@ -16,15 +16,8 @@ RTOS_SPI_SLAVE_CALLBACK_ATTR
 void device_control_spi_start_cb(rtos_spi_slave_t *ctx,
                                  device_control_t *device_control_ctx)
 {
-    for(int i=0; i<8; i++)
-    {
-        spi_xfer_tx_buf[i] = 5;
-    }
     spi_xfer_tx_default_buf[0] = CONTROL_COMMAND_IGNORED_IN_DEVICE; // Fill error code indicating packet dropped in device
-    for(int i=1; i<8; i++)
-    {
-        spi_xfer_tx_default_buf[i] = 6;
-    }
+
     spi_slave_default_buf_xfer_ended_disable(ctx);
     spi_slave_xfer_prepare_default_buffers(ctx, spi_xfer_rx_default_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_default_buf, SPI_XFER_TX_SIZE);
     spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);

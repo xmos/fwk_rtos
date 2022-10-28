@@ -265,7 +265,7 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
         }
         else // Read command
         {
-            printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
+            rtos_printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
             ret = do_command(ctx, servicer, requested_resid, requested_cmd, &tx_buf[1], requested_payload_len-1);
             tx_buf[0] = ret;
             *tx_size = requested_payload_len;
@@ -273,7 +273,7 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
     }
     else // Resource not found
     {
-        //printf("resource %d not found\n", requested_resid);
+        rtos_printf("resource %d not found\n", requested_resid);
         tx_buf[0] = CONTROL_BAD_RESOURCE;
         return CONTROL_ERROR;
     }
@@ -300,7 +300,7 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
         {
             if(!IS_CONTROL_CMD_READ(requested_cmd)) // Write request for a write command
             {
-                printf("Write request for write command %d\n", requested_cmd);
+                rtos_printf("Write request for write command %d\n", requested_cmd);
                 // Forward the command to the servicer. Save the status
                 if (requested_payload_len <= *buf_size) {
                     ret = do_command(ctx, servicer, requested_resid, requested_cmd, payload_buf, requested_payload_len);
@@ -313,7 +313,7 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
             }
             else // Write request for a read command
             {
-                printf("Write request for read command %d\n", requested_cmd);
+                rtos_printf("Write request for read command %d\n", requested_cmd);
                 // Do nothing. Command only forwarded to the servicer when there's a read request for a read command
                 // Set last_status to Success
                 ctx->last_status = CONTROL_SUCCESS;
@@ -323,13 +323,13 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
         {
             if(!IS_CONTROL_CMD_READ(requested_cmd)) // Read request for a write command
             {
-                printf("Read request for write command %d\n", requested_cmd);
+                rtos_printf("Read request for write command %d\n", requested_cmd);
                 // Return status
                 payload_buf[0] = ctx->last_status;
             }
             else // Read request for a read command
             {
-                printf("Read request for read command %d\n", requested_cmd);
+                rtos_printf("Read request for read command %d\n", requested_cmd);
                 // Forward the command to the servicer. Update returned status in the first byte of payload
                 ret = do_command(ctx, servicer, requested_resid, requested_cmd, &payload_buf[1], requested_payload_len-1);
                 payload_buf[0] = ret;
