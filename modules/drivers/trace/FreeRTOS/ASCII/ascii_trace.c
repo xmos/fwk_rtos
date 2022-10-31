@@ -53,11 +53,11 @@ void traceFreeRTOS_to_xscope(char* fmt, ...)
 	char * strArg;
 	va_list args;
 
-	unsigned char buf[ xcoretraceconfigXSCOPE_TRACE_BUFFER ];
-	unsigned char *end = &buf[ xcoretraceconfigXSCOPE_TRACE_BUFFER - 1 - MAX_XSCOPE_INT_STRING_SIZE ];
+	char buf[ xcoretraceconfigXSCOPE_TRACE_BUFFER ];
+	char *end = &buf[ xcoretraceconfigXSCOPE_TRACE_BUFFER - 1 - MAX_XSCOPE_INT_STRING_SIZE ];
 
 	va_start( args, fmt );
-	unsigned char *p = buf;
+	char *p = buf;
 
 	while( *fmt )
 	{
@@ -151,7 +151,7 @@ void traceFreeRTOS_to_xscope(char* fmt, ...)
 	    }
 		fmt++;
 	}
-	xscope_core_bytes( FREERTOS_TRACE, p - buf , buf );
+	xscope_core_bytes( FREERTOS_TRACE, p - buf , (unsigned char*)buf );
 
 	va_end(args);
 }
