@@ -61,14 +61,13 @@ void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
     }
     else
     {
-        control_ret_t ret;
         if (rx_len >= 3) {
             device_control_request(device_control_ctx,
                                 rx_buf[0],
                                 rx_buf[1],
                                 rx_buf[2]);
             rx_len -= 3;
-            ret = device_control_payload_transfer_bidir(device_control_ctx, &rx_buf[3], rx_len, tx_buf, &tx_len);
+            device_control_payload_transfer_bidir(device_control_ctx, &rx_buf[3], rx_len, tx_buf, &tx_len);
         }
     }
     spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);

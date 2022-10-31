@@ -184,11 +184,8 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
  *                    This will be updated
  *                    to the number of bytes actually written to \p tx_buf.
  *
- * \returns           CONTROL_SUCCESS if everything works and the command is successfully
- *                    handled by a registered servicer. An error code otherwise.
- *
  */
-control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
+void device_control_payload_transfer_bidir(device_control_t *ctx,
                                               const uint8_t *rx_buf,
                                               const size_t rx_size,
                                               uint8_t *tx_buf,
