@@ -12,16 +12,9 @@
 
 //#define DBG(x) x
 #define DBG(x)
+#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
 static unsigned delay_milliseconds;
-
-static bcm2835SPIMode lib_spi_to_bcm2835_mode(spi_mode_t spi_mode)
-{
-  if(spi_mode == SPI_MODE_0) return BCM2835_SPI_MODE1;
-  else if(spi_mode == SPI_MODE_1) return BCM2835_SPI_MODE0;
-  else if(spi_mode == SPI_MODE_2) return BCM2835_SPI_MODE2;
-  else return BCM2835_SPI_MODE3;
-}
 
 control_ret_t
 control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, unsigned delay_for_read)
@@ -46,28 +39,22 @@ control_ret_t
 control_write_command(control_resid_t resid, control_cmd_t cmd,
                       const uint8_t payload[], size_t payload_len)
 {
-  int error_count = 0;
-  for(int i=0; i<1; i++) {
   uint8_t data_sent_recieved[SPI_TRANSACTION_MAX_BYTES];
 
-  int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
-  /*printf("resid 0x%x, cmd_id 0x%x, payload_len 0x%x\n",resid, cmd, payload_len);
-  for(int i=0; i<4; i++)
+  do
   {
-	  printf("payload[%d] = 0x%x\n",i,payload[i]);
-  }*/
-  bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
-
-#if 1
-  memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
-  unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
-  
-  usleep(1000);
-  bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
-  printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
-#endif
-  }
-  //printf("error_count = %d\n", error_count);
+      int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
+  }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+  do
+  {
+      // get status
+      memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
+      unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
+      bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
+  }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+  //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
+  // TODO status needs to be returned to the higher layer.
   return CONTROL_SUCCESS;
 }
 
@@ -76,32 +63,23 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
                      uint8_t payload[], size_t payload_len)
 {
   uint8_t data_sent_recieved[SPI_TRANSACTION_MAX_BYTES] = {0};
-  int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
-
-  printf("control_read_command(): resid 0x%x, cmd_id 0x%x, payload_len 0x%x\n",resid, cmd, payload_len);
-  /*for(int i=0; i<4; i++)
+  //printf("control_read_command(): resid 0x%x, cmd_id 0x%x, payload_len 0x%x\n",resid, cmd, payload_len);
+  do
   {
-	  printf("payload[%d] = 0x%x\n",i,payload[i]);
-  }*/
+      int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
 
-  bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
-
-  /*printf("Data recieved: ");
-  for(unsigned i=0; i<8; ++i) {
-    printf("%-3d ", (uint8_t) data_sent_recieved[i]);
-  }*/
+  }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
   
-  usleep(1000);
-  memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
-  unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
+  do
+  {
+      memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
+      unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
 
-  bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
-  /*printf("Data recieved: ");
-  for(unsigned i=0; i<transaction_length; ++i) {
-    printf("%-3d ", (uint8_t) data_sent_recieved[i]);
-  }*/
+      bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
+  }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
-  printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
+  //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
   memcpy(payload, data_sent_recieved, payload_len);
 
   return CONTROL_SUCCESS;

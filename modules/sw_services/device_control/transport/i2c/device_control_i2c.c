@@ -32,7 +32,6 @@ void device_control_i2c_rx_cb(rtos_i2c_slave_t *ctx,
                               uint8_t *data,
                               size_t len)
 {
-    rtos_printf("device_control_i2c_rx_cb()\n");
     control_ret_t ret;
 
     if (len >= 3) {
@@ -57,15 +56,8 @@ size_t device_control_i2c_tx_start_cb(rtos_i2c_slave_t *ctx,
                                       device_control_t *device_control_ctx,
                                       uint8_t **data)
 {
-    rtos_printf("device_control_i2c_tx_start_cb()\n");
     control_ret_t ret;
     size_t len = RTOS_I2C_SLAVE_BUF_LEN;
-
-    if(device_control_ctx->last_status != CONTROL_SUCCESS)
-    {
-        (*data)[0] = device_control_ctx->last_status;
-        return len;
-    }
 
     ret = device_control_payload_transfer(device_control_ctx,
                                           *data, &len, CONTROL_DEVICE_TO_HOST);

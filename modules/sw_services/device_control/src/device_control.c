@@ -42,7 +42,7 @@ int resource_table_search(device_control_t *ctx,
                           control_resid_t resid,
                           uint8_t *servicer);
 
-void device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
+control_ret_t device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
                                                DEVICE_CONTROL_CALLBACK_ATTR device_control_read_cmd_cb_t read_cmd_cb,
                                                DEVICE_CONTROL_CALLBACK_ATTR device_control_write_cmd_cb_t write_cmd_cb,
                                                void *app_data,
@@ -93,6 +93,7 @@ void device_control_servicer_cmd_recv(device_control_servicer_t *ctx,
             rtos_osal_free(c_ptr);
         }
     }
+    return status == RTOS_OSAL_SUCCESS ? CONTROL_SUCCESS : CONTROL_ERROR;
 }
 
 static void device_control_client_thread(device_control_t *ctx)
@@ -239,7 +240,7 @@ static control_ret_t do_command(device_control_t *ctx,
     }
 }
 
-control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
+void device_control_payload_transfer_bidir(device_control_t *ctx,
                                               const uint8_t *rx_buf,
                                               const size_t rx_size,
                                               uint8_t *tx_buf,
@@ -258,7 +259,6 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
             if(requested_payload_len > rx_size)
             {
                 tx_buf[0] = CONTROL_DATA_LENGTH_ERROR;
-                return CONTROL_DATA_LENGTH_ERROR;
             }
             ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len);
             tx_buf[0] = ret;
@@ -275,12 +275,9 @@ control_ret_t device_control_payload_transfer_bidir(device_control_t *ctx,
     {
         rtos_printf("resource %d not found\n", requested_resid);
         tx_buf[0] = CONTROL_BAD_RESOURCE;
-        return CONTROL_ERROR;
     }
 
     ctx->last_status = ret;
-
-    return CONTROL_SUCCESS;
 }
 
 control_ret_t device_control_payload_transfer(device_control_t *ctx,
