@@ -45,6 +45,10 @@ void device_control_i2c_rx_cb(rtos_i2c_slave_t *ctx,
                                               &data[3], &len, CONTROL_HOST_TO_DEVICE);
         rtos_printf("I2C write completed - device control status %d\n", ret);
     }
+    else // Received packet length has to be atleast 3
+    {
+        device_control_ctx->last_status = CONTROL_MALFORMED_PACKET;
+    }
 }
 
 RTOS_I2C_SLAVE_CALLBACK_ATTR
@@ -58,11 +62,6 @@ size_t device_control_i2c_tx_start_cb(rtos_i2c_slave_t *ctx,
     ret = device_control_payload_transfer(device_control_ctx,
                                           *data, &len, CONTROL_DEVICE_TO_HOST);
     rtos_printf("I2C read started - device control status %d\n", ret);
-
-    if (ret != CONTROL_SUCCESS) {
-        (*data)[0] = (control_status_t) ret;
-        len = 1;
-    }
 
     return len;
 }

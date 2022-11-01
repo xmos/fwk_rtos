@@ -168,6 +168,30 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
                                               control_direction_t direction);
 
 /**
+ * Must be called by the transport layer when it receives a payload and requires a
+ * payload to transmit, for example, in a SPI transfer. The error status returned by the servicer
+ * handling the command is updated in the first byte of the tx_buf.
+ *
+ * \param ctx         A pointer to the associated device control instance.
+ * \param rx_buf      A pointer to the receive payload buffer.
+ * \param rx_size     A variable containing the size of \p rx_buf.
+ *
+ *                    No more than this
+ *                    number of bytes will be read from it.
+ * \param tx_buf      A pointer to the transmitr payload buffer.
+ * \param tx_size     A pointer variable containing the size of \p tx_buf.
+ *
+ *                    This will be updated
+ *                    to the number of bytes actually written to \p tx_buf.
+ *
+ */
+void device_control_payload_transfer_bidir(device_control_t *ctx,
+                                              const uint8_t *rx_buf,
+                                              const size_t rx_size,
+                                              uint8_t *tx_buf,
+                                              size_t *tx_size);
+
+/**
  * This is called by servicers to wait for and receive any commands received by the transport layer
  * contain one of the resource IDs registered by the servicer. This is also responsible for responding
  * to read commands.

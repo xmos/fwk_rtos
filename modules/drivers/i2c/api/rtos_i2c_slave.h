@@ -170,7 +170,7 @@ struct rtos_i2c_slave_struct {
     uint8_t data_buf[RTOS_I2C_SLAVE_BUF_LEN];
     size_t rx_data_i;
 
-    uint8_t *tx_data;
+    uint8_t *volatile tx_data;
     size_t tx_data_len;
     size_t tx_data_i;
     size_t tx_data_sent;

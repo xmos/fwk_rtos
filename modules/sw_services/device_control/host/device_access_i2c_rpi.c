@@ -1,4 +1,4 @@
-// Copyright 2016-2021 XMOS LIMITED.
+// Copyright 2016-2022 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #if USE_I2C && RPI
 
@@ -66,19 +66,49 @@ control_ret_t
 control_write_command(control_resid_t resid, control_cmd_t cmd,
                       const uint8_t payload[], size_t payload_len)
 {
+  DBG(printf("control write command: resid %d, cmd %d\n", resid, cmd));
+  unsigned char command_status[1]; // status
   unsigned char buffer_to_send[I2C_TRANSACTION_MAX_BYTES + 3];
   int len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
 
-  DBG(printf("%u: send write command: ", num_commands));
-  DBG(print_bytes((unsigned char*)buffer_to_send, payload_len));
-	
-  int written = write(fd, buffer_to_send, len);
-  if (written != len){
-    fprintf(stderr, "Error writing to i2c. %d of %d bytes sent\n", written, len);
+  
+  // Do a repeated start (write followed by read with no stop bit)
+  struct i2c_msg rdwr_msgs[2] = {
+    {  // Start address
+      .addr = address,
+      .flags = 0, // write
+      .len = (unsigned short)len,
+      .buf = buffer_to_send
+    },
+    { // Read buffer
+      .addr = address,
+      .flags = I2C_M_RD, // read
+      .len = (unsigned short)1, // 1 byte of status
+      .buf = command_status
+    }
+  };
+
+  struct i2c_rdwr_ioctl_data rdwr_data = {
+    .msgs = rdwr_msgs,
+    .nmsgs = 2
+  };
+
+  DBG(printf("%d: issued command to write %d bytes: command=", num_commands, payload_len));
+
+  int errno = ioctl( fd, I2C_RDWR, &rdwr_data );
+
+  if ( errno < 0 ) {
+    fprintf(stderr, "Failed to transfer data, rdwr ioctl error number %d: ", errno );
+    perror( "Error  :" );
     return CONTROL_ERROR;
   }
 
+  DBG(printf("write command received: "));
+  DBG(print_bytes(payload, payload_len));
+
   num_commands++;
+
+  DBG(printf("write command status = %d\n",command_status[0]));
 
   return CONTROL_SUCCESS;
 }
@@ -87,6 +117,7 @@ control_ret_t
 control_read_command(control_resid_t resid, control_cmd_t cmd,
                      uint8_t payload[], size_t payload_len)
 {
+  DBG(printf("control read command: resid %d, cmd %d\n", resid, cmd));
   unsigned char read_hdr[I2C_TRANSACTION_MAX_BYTES];
   unsigned len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
   if (len != 3){
@@ -121,13 +152,15 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   int errno = ioctl( fd, I2C_RDWR, &rdwr_data );
 
   if ( errno < 0 ) {
-    fprintf(stderr, "rdwr ioctl error %d: ", errno );
-    perror( "" );
+    fprintf(stderr, "Failed to transfer data, rdwr ioctl error number %d: ", errno );
+    perror( "Error  :" );
     return CONTROL_ERROR;
   }
 
   DBG(printf("read command received: "));
   DBG(print_bytes(payload, payload_len));
+
+  DBG(printf("read command status = %d\n",payload[0]));
 
   num_commands++;
 

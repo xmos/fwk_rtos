@@ -8,12 +8,14 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
             src/resource_table.c
             transport/i2c/device_control_i2c.c
             transport/usb/device_control_usb.c
+            transport/spi/device_control_spi.c
     )
     target_include_directories(framework_rtos_sw_services_device_control
         INTERFACE
             api
             transport/i2c
             transport/usb
+            transport/spi
     )
     target_link_libraries(framework_rtos_sw_services_device_control
         INTERFACE
