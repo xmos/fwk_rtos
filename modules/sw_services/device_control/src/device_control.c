@@ -266,8 +266,8 @@ void device_control_payload_transfer_bidir(device_control_t *ctx,
         else // Read command
         {
             rtos_printf("do_read_command(), requested_resid %d, requested_cmd %d, requested_payload_len %d\n", requested_resid, requested_cmd, requested_payload_len);
-            ret = do_command(ctx, servicer, requested_resid, requested_cmd, &tx_buf[1], requested_payload_len-1);
-            tx_buf[0] = ret;
+            ret = do_command(ctx, servicer, requested_resid, requested_cmd, tx_buf, requested_payload_len);
+            //tx_buf[0] = ret;
             *tx_size = requested_payload_len;
         }
     }
@@ -328,8 +328,8 @@ control_ret_t device_control_payload_transfer(device_control_t *ctx,
             {
                 rtos_printf("Read request for read command %d\n", requested_cmd);
                 // Forward the command to the servicer. Update returned status in the first byte of payload
-                ret = do_command(ctx, servicer, requested_resid, requested_cmd, &payload_buf[1], requested_payload_len-1);
-                payload_buf[0] = ret;
+                ret = do_command(ctx, servicer, requested_resid, requested_cmd, payload_buf, requested_payload_len);
+                //payload_buf[0] = ret;
             }
 
         }
