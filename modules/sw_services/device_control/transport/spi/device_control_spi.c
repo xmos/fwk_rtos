@@ -23,14 +23,14 @@ void device_control_spi_start_cb(rtos_spi_slave_t *ctx,
     spi_slave_xfer_prepare(ctx, spi_xfer_rx_buf, SPI_XFER_RX_SIZE, spi_xfer_tx_buf, SPI_XFER_TX_SIZE);
 
     control_ret_t dc_ret;
-    rtos_printf("Registering SPI device control resources now\n");
+
     dc_ret = device_control_resources_register(device_control_ctx,
                                                pdMS_TO_TICKS(5000));
 
     if (dc_ret != CONTROL_SUCCESS) {
-        rtos_printf("Device control resources failed to register for SPI on tile %d\n", THIS_XCORE_TILE);
+        //rtos_printf("Device control resources failed to register for SPI on tile %d\n", THIS_XCORE_TILE);
     } else {
-        rtos_printf("Device control resources registered for SPI on tile %d\n", THIS_XCORE_TILE);
+        //rtos_printf("Device control resources registered for SPI on tile %d\n", THIS_XCORE_TILE);
     }
     xassert(dc_ret == CONTROL_SUCCESS);
 }
