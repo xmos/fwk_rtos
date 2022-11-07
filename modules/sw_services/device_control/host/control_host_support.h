@@ -53,6 +53,8 @@ control_usb_fill_header(uint16_t *windex, uint16_t *wvalue, uint16_t *wlength,
 #endif
 
 #if USE_SPI
+#define SPI_TRANSACTION_MAX_BYTES 256
+#define SPI_DATA_MAX_BYTES (SPI_TRANSACTION_MAX_BYTES - 3)
 static inline size_t
 control_build_spi_data(uint8_t data[SPI_TRANSACTION_MAX_BYTES],
                        control_resid_t resid, control_cmd_t cmd,
