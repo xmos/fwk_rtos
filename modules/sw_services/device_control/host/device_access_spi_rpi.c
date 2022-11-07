@@ -13,18 +13,14 @@
 #define DBG(x)
 #define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
-static unsigned delay_milliseconds;
-
 control_ret_t
-control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, unsigned delay_for_read)
+control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider)
 {
   if(!bcm2835_init() ||
      !bcm2835_spi_begin()) {
     fprintf(stderr, "BCM2835 initialisation failed. Possibly not running as root\n");
     return CONTROL_ERROR;
   }
-
-  delay_milliseconds = delay_for_read;
 
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(spi_mode);
