@@ -95,11 +95,9 @@ macro(create_flash_app_dfu_target _EXECUTABLE_TARGET_NAME _DATA_PARTITION_SIZE)
 endmacro()
 
 ## Creates an xflash image upgrade target for a provided binary
-##    cmake function query_tools_version must be called prior
-##    to using this macro
-macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME)
+macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME _FACTORY_MAJOR_VER _FACTORY_MINOR_VER)
     add_custom_target(create_upgrade_img_${_EXECUTABLE_TARGET_NAME}
-      COMMAND xflash --factory-version ${XTC_VERSION_MAJOR}.${XTC_VERSION_MINOR} --upgrade 0 ${_EXECUTABLE_TARGET_NAME}.xe  -o ${_EXECUTABLE_TARGET_NAME}_upgrade.bin
+      COMMAND xflash --factory-version ${_FACTORY_MAJOR_VER}.${_FACTORY_MINOR_VER} --upgrade 0 ${_EXECUTABLE_TARGET_NAME}.xe  -o ${_EXECUTABLE_TARGET_NAME}_upgrade.bin
       DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Create upgrade image for application"
