@@ -88,10 +88,42 @@ endmacro()
 macro(create_install_target _EXECUTABLE_TARGET_NAME)
     add_custom_target(install_${_EXECUTABLE_TARGET_NAME}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/dist
-      COMMAND cp ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
+      COMMAND ${CMAKE_COMMAND} -E copy ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
       DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Install application"
+    )
+endmacro()
+
+## Creates a dfu enabled flash app target for a provided binary
+macro(create_flash_app_dfu_target _EXECUTABLE_TARGET_NAME _DATA_PARTITION_SIZE)
+    add_custom_target(flash_app_dfu_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --quad-spi-clock 50MHz --factory ${_EXECUTABLE_TARGET_NAME}.xe --boot-partition-size ${_DATA_PARTITION_SIZE}
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Flash dfu enabled application"
+    )
+endmacro()
+
+## Creates an xflash image upgrade target for a provided binary
+macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME _FACTORY_MAJOR_VER _FACTORY_MINOR_VER)
+    add_custom_target(create_upgrade_img_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --factory-version ${_FACTORY_MAJOR_VER}.${_FACTORY_MINOR_VER} --upgrade 0 ${_EXECUTABLE_TARGET_NAME}.xe  -o ${_EXECUTABLE_TARGET_NAME}_upgrade.bin
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Create upgrade image for application"
+      VERBATIM
+    )
+endmacro()
+
+## Creates an xflash erase all target for a provided target
+macro(create_erase_all_target _TARGET)
+    add_custom_target(erase_all_${_TARGET}
+      COMMAND xflash --erase-all --target=${_TARGET}
+      DEPENDS
+      COMMENT
+        "Erase target flash"
+      VERBATIM
     )
 endmacro()
 
