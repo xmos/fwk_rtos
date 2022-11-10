@@ -133,6 +133,14 @@ inline unsigned rtos_dfu_image_get_upgrade_version(
     return dfu_image_ctx->upgrade_image_ctx.version;
 }
 
+/**
+ * Print debug information
+ *
+ * \param ctx A pointer to the DFU image driver instance to use.
+ */
+void rtos_dfu_image_print_debug(
+        rtos_dfu_image_t *dfu_image_ctx);
+
 /**@}*/
 
 /**
