@@ -77,7 +77,7 @@ endmacro()
 macro(create_install_target _EXECUTABLE_TARGET_NAME)
     add_custom_target(install_${_EXECUTABLE_TARGET_NAME}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/dist
-      COMMAND cp ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
+      COMMAND ${CMAKE_COMMAND} -E copy ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
       DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Install application"
