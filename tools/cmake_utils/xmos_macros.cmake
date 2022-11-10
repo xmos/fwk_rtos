@@ -84,6 +84,40 @@ macro(create_install_target _EXECUTABLE_TARGET_NAME)
     )
 endmacro()
 
+## Creates a dfu enabled flash app target for a provided binary
+macro(create_flash_app_dfu_target _EXECUTABLE_TARGET_NAME _DATA_PARTITION_SIZE)
+    add_custom_target(flash_app_dfu_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --quad-spi-clock 50MHz --factory ${_EXECUTABLE_TARGET_NAME}.xe --boot-partition-size ${_DATA_PARTITION_SIZE}
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Flash dfu enabled application"
+    )
+endmacro()
+
+## Creates an xflash image upgrade target for a provided binary
+##    cmake function query_tools_version must be called prior
+##    to using this macro
+macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME)
+    add_custom_target(create_upgrade_img_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --factory-version ${XTC_VERSION_MAJOR}.${XTC_VERSION_MINOR} --upgrade 0 ${_EXECUTABLE_TARGET_NAME}.xe  -o ${_EXECUTABLE_TARGET_NAME}_upgrade.bin
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Create upgrade image for application"
+      VERBATIM
+    )
+endmacro()
+
+## Creates an xflash erase all target for a provided target
+macro(create_erase_all_target _TARGET)
+    add_custom_target(erase_all_${_TARGET}
+      COMMAND xflash --erase-all --target=${_TARGET}
+      DEPENDS
+      COMMENT
+        "Erase target flash"
+      VERBATIM
+    )
+endmacro()
+
 ## Query the version of the XTC Tools
 ##
 ##   Populates the following variables:
