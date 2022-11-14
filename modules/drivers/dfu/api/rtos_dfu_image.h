@@ -151,13 +151,17 @@ void rtos_dfu_image_print_debug(
  * and store then for application DFU use.
  *
  * \param dfu_image_ctx A pointer to the DFU image driver instance to initialize.
+ * \param qspi_ports    A pointer to the fl_QSPIPorts context to determine which
+ *                      resources to use.
+ * \param qspi_specs    A pointer to an array of fl_QuadDeviceSpec to try to
+ *                      connect to.
+ * \param len           The number of fl_QuadDeviceSpec contained in qspi_specs
  */
 void rtos_dfu_image_init(
         rtos_dfu_image_t *dfu_image_ctx,
-        xclock_t clock_block,
-        port_t cs_port,
-        port_t sclk_port,
-        port_t sio_port);
+        fl_QSPIPorts *qspi_ports,
+        fl_QuadDeviceSpec *qspi_specs,
+        unsigned int len);
 
 /**@}*/
 

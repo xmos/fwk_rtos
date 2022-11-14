@@ -21,22 +21,13 @@ void rtos_dfu_image_print_debug(
 
 void rtos_dfu_image_init(
         rtos_dfu_image_t *dfu_image_ctx,
-        xclock_t clock_block,
-        port_t cs_port,
-        port_t sclk_port,
-        port_t sio_port)
+        fl_QSPIPorts *qspi_ports,
+        fl_QuadDeviceSpec *qspi_specs,
+        unsigned int len)
 {
     memset(dfu_image_ctx, 0x00, sizeof(rtos_dfu_image_t));
 
-    fl_QSPIPorts qspi_ports;
-    fl_QuadDeviceSpec qspi_spec = FL_QUADDEVICE_DEFAULT;
-
-    qspi_ports.qspiCS = cs_port;
-    qspi_ports.qspiSCLK = sclk_port;
-    qspi_ports.qspiSIO = sio_port;
-    qspi_ports.qspiClkblk = clock_block;
-
-    xassert(fl_connectToDevice(&qspi_ports, &qspi_spec, 1) == 0);
+    xassert(fl_connectToDevice(qspi_ports, qspi_specs, len) == 0);
 
     fl_BootImageInfo tmp_img;
     dfu_image_ctx->data_partition_base_addr = fl_getDataPartitionBase();
