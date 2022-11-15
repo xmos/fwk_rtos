@@ -151,6 +151,7 @@ void rtos_clock_control_start(
 void rtos_clock_control_init(
         rtos_clock_control_t *ctx)
 {
+    set_tile_processor_clk_div(get_local_tile_id(), 1);
     enable_local_tile_processor_clock_divider();
 
     ctx->set_ref_clk_div = clock_control_local_set_ref_clk_div;
