@@ -70,28 +70,82 @@ macro(create_filesystem_target _EXECUTABLE_TARGET_NAME)
       COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_TARGET_NAME}_fat.fs ${_EXECUTABLE_TARGET_NAME}_fat.fs
       DEPENDS ${_EXECUTABLE_TARGET_NAME}_fat.fs
       COMMENT
-        "Make filesystem"
+        "Move filesystem"
     )
 endmacro()
 
 ## Creates a flash app target for a provided binary
-macro(create_flash_app_target _EXECUTABLE_TARGET_NAME)
-    add_custom_target(flash_app_${_EXECUTABLE_TARGET_NAME}
-      COMMAND xflash --quad-spi-clock 50MHz ${_EXECUTABLE_TARGET_NAME}.xe
-      DEPENDS ${_EXECUTABLE_TARGET_NAME}
-      COMMENT
-        "Flash application"
+## Optional arguments can be used to specify boot partition size, data partition contents, and other dependency targets, such as filesystem generators
+## create_flash_app_target(_EXECUTABLE_TARGET_NAME _BOOT_PARTITION_SIZE _DATA_PARTITION_CONTENTS _OPTIONAL_DEPENDS_TARGETS)
+function(create_flash_app_target)
+  if(${ARGC} EQUAL 1)
+    add_custom_target(flash_app_${ARGV0}
+        COMMAND xflash --quad-spi-clock 50MHz --factory ${ARGV0}.xe
+        DEPENDS ${ARGV0}
+        COMMENT
+          "Flash application"
+        VERBATIM
+      )
+  elseif(${ARGC} EQUAL 2)
+    add_custom_target(flash_app_${ARGV0}
+        COMMAND xflash --quad-spi-clock 50MHz --factory ${ARGV0}.xe --boot-partition-size ${ARGV1}
+        DEPENDS ${ARGV0}
+        COMMENT
+          "Flash application with empty data partition"
+        VERBATIM
+      )
+  elseif(${ARGC} EQUAL 3)
+    add_custom_target(flash_app_${ARGV0}
+        COMMAND xflash --quad-spi-clock 50MHz --factory ${ARGV0}.xe --boot-partition-size ${ARGV1} --data ${ARGV2}
+        DEPENDS ${ARGV0}
+        COMMENT
+          "Flash application and data partition"
+        VERBATIM
+      )
+  elseif(${ARGC} EQUAL 4)
+  add_custom_target(flash_app_${ARGV0}
+        COMMAND xflash --quad-spi-clock 50MHz --factory ${ARGV0}.xe --boot-partition-size ${ARGV1} --data ${ARGV2}
+        DEPENDS ${ARGV0} ${ARGV3}
+        COMMENT
+          "Flash application and data partition"
+        VERBATIM
     )
-endmacro()
+  else()
+    message(FATAL_ERROR "Invalid number of arguments passed to create_flash_app_target")
+  endif()
+endfunction()
 
 ## Creates an install target for a provided binary
 macro(create_install_target _EXECUTABLE_TARGET_NAME)
     add_custom_target(install_${_EXECUTABLE_TARGET_NAME}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/dist
-      COMMAND cp ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
+      COMMAND ${CMAKE_COMMAND} -E copy ${_EXECUTABLE_TARGET_NAME}.xe ${PROJECT_SOURCE_DIR}/dist
       DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Install application"
+    )
+endmacro()
+
+## Creates an xflash image upgrade target for a provided binary
+macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME _FACTORY_MAJOR_VER _FACTORY_MINOR_VER)
+    add_custom_target(create_upgrade_img_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xflash --factory-version ${_FACTORY_MAJOR_VER}.${_FACTORY_MINOR_VER} --upgrade 0 ${_EXECUTABLE_TARGET_NAME}.xe  -o ${_EXECUTABLE_TARGET_NAME}_upgrade.bin
+      DEPENDS ${_EXECUTABLE_TARGET_NAME}
+      COMMENT
+        "Create upgrade image for application"
+      VERBATIM
+    )
+endmacro()
+
+## Creates an xflash erase all target for a provided target XN file
+## Full filepath must be specified for XN file
+macro(create_erase_all_target _APP_NAME _TARGET_FILEPATH)
+    add_custom_target(erase_all_${_APP_NAME}
+      COMMAND xflash --erase-all --target-file=${_TARGET_FILEPATH}
+      DEPENDS
+      COMMENT
+        "Erase target flash"
+      VERBATIM
     )
 endmacro()
 
@@ -111,7 +165,6 @@ function(query_tools_version)
     # Split output semver
     string(FIND ${XCC_VERSION_OUTPUT_STRING} " " SPACE_POSITION)
     string(SUBSTRING ${XCC_VERSION_OUTPUT_STRING} 0 ${SPACE_POSITION} XCC_SEMVER)
-    message(STATUS "XTC version: ${XCC_SEMVER}")
     # Parse version fields
     string(REPLACE "." ";" XCC_SEMVER_FIELDS ${XCC_SEMVER})
     list(LENGTH XCC_SEMVER_FIELDS XCC_SEMVER_FIELDS_LENGTH)

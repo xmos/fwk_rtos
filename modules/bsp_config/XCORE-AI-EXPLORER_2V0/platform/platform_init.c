@@ -80,7 +80,7 @@ static void flash_init(void)
             qspi_io_sample_edge_falling,
             0,
 
-            qspi_flash_page_program_1_4_4);
+            qspi_flash_page_program_1_1_4);
 #endif
 }
 

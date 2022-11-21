@@ -1,5 +1,6 @@
 
 add_subdirectory(clock_control)
+add_subdirectory(dfu)
 add_subdirectory(gpio)
 add_subdirectory(i2c)
 add_subdirectory(i2s)
