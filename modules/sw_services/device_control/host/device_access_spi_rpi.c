@@ -49,8 +49,8 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
   //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
-  // TODO status needs to be returned to the higher layer.
-  return CONTROL_SUCCESS;
+  // data_sent_received[0] contains write command status so return it.
+  return data_sent_recieved[0];
 }
 
 control_ret_t
@@ -76,7 +76,9 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
 
   //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
   memcpy(payload, data_sent_recieved, payload_len);
-
+  // TODO - For write commands, control_write_command() is returning status from the device. For read commands payload[0] has the
+  // status from the device and control_read_command() always returns CONTROL_SUCCESS. Make status returning consistent across
+  // for read and write command functions.
   return CONTROL_SUCCESS;
 }
 

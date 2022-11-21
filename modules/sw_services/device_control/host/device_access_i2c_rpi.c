@@ -110,7 +110,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
 
   DBG(printf("write command status = %d\n",command_status[0]));
 
-  return CONTROL_SUCCESS;
+  return command_status[0];
 }
 
 control_ret_t
@@ -164,6 +164,9 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
 
   num_commands++;
 
+  // TODO - For write commands, control_write_command() is returning status from the device. For read commands payload[0] has the
+  // status from the device and control_read_command() always returns CONTROL_SUCCESS. Make status returning consistent across
+  // for read and write command functions.
   return CONTROL_SUCCESS;
 }
 
