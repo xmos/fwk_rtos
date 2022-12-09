@@ -70,8 +70,11 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   unsigned char command_status[1]; // status
   unsigned char buffer_to_send[I2C_TRANSACTION_MAX_BYTES + 3];
   int len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
-
   
+  write(fd, buffer_to_send, len);
+  read(fd, command_status, 1);
+
+#if 0
   // Do a repeated start (write followed by read with no stop bit)
   struct i2c_msg rdwr_msgs[2] = {
     {  // Start address
@@ -109,7 +112,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   num_commands++;
 
   DBG(printf("write command status = %d\n",command_status[0]));
-
+#endif
   return command_status[0];
 }
 
