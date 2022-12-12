@@ -71,48 +71,27 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   unsigned char buffer_to_send[I2C_TRANSACTION_MAX_BYTES + 3];
   int len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
   
-  write(fd, buffer_to_send, len);
-  read(fd, command_status, 1);
-
-#if 0
-  // Do a repeated start (write followed by read with no stop bit)
-  struct i2c_msg rdwr_msgs[2] = {
-    {  // Start address
-      .addr = address,
-      .flags = 0, // write
-      .len = (unsigned short)len,
-      .buf = buffer_to_send
-    },
-    { // Read buffer
-      .addr = address,
-      .flags = I2C_M_RD, // read
-      .len = (unsigned short)1, // 1 byte of status
-      .buf = command_status
-    }
-  };
-
-  struct i2c_rdwr_ioctl_data rdwr_data = {
-    .msgs = rdwr_msgs,
-    .nmsgs = 2
-  };
-
-  DBG(printf("%d: issued command to write %d bytes: command=", num_commands, payload_len));
-
-  int errno = ioctl( fd, I2C_RDWR, &rdwr_data );
-
-  if ( errno < 0 ) {
-    fprintf(stderr, "Failed to transfer data, rdwr ioctl error number %d: ", errno );
+  // Not doing ioctl I2C_RDWR due to the issue seen when write length is a multiple of 12 bytes
+  // https://github.com/xmos/sw_xvf3800/issues/314
+  int numbytes = write(fd, buffer_to_send, len);
+  if(numbytes < 0)
+  {
+    printf("I2C write() returned error %d\n",numbytes);
+    perror( "Error  :" );
+    return CONTROL_ERROR;
+  }
+  else if(numbytes != len)
+  {
+    printf("I2C write() only transferred %d out of %d bytes\n",numbytes, len);
+  }
+  numbytes = read(fd, command_status, 1);
+  if(numbytes < 0)
+  {
+    printf("I2C read() returned error %d\n",numbytes);
     perror( "Error  :" );
     return CONTROL_ERROR;
   }
 
-  DBG(printf("write command received: "));
-  DBG(print_bytes(payload, payload_len));
-
-  num_commands++;
-
-  DBG(printf("write command status = %d\n",command_status[0]));
-#endif
   return command_status[0];
 }
 
