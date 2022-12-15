@@ -129,6 +129,15 @@ static void spi_slave_hil_thread(rtos_spi_slave_t *ctx)
      */
     rtos_interrupt_mask_all();
 
+    uint32_t hil_thread_mode = 0;
+    
+#if HIL_IO_SPI_SLAVE_HIGH_PRIO
+    hil_thread_mode |= thread_mode_high_priority; // Enable high priority
+#endif
+#if HIL_IO_SPI_SLAVE_FAST_MODE
+    hil_thread_mode |= thread_mode_fast; // Enable fast mode
+#endif
+
     /*
      * spi_slave() itself uses interrupts, and does re-enable them. However,
      * it assumes that KEDI is not set, therefore it is cleared here.
@@ -143,7 +152,8 @@ static void spi_slave_hil_thread(rtos_spi_slave_t *ctx)
             ctx->p_cs,
             ctx->clock_block,
             ctx->cpol,
-            ctx->cpha);
+            ctx->cpha,
+            thread_mode);
 }
 
 static void spi_slave_app_thread(rtos_spi_slave_t *ctx)
