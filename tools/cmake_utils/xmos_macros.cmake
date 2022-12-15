@@ -22,14 +22,16 @@ macro(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _TILE_NUM_TO
             ${_OTHER_TARGET}
         BYPRODUCTS
             ${_OUTPUT_TARGET_NAME}.xe
-            ${OTHER_TILE_NAME}_split
         WORKING_DIRECTORY
             ${BASE_TILE_DIR}
         COMMENT
             "Merge tile ${_TILE_NUM_TO_MERGE} of ${_OTHER_TARGET}.xe into ${_BASE_TARGET}.xe to create ${_OUTPUT_TARGET_NAME}.xe"
         VERBATIM
     )
-    set_target_properties(${_OUTPUT_TARGET_NAME} PROPERTIES BINARY_DIR ${BASE_TILE_DIR})
+    set_target_properties(${_OUTPUT_TARGET_NAME} PROPERTIES
+      BINARY_DIR ${BASE_TILE_DIR}
+      ADDITIONAL_CLEAN_FILES "${OTHER_TILE_NAME}_split"
+    )
 endmacro()
 
 ## Creates a run target for a provided binary
