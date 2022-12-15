@@ -21,6 +21,7 @@ macro(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _TILE_NUM_TO
             ${_BASE_TARGET}
             ${_OTHER_TARGET}
         BYPRODUCTS
+            ${_OUTPUT_TARGET_NAME}.xe
             ${OTHER_TILE_NAME}_split
         WORKING_DIRECTORY
             ${BASE_TILE_DIR}
