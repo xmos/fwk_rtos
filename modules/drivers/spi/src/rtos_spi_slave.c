@@ -153,7 +153,7 @@ static void spi_slave_hil_thread(rtos_spi_slave_t *ctx)
             ctx->clock_block,
             ctx->cpol,
             ctx->cpha,
-            thread_mode);
+            hil_thread_mode);
 }
 
 static void spi_slave_app_thread(rtos_spi_slave_t *ctx)
