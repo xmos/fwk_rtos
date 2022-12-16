@@ -2,7 +2,6 @@
 add_subdirectory(concurrency_support)
 add_subdirectory(device_control)
 add_subdirectory(dhcpd)
-add_subdirectory(dispatcher)
 add_subdirectory(fatfs)
 add_subdirectory(generic_pipeline)
 add_subdirectory(http)
