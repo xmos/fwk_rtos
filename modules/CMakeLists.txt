@@ -51,7 +51,6 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
         INTERFACE
             rtos::sw_services::generic_pipeline
             rtos::sw_services::concurrency_support
-            rtos::sw_services::dispatcher
             rtos::sw_services::fatfs
     )
     add_library(rtos::sw_services::general ALIAS framework_rtos_sw_services_general)
