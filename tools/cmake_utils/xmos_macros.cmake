@@ -12,23 +12,26 @@ macro(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _TILE_NUM_TO
     get_target_property(BASE_TILE_NAME    ${_BASE_TARGET}  NAME)
     get_target_property(OTHER_TILE_NAME   ${_OTHER_TARGET} NAME)
 
-    add_custom_target(${_OUTPUT_TARGET_NAME}
+    add_custom_target(${_OUTPUT_TARGET_NAME} ALL
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OTHER_TILE_NAME}_split
-        COMMAND xobjdump --split --split-dir ${OTHER_TILE_NAME}_split ${OTHER_TILE_NAME}.xe
-        COMMAND xobjdump ${BASE_TILE_NAME}.xe -r 0,${_TILE_NUM_TO_MERGE},${OTHER_TILE_NAME}_split/image_n0c${_TILE_NUM_TO_MERGE}_2.elf
+        COMMAND xobjdump --split --split-dir ${OTHER_TILE_NAME}_split ${OTHER_TILE_NAME}.xe > ${OTHER_TILE_NAME}_split/output.log
+        COMMAND xobjdump ${BASE_TILE_NAME}.xe -r 0,${_TILE_NUM_TO_MERGE},${OTHER_TILE_NAME}_split/image_n0c${_TILE_NUM_TO_MERGE}_2.elf >> ${OTHER_TILE_NAME}_split/output.log
         COMMAND ${CMAKE_COMMAND} -E copy ${BASE_TILE_NAME}.xe ${_OUTPUT_TARGET_NAME}.xe
         DEPENDS
             ${_BASE_TARGET}
             ${_OTHER_TARGET}
         BYPRODUCTS
-            ${OTHER_TILE_NAME}_split
+            ${_OUTPUT_TARGET_NAME}.xe
         WORKING_DIRECTORY
             ${BASE_TILE_DIR}
         COMMENT
             "Merge tile ${_TILE_NUM_TO_MERGE} of ${_OTHER_TARGET}.xe into ${_BASE_TARGET}.xe to create ${_OUTPUT_TARGET_NAME}.xe"
         VERBATIM
     )
-    set_target_properties(${_OUTPUT_TARGET_NAME} PROPERTIES BINARY_DIR ${BASE_TILE_DIR})
+    set_target_properties(${_OUTPUT_TARGET_NAME} PROPERTIES
+      BINARY_DIR ${BASE_TILE_DIR}
+      ADDITIONAL_CLEAN_FILES "${OTHER_TILE_NAME}_split"
+    )
 endmacro()
 
 ## Creates a run target for a provided binary
