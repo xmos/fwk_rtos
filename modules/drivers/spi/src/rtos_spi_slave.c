@@ -87,6 +87,10 @@ void slave_transaction_started(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t 
 
 void slave_transaction_ended(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t bytes_written, uint8_t **in_buf, size_t bytes_read, size_t read_bits)
 {
+    if(!bytes_written)
+    {
+        return;
+    }
     if ((*out_buf == ctx->default_out_buf) && (*in_buf == ctx->default_in_buf)) {
         ctx->default_bytes_written = bytes_written;
         ctx->default_bytes_read = bytes_read;
@@ -148,8 +152,16 @@ static void spi_slave_hil_thread(rtos_spi_slave_t *ctx)
 
 static void spi_slave_app_thread(rtos_spi_slave_t *ctx)
 {
+    uint32_t core_exclude_map;
     if (ctx->start != NULL) {
         ctx->start(ctx, ctx->app_data);
+        /* Ensure that the SPI interrupt is enabled on the requested core */
+        rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
+        rtos_osal_thread_core_exclusion_set(NULL, ~(1 << ctx->interrupt_core_id));
+        triggerable_enable_trigger(ctx->c.end_b);
+        /* Restore the core exclusion map for the calling thread */
+        rtos_osal_thread_core_exclusion_set(NULL, core_exclude_map);
+
         s_chan_out_byte(ctx->c.end_b, 0);
     }
 
@@ -206,22 +218,12 @@ void rtos_spi_slave_start(
         unsigned interrupt_core_id,
         unsigned priority)
 {
-    uint32_t core_exclude_map;
-
     spi_slave_ctx->app_data = app_data;
     spi_slave_ctx->start = start;
     spi_slave_ctx->xfer_done = xfer_done;
+    spi_slave_ctx->interrupt_core_id = interrupt_core_id;
 
     rtos_osal_queue_create(&spi_slave_ctx->xfer_done_queue, "spi_slave_queue", RTOS_SPI_SLAVE_XFER_DONE_QUEUE_SIZE, sizeof(xfer_done_queue_item_t));
-
-    /* Ensure that the SPI interrupt is enabled on the requested core */
-    rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
-    rtos_osal_thread_core_exclusion_set(NULL, ~(1 << interrupt_core_id));
-
-    triggerable_enable_trigger(spi_slave_ctx->c.end_b);
-
-    /* Restore the core exclusion map for the calling thread */
-    rtos_osal_thread_core_exclusion_set(NULL, core_exclude_map);
 
     if (start != NULL || xfer_done != NULL) {
         rtos_osal_thread_create(
