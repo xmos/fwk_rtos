@@ -24,6 +24,20 @@
 #define RTOS_SPI_SLAVE_CALLBACK_ATTR __attribute__((fptrgroup("rtos_spi_slave_cb_fptr_grp")))
 
 /**
+ * Set SPI Slave thread to high priority
+ */
+#ifndef HIL_IO_SPI_SLAVE_HIGH_PRIO
+    #define HIL_IO_SPI_SLAVE_HIGH_PRIO 1
+#endif
+
+/**
+ * Set SPI Slave thread to run in fast mode
+ */
+#ifndef HIL_IO_SPI_SLAVE_FAST_MODE
+    #define HIL_IO_SPI_SLAVE_FAST_MODE 1
+#endif
+
+/**
  * Typedef to the RTOS SPI slave driver instance struct.
  */
 typedef struct rtos_spi_slave_struct rtos_spi_slave_t;
