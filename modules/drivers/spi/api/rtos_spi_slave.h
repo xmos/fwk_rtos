@@ -124,6 +124,7 @@ struct rtos_spi_slave_struct {
     rtos_osal_queue_t xfer_done_queue;
     rtos_osal_thread_t hil_thread;
     rtos_osal_thread_t app_thread;
+    unsigned interrupt_core_id;
 };
 
 /**
