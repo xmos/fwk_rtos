@@ -22,7 +22,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_link_libraries(framework_rtos_drivers_mic_array
         INTERFACE
-            io::mic_array
+            lib_mic_array
             rtos::osal
     )
     target_compile_definitions(framework_rtos_drivers_mic_array

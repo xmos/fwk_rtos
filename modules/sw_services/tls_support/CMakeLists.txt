@@ -97,7 +97,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
         INTERFACE
             rtos::FreeRTOS::FreeRTOS-Plus-TCP
             rtos::sw_services::fatfs
-            core::random
+            lib_random
     )
 
     ## Create an alias
