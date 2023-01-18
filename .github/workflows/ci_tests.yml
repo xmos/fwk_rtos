@@ -31,7 +31,6 @@ jobs:
     name: Change detection
     # Set job outputs to values from filter step
     outputs:
-      tusb_demos: ${{ steps.filter.outputs.tusb_demos }}
       rtos_tests: ${{ steps.filter.outputs.rtos_tests }}
     steps:
       - name: Checkout SDK
@@ -43,39 +42,10 @@ jobs:
         id: filter
         with:
           filters: |
-            tusb_demos:
-              - 'modules/io/modules/xud/**'
-              - 'modules/rtos/modules/sw_services/usb/**'
-              - 'modules/rtos/modules/drivers/usb/**'
             rtos_tests:
-              - 'modules/core/**'
-              - 'modules/io/**'
-              - 'modules/rtos/**'
-
-  build_rtos_tusb_demos:
-    needs: changes
-    name: Build RTOS TinyUSB demos
-    # if: ${{ needs.changes.outputs.tusb_demos == 'true' }}  
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
-      - name: Pull SDK builder
-        run: |
-          docker pull ${SDK_BUILDER_IMAGE}
-
-      - name: Build
-        run: |
-          docker run --rm -w /xcore_sdk -v ${{github.workspace}}:/xcore_sdk ${SDK_BUILDER_IMAGE} bash -l tools/ci/build_rtos_usb_examples.sh
-
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: freertos_usb_demos
-      #     path: ./dist/*.xe
+              # - 'modules/core/**' need to figure out how to check this now
+              # - 'modules/io/**'   need to figure out how to check this now
+              - 'modules/**'
 
   build_rtos_tests:
     needs: changes
