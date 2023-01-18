@@ -7,7 +7,7 @@ set(TARGET_NAME fatfs_mkimage)
 set(FATFS_HOST_PATH "${CMAKE_CURRENT_LIST_DIR}")
 cmake_path(GET FATFS_HOST_PATH PARENT_PATH FATFS_HOST_PATH)
 
-file(READ ${XCORE_SDK_ROOT}/settings.json JSON_STRING)
+file(READ ${FRAMEWORK_RTOS_ROOT_PATH}/settings.json JSON_STRING)
 # Get the "version" value from the JSON element
 string(JSON VERSION_VAL GET ${JSON_STRING} ${IDX} version)
 
