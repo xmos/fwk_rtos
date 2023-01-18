@@ -29,6 +29,9 @@ endif()
 ## Add library usage targets
 add_subdirectory(modules)
 
+## Add host tools targets
+add_subdirectory(tools)
+
 if(FRAMEWORK_RTOS_TESTS)
     include(test/tests.cmake)
 endif()
