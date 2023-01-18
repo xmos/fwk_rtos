@@ -55,7 +55,7 @@ jobs:
   build_rtos_tusb_demos:
     needs: changes
     name: Build RTOS TinyUSB demos
-    if: ${{ needs.changes.outputs.tusb_demos == 'true' }}  
+    # if: ${{ needs.changes.outputs.tusb_demos == 'true' }}  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -80,7 +80,7 @@ jobs:
   build_rtos_tests:
     needs: changes
     name: Build RTOS tests
-    if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
+    # if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
