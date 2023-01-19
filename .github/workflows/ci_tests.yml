@@ -43,14 +43,13 @@ jobs:
         with:
           filters: |
             rtos_tests:
-              # - 'modules/core/**' need to figure out how to check this now
-              # - 'modules/io/**'   need to figure out how to check this now
               - 'modules/**'
+              - 'tools/ci/fetch_ci_deps.cmake'
 
   build_rtos_tests:
     needs: changes
     name: Build RTOS tests
-    # if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
+    if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
