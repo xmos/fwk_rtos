@@ -49,7 +49,7 @@ jobs:
   build_rtos_tests:
     needs: changes
     name: Build RTOS tests
-    # if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
+    if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

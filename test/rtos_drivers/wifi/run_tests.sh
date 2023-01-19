@@ -13,6 +13,8 @@ REPORT=testing/test.rpt
 FIRMWARE=rtos_drivers_wifi.xe
 TIMEOUT_S=60
 
+REPO_ROOT=`git rev-parse --show-toplevel`
+
 rm -f ${REPORT}
 
 echo "****************"
@@ -35,6 +37,6 @@ fi
 echo "****************"
 echo "* Parse Result *"
 echo "****************"
-python ${XCORE_SDK_PATH}/test/rtos_drivers/python/parse_test_output.py testing/test.rpt -outfile="testing/test_results" --print_test_results --verbose
+python ${REPO_ROOT}/test/rtos_drivers/python/parse_test_output.py testing/test.rpt -outfile="testing/test_results" --print_test_results --verbose
 
 pytest
