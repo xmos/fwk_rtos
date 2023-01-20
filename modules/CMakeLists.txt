@@ -64,7 +64,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
             rtos::rtos_support
             rtos::sw_services::general
             rtos::FreeRTOS::FreeRTOS_SMP
-            core::multitile_support
+            framework_core_multitile_support
     )
     add_library(rtos::freertos ALIAS framework_rtos_freertos)
 
