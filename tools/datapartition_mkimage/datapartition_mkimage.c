@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 
 // Abstractions for portability
 #ifdef __GNUC__
@@ -542,7 +542,7 @@ int main(int argc, char *argv[])
              * characters, change the mode to binary mode. */
             SETMODE(FILENO(stdin), _O_BINARY);
         } else {
-            FOPEN(in_file, input_files[file_index].filename, "r");
+            FOPEN(in_file, input_files[file_index].filename, "rb");
         }
 
         if (in_file == NULL) {
