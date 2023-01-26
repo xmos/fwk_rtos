@@ -1,4 +1,4 @@
-.. include:: ../../substitutions.rst
+.. include:: ../../../substitutions.rst
 
 ******************************
 |I2S| Slave Initialization API
