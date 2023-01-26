@@ -1,10 +1,17 @@
-Copyrights and Licenses
-=======================
+.. _fwk_rtos_copyright:
 
-Software Copyrights
--------------------
+.. include:: ../_templates/disclaimer.rst
 
-All original source code in this repository is Copyright (C) 2019-2023 XMOS Ltd and is licensed under the `XMOS License <../LICENSE.rst>`_.
+Licenses
+========
+
+XMOS
+^^^^
+
+All original source code is licensed under the `XMOS License <https://github.com/xmos/sln_voice/blob/develop/LICENSE.rst>`_.
+
+Third-Party
+^^^^^^^^^^^
 
 Additional third party code is included under the following copyrights and licenses:
 

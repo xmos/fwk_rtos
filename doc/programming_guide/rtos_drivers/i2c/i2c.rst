@@ -1,4 +1,4 @@
-.. include:: ../../substitutions.rst
+.. include:: ../../../substitutions.rst
 
 #################
 |I2C| RTOS Driver

@@ -1,5 +1,5 @@
-.. include:: ../../substitutions.rst
-
+.. include:: ../../../substitutions.rst
+   
 ################
 UART RTOS Driver
 ################
