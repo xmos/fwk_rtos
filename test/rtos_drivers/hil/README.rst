@@ -41,3 +41,5 @@ Wiring Diagram
 
 .. image:: images/wiring_diagram.png
     :align: left
+
+xsim --plugin LoopbackPort.dll "-port tile[1] XS1_PORT_4A 1 0 -port tile[1] XS1_PORT_1P 1 0" --plugin LoopbackPort.dll "-port tile[0] XS1_PORT_1N 1 0 -port tile[1] XS1_PORT_1M 1 0" --plugin LoopbackPort.dll "-port tile[0] XS1_PORT_1O 1 0 -port tile[1] XS1_PORT_1O 1 0" --plugin LoopbackPort.dll "-port tile[1] XS1_PORT_1A 1 0 -port tile[0] XS1_PORT_1E 1 0" --plugin LoopbackPort.dll "-port tile[1] XS1_PORT_1N 1 0 -port tile[0] XS1_PORT_1F 1 0" --plugin LoopbackPort.dll "-port tile[1] XS1_PORT_1C 1 0 -port tile[0] XS1_PORT_1G 1 0" --plugin LoopbackPort.dll "-port tile[1] XS1_PORT_1B 1 0 -port tile[0] XS1_PORT_1H 1 0" --xscope "-offline trace.xmt" test_rtos_driver_hil_add.xe 

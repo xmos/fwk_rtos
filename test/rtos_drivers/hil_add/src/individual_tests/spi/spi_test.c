@@ -121,6 +121,8 @@ int spi_device_tests(rtos_spi_master_t *spi_master_ctx, rtos_spi_master_device_t
     spi_init_tests(&test_ctx, spi_master_ctx, spi_device_ctx, spi_slave_ctx);
     spi_printf("Test context init");
 
+    test_ctx.c_sync = c;
+
     sync(c);
     spi_printf("Start devices");
     start_spi_devices(&test_ctx);

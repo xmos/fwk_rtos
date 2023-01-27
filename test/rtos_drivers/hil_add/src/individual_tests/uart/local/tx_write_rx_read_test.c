@@ -73,7 +73,7 @@ static int main_test(uart_test_ctx_t *ctx)
     for(unsigned t = 0; t < num_packets; t++)
     {
         rtos_uart_tx_write(ctx->rtos_uart_tx_ctx, tx_buff, sizeof(tx_buff));
-        vTaskDelay(pdMS_TO_TICKS(1));
+        vTaskDelay(10);
     }
 #endif
 

@@ -68,6 +68,8 @@ static int main_test(spi_test_ctx_t *ctx)
                 test_buf,
                 SPI_TEST_BUF_SIZE);
 
+        sync(ctx->c_sync);
+
         /* Setup handling response */
         uint8_t *rx_buf = NULL;
         size_t rx_len = 0;
@@ -136,19 +138,16 @@ static int main_test(spi_test_ctx_t *ctx)
             local_printf("SLAVE failed.  Unexpected buffer.  Expected default");
             return -1;
         }
-
-        vTaskDelay(pdMS_TO_TICKS(500));
     }
     #endif
 
     #if ON_TILE(SPI_MASTER_TILE)
     {
-        vTaskDelay(pdMS_TO_TICKS(100));
-
         uint8_t in_buf[SPI_TEST_BUF_SIZE] = {0};
         uint8_t in_buf_default[SPI_TEST_BUF_SIZE] = {0};
 
         /* Force a default buffer situation by the SPI slave */
+        sync(ctx->c_sync);
         local_printf("MASTER transaction");
         rtos_spi_master_transaction_start(ctx->spi_device_ctx);
         rtos_spi_master_transfer(ctx->spi_device_ctx, test_buf, in_buf, SPI_TEST_BUF_SIZE);

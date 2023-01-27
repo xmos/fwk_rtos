@@ -24,6 +24,7 @@ struct spi_test_ctx {
     rtos_spi_master_device_t *spi_device_ctx;
     rtos_spi_slave_t *spi_slave_ctx;
     int slave_success[SPI_MAX_TESTS];
+    chanend_t c_sync;
 
     SPI_MAIN_TEST_ATTR int (*main_test[SPI_MAX_TESTS])(spi_test_ctx_t *ctx);
     SPI_SLAVE_XFER_DONE_ATTR int (*slave_xfer_done[SPI_MAX_TESTS])(rtos_spi_slave_t *ctx, void *app_data);

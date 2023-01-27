@@ -49,12 +49,13 @@ static int main_test(spi_test_ctx_t *ctx)
                 SPI_TEST_BUF_SIZE,
                 test_buf,
                 SPI_TEST_BUF_SIZE);
+        sync(ctx->c_sync);
     }
     #endif
 
     #if ON_TILE(SPI_MASTER_TILE)
     {
-        vTaskDelay(pdMS_TO_TICKS(10));
+        sync(ctx->c_sync);
 
         uint8_t in_buf[SPI_TEST_BUF_SIZE] = {0};
         local_printf("MASTER transaction");
