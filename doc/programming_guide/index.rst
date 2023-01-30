@@ -1,12 +1,14 @@
-.. _fwk_rtos_programming_guide:
-
 ######################
-RTOS PROGRAMMING GUIDE
+RTOS Programming Guide
 ######################
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
-   rtos_drivers/rtos_drivers
-   rtos_services/rtos_services
-   ../shared/legal
+   platform
+   tutorials/tutorials
+   build_system/build_system
+   api/api
+   faq
+   common_issues
+   ../shared/legal.rst
