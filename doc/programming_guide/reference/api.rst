@@ -1,8 +1,8 @@
 .. include:: ../../substitutions.rst
 
-####
-APIs
-####
+#############
+API Reference
+#############
 
 .. toctree::
    :maxdepth: 2

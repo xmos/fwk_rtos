@@ -8,7 +8,7 @@ RTOS Programming Guide
    platform
    tutorials/tutorials
    build_system/build_system
-   api/api
+   reference/api
    faq
    common_issues
    ../shared/legal.rst
