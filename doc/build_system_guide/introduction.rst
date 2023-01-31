@@ -1,6 +1,6 @@
-.. include:: ../../substitutions.rst
+.. include:: ../substitutions.rst
 
-.. _fwk_rtos_build_system:
+.. _build_system_guide:
 
 ############
 Build System
@@ -22,15 +22,3 @@ An xcore RTOS project can be seen as an integration of several modules. For exam
 - Application code tying it all together
 
 When a project is compiled, the build system will build all libraries and source files specified by the application.  
-
-**********************
-Using the Build System
-**********************
-
-Below are some examples ``CMakeLists.txt`` files that should get you started when using the build system in your own application.  We encourage you to use the build system as it provides many libraries that can be built and linked with your application.
-
-.. toctree::
-   :maxdepth: 2
-
-   cmakelists
-   target_aliases

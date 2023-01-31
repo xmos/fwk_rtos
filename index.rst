@@ -10,6 +10,7 @@ Framework of FreeRTOS kernel, RTOS drivers, and software service libraries for X
    :maxdepth: 2
 
    doc/programming_guide/index
+   doc/build_system_guide/index
 
 *********
 Licensing
