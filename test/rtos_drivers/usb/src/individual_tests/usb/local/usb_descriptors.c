@@ -27,7 +27,7 @@
 #include "tusb.h"
 
 #define XMOS_VID    0x20B1
-#define TEST_PID    0x4A4D
+#define TEST_PID    0x4000
 
 //--------------------------------------------------------------------+
 // Device Descriptors
