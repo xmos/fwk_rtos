@@ -91,7 +91,7 @@ To enable hardware portability, a minimal bsp_config should contain the followin
     custom_config_xn_file.xn
 
 
-`custom_config.cmake` provides the CMake target of the configuration.  This target should link the required RTOS framework libraries to support the configuration it defines.
+`custom_config.cmake` provides the `CMake` target of the configuration.  This target should link the required RTOS framework libraries to support the configuration it defines.
 
 `custom_config_xn_file.xn` provides various hardware parameters including but not limited to the chip package, IO mapping, and network information.
 
@@ -178,14 +178,10 @@ Note: Because the resulting example_freertos_explorer_board.xe binary was create
 
 **************************
 Building RTOS Applications
-**************************tform_init.c
-      platform_init.h
-      platform_start.c
-    custom_config.cmake
-    custom_config_xn_file.xn
+**************************
 
-`custom_config_xn_file.xn` provides the hardware level 
+Applications using the RTOS Framework are built using `CMake`. The RTOS framework provides many libraries, drivers and software services, all of which can be included by the application's ``CMakeLists.txt`` file. The application's CMakeLists can specify precisely which drivers and software services within the SDK should be included through the use of various CMake target aliases.
 
+See :ref:`Build System <fwk_rtos_build_system>` for more information on the SDK's build system.
 
-
-*******************************
+See :ref:`Target Aliases <fwk_rtos_target_aliases>` for more information on the SDK's build system target aliases.
