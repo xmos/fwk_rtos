@@ -10,7 +10,7 @@ This document is intended to help you use the RTOS DFU driver and RTOS QSPI flas
 DFU Driver Overview
 *******************
 
-This driver provides the application with the boot partition and data partition layout of the flash used by the second stage bootloader.  The driver provides a subset of the functionality of `libquadflash <https://www.xmos.ai/documentation/XM-014363-PC-6/html/tools-guide/tools-ref/libraries/libquadflash-api/libquadflash-api.html>`_ enabling the application to use any transport method and the RTOS qspi flash driver to read the factory image, read/write a single upgrade image, and read/write the data partition.
+This driver provides the application with the boot partition and data partition layout of the flash used by the second stage bootloader.  The driver provides a subset of the functionality of `libquadflash <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/html/tools-guide/tools-ref/libraries/libquadflash-api/libquadflash-api.html>`_ enabling the application to use any transport method and the RTOS qspi flash driver to read the factory image, read/write a single upgrade image, and read/write the data partition.
 
 *************************
 Reading the Factory Image
