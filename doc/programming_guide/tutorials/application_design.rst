@@ -91,21 +91,21 @@ To enable hardware portability, a minimal bsp_config should contain the followin
     custom_config_xn_file.xn
 
 
-`custom_config.cmake` provides the `CMake` target of the configuration.  This target should link the required RTOS framework libraries to support the configuration it defines.
+``custom_config.cmake`` provides the `CMake` target of the configuration.  This target should link the required RTOS framework libraries to support the configuration it defines.
 
-`custom_config_xn_file.xn` provides various hardware parameters including but not limited to the chip package, IO mapping, and network information.
+``custom_config_xn_file.xn`` provides various hardware parameters including but not limited to the chip package, IO mapping, and network information.
 
-`platform_conf.h` provides default configuration of all header defined configuration macros. These may be overridden by compile definitions or application headers.
+``platform_conf.h`` provides default configuration of all header defined configuration macros. These may be overridden by compile definitions or application headers.
 
-`driver_instances.h` provides the declaration of all RTOS drivers in the configuration. It may define XCORE hardware resources, such as ports and clockblocks. It may also define tile placements.
+``driver_instances.h`` provides the declaration of all RTOS drivers in the configuration. It may define XCORE hardware resources, such as ports and clockblocks. It may also define tile placements.
 
-`driver_instances.c` provides the definition of all RTOS drivers in the configuration.
+``driver_instances.c`` provides the definition of all RTOS drivers in the configuration.
 
-`platform_init.h` provides the declaration of `platform_init(chanend_t other_tile_c)` and `platform_start(void)`
+``platform_init.h`` provides the declaration of `platform_init(chanend_t other_tile_c)` and `platform_start(void)`
 
-`platform_init.c` provides the initialization of all drivers defined in the configuration through the definition of `platform_init(chanend_t other_tile_c)`. This code is run before the scheduler is started and therefore will not be able to access all RTOS driver functionalities nor kernel objects.
+``platform_init.c`` provides the initialization of all drivers defined in the configuration through the definition of `platform_init(chanend_t other_tile_c)`. This code is run before the scheduler is started and therefore will not be able to access all RTOS driver functionalities nor kernel objects.
 
-`platform_start.c` provides the starting of all drivers defined in the configuration through the definition of `platform_start(void)`. It may also perform any initialization setup, such as configuring the app_pll or setting up an on board DAC. This code is run once the kernel is running and is therefore subject to preemption and other dynamic scheduling SMP programming considerations.
+``platform_start.c`` provides the starting of all drivers defined in the configuration through the definition of `platform_start(void)`. It may also perform any initialization setup, such as configuring the app_pll or setting up an on board DAC. This code is run once the kernel is running and is therefore subject to preemption and other dynamic scheduling SMP programming considerations.
 
 *******************************
 Developing and Debugging Memory
@@ -180,7 +180,7 @@ Note: Because the resulting example_freertos_explorer_board.xe binary was create
 Building RTOS Applications
 **************************
 
-Applications using the RTOS Framework are built using `CMake`. The RTOS framework provides many libraries, drivers and software services, all of which can be included by the application's ``CMakeLists.txt`` file. The application's CMakeLists can specify precisely which drivers and software services within the SDK should be included through the use of various CMake target aliases.
+Applications using the RTOS Framework are built using `CMake`. The RTOS framework provides many libraries, drivers and software services, all of which can be included by the application's ``CMakeLists.txt`` file. The application's CMakeLists can specify precisely which drivers and software services within the SDK should be included through the use of various `CMake` target aliases.
 
 See :ref:`Build System <fwk_rtos_build_system>` for more information on the SDK's build system.
 

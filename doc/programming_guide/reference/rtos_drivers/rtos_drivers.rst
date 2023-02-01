@@ -14,11 +14,11 @@ I/O
    gpio
    i2c/i2c
    i2s/i2s
-   spi/spi
-   qspi_flash
    mic_array
-   usb
+   qspi_flash
+   spi/spi
    uart/uart
+   usb
 
 *****
 XCORE
@@ -27,6 +27,8 @@ XCORE
 .. toctree::
    :maxdepth: 2
 
-   swmem
-   l2_cache
+   clock_control
+   dfu
    intertile
+   l2_cache
+   swmem
