@@ -78,6 +78,7 @@ Creating Custom bsp_configs
 To enable hardware portability, a minimal bsp_config should contain the following:
 
 .. code-block:: console
+  
   custom_config/
     platform/
       driver_instances.c
@@ -88,6 +89,7 @@ To enable hardware portability, a minimal bsp_config should contain the followin
       platform_start.c
     custom_config.cmake
     custom_config_xn_file.xn
+
 
 `custom_config.cmake` provides the CMake target of the configuration.  This target should link the required RTOS framework libraries to support the configuration it defines.
 
