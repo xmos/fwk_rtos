@@ -182,6 +182,6 @@ Building RTOS Applications
 
 Applications using the RTOS Framework are built using `CMake`. The RTOS framework provides many libraries, drivers and software services, all of which can be included by the application's ``CMakeLists.txt`` file. The application's CMakeLists can specify precisely which drivers and software services within the SDK should be included through the use of various `CMake` target aliases.
 
-See :ref:`Build System <fwk_rtos_build_system>` for more information on the SDK's build system.
+See the :ref:`Build System Guide <build_system_guide>` for more information on the build system.
 
-See :ref:`Target Aliases <fwk_rtos_target_aliases>` for more information on the SDK's build system target aliases.
+See the :ref:`Build System Guide - Target Aliases <build_system_target_aliases>` for more information on the build system target aliases.

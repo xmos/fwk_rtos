@@ -1,4 +1,4 @@
-.. _fwk_rtos_target_aliases:
+.. _build_system_target_aliases:
 
 ##############
 Target Aliases
