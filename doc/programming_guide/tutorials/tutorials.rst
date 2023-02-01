@@ -7,3 +7,4 @@ Tutorials
 
    application_programming
    application_design
+   application_dfu_usage
