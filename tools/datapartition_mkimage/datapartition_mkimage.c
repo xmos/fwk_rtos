@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 
 // Abstractions for portability
 #ifdef __GNUC__
@@ -485,6 +485,14 @@ static error_code_t process_args(int argc, char *argv[])
                    ERROR_ARG_MISSING;
 }
 
+static int fpeek(FILE *in_file)
+{
+    int c = fgetc(in_file);
+    ungetc(c, in_file);
+
+    return c;
+}
+
 int main(int argc, char *argv[])
 {
     int exit_code = process_args(argc, argv);
@@ -558,6 +566,11 @@ int main(int argc, char *argv[])
             if ((file_index == 0) ||
                 (input_files[file_index].offset >= last_write_offset)) {
                 fseek(out_file, input_files[file_index].offset, SEEK_SET);
+            } else if ((input_files[file_index].size == 0) ||
+                       ((input_files[file_index].size < 0) && (fpeek(in_file) == EOF))) {
+                // Input is empty. Skip.
+                fclose(in_file);
+                continue;
             } else {
                 exit_code = ERROR_OVERLAPPING_INPUT_DATA;
             }

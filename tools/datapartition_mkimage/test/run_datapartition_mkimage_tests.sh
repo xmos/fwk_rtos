@@ -112,6 +112,7 @@ in_files=("$TEST_FILE_A" "$TEST_FILE_B" "$TEST_FILE_C")
 
 test_case_commands=(
     "cat ${in_files[0]} | $APP -v -t -i \"${in_files[1]}:${in_blocks[1]}\" ${in_files[2]}:${in_blocks[2]} -o \"$OUT_FILE\"" # This entry must be first, otherwise logic specifically handling STDIN_IN_STR needs to be changed.
+    "echo -n \"\" | $APP -v -b $DEFAULT_BLOCK_SIZE_INT -f $DEFAULT_FILL_BYTE_INT -s $DEFAULT_SEEK_BLOCK_INT -o \"$OUT_FILE\" -i \"${in_files[0]}:${in_blocks[0]}\" \"${in_files[1]}:${in_blocks[1]}\" ${in_files[2]}:${in_blocks[2]}"
     "$APP -v -b $DEFAULT_BLOCK_SIZE_INT -f $DEFAULT_FILL_BYTE_INT -s $DEFAULT_SEEK_BLOCK_INT -o \"$OUT_FILE\" -i \"${in_files[0]}:${in_blocks[0]}\" \"${in_files[1]}:${in_blocks[1]}\" ${in_files[2]}:${in_blocks[2]}"
     "$APP -v -b $DEFAULT_BLOCK_SIZE_HEX -f $DEFAULT_FILL_BYTE_HEX -s $DEFAULT_SEEK_BLOCK_HEX -o \"$OUT_FILE\" -i \"${in_files[1]}:${in_blocks[1]}\" ${in_files[2]}:${in_blocks[2]} \"${in_files[0]}:${in_blocks[0]}\""
 )
