@@ -27,7 +27,7 @@ on:
         default: 'no'
 
 env:
-  SDK_BUILDER_IMAGE: 'ghcr.io/xmos/sdk_app_builder:develop'
+  SDK_BUILDER_IMAGE: 'ghcr.io/xmos/xcore_builder:latest'
 
 jobs:
   changes:
