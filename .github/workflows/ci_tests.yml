@@ -27,7 +27,7 @@ on:
         default: 'no'
 
 env:
-  SDK_BUILDER_IMAGE: 'ghcr.io/xmos/xcore_builder:latest'
+  XCORE_BUILDER_IMAGE: 'ghcr.io/xmos/xcore_builder:latest'
 
 jobs:
   changes:
@@ -37,7 +37,7 @@ jobs:
     outputs:
       rtos_tests: ${{ github.event.inputs.run_rtos_tests == 'yes' || steps.filter.outputs.rtos_tests }}
     steps:
-      - name: Checkout SDK
+      - name: Checkout
         if: ${{ github.event.inputs.run_rtos_tests != 'yes' }}
         uses: actions/checkout@v3
         with:
@@ -63,13 +63,13 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Pull SDK builder
+      - name: Pull Docker builder
         run: |
-          docker pull ${SDK_BUILDER_IMAGE}
+          docker pull ${XCORE_BUILDER_IMAGE}
 
       - name: Build
         run: |
-          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${SDK_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all
+          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all
 
       # - name: Upload artifacts
       #   uses: actions/upload-artifact@v3
