@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.20)
 project(fatfs_mkimage LANGUAGES C)
 set(TARGET_NAME fatfs_mkimage)
 
+message(STATUS ${CMAKE_SOURCE_DIR})
+
 # Some source files are in the parent directory
-set(FATFS_HOST_PATH "${CMAKE_CURRENT_LIST_DIR}")
-cmake_path(GET FATFS_HOST_PATH PARENT_PATH FATFS_HOST_PATH)
+set(FATFS_HOST_PATH "${CMAKE_SOURCE_DIR}/modules/sw_services/fatfs")
 
 file(READ ${FRAMEWORK_RTOS_ROOT_PATH}/settings.json JSON_STRING)
 # Get the "version" value from the JSON element
@@ -13,11 +14,11 @@ string(JSON VERSION_VAL GET ${JSON_STRING} ${IDX} version)
 
 # Determine OS, set up output dirs
 if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
-    set(FATFS_INSTALL_DIR "/opt/xmos/SDK/${VERSION_VAL}/bin")
+    set(FATFS_INSTALL_DIR "/opt/xmos/bin")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL Darwin)
-    set(FATFS_INSTALL_DIR "/opt/xmos/SDK/${VERSION_VAL}/bin")
+    set(FATFS_INSTALL_DIR "/opt/xmos/bin")
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL Windows)
-    set(FATFS_INSTALL_DIR "$ENV{USERPROFILE}\\.xmos\\SDK\\${VERSION_VAL}\\bin")
+    set(FATFS_INSTALL_DIR "$ENV{USERPROFILE}\\.xmos\\bin")
 endif()
 
 set(APP_SOURCES
