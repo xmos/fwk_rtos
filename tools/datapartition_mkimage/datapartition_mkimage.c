@@ -54,6 +54,8 @@ typedef enum error_code {
     ERROR_NONE,
     ERROR_ARG_MISSING,
     ERROR_ARG_UNKOWN,
+    ERROR_ARG_ORDER,
+    ERROR_ARG_SINGLE_INSTANCE,
     ERROR_ARG_VALUE_MISSING,
     ERROR_ARG_VALUE_PARSING_FAILURE,
     ERROR_ARG_VALUE_OUT_OF_RANGE,
@@ -122,7 +124,8 @@ static void print_help(char *arg0)
            "                                output file contains data that extends past this\n"
            "                                offset, it will be lost/truncated.\n");
     printf("    -b, --block-size <BSIZE>    The max number of bytes to read/write at a time.\n"
-           "                                Default = 512.\n");
+           "                                This argument, if specified, must appear before\n"
+           "                                the --in-file option. Default = 512.\n");
     printf("    -f, --fill-byte <FBYTE>     The 8-bit fill value when seeking to an offset\n"
            "                                past the current output filesize.\n"
            "                                Default = 0xFF.\n");
@@ -316,6 +319,8 @@ static error_code_t copy_data(FILE *in_file, FILE *out_file, long in_filesize)
             if (bytes_read == 0)
                 continue;
         }
+#else
+        (void) in_filesize; // Suppress unused parameter warning.
 #endif
 
         bytes_to_write = bytes_read;
@@ -336,7 +341,7 @@ static error_code_t copy_data(FILE *in_file, FILE *out_file, long in_filesize)
 
 static error_code_t process_args(int argc, char *argv[])
 {
-    bool in_file_piped;
+    bool in_file_piped = false;
     bool in_file_present = false;
     bool out_file_present = false;
 
@@ -367,7 +372,7 @@ static error_code_t process_args(int argc, char *argv[])
                 write_log(LOG_ERR,
                           "%s : Only one instance of argument is supported.\n",
                           input_file_arg[0]);
-                    return ERROR_ARG_VALUE_PARSING_FAILURE;
+                    return ERROR_ARG_SINGLE_INSTANCE;
             }
 
             input_file_count = num_arg_values(argc, argv, i);
@@ -375,6 +380,11 @@ static error_code_t process_args(int argc, char *argv[])
 
             if (in_file_piped)
                 num_entries_allocated++;
+
+            if (num_entries_allocated == 0) {
+                write_log(LOG_ERR, "Missing argument value (%s).\n", argv[i]);
+                return ERROR_ARG_VALUE_MISSING;
+            }
 
             input_files = malloc(num_entries_allocated * sizeof(file_entry_t));
             if (input_files == NULL)
@@ -388,7 +398,7 @@ static error_code_t process_args(int argc, char *argv[])
 
                 /* Handle tokenization in reverse. This avoids complication with
                  * fullpath handling on Windows with drive letters. */
-                char* token = strrchr(argv[i], delim);
+                char *token = strrchr(argv[i], delim);
                 uint32_t blocks;
 
                 if (token != NULL) {
@@ -426,9 +436,23 @@ static error_code_t process_args(int argc, char *argv[])
                 return ERROR_ARG_VALUE_PARSING_FAILURE;
             }
 
+            if ((tmp < 0) || (tmp > UINT32_MAX)) {
+                write_log(LOG_ERR,
+                          "%s : Argument value (%s) is out-of-range.\n",
+                          block_size_arg[0], argv[i]);
+                return ERROR_ARG_VALUE_OUT_OF_RANGE;
+            }
+
              stdin_seek_blocks = (uint32_t)tmp;
         } else if (is_matching_arg(argv[i], block_size_arg,
                                    NUM_ELEMS(block_size_arg))) {
+            if (in_file_present) {
+                write_log(LOG_ERR,
+                          "%s : Argument must be specified prior to %s.\n",
+                          block_size_arg[0], input_file_arg[0]);
+                return ERROR_ARG_ORDER;
+            }
+
             if (next_arg_value(argc, argv, &i) != ERROR_NONE)
                 return ERROR_ARG_VALUE_MISSING;
 
@@ -437,6 +461,13 @@ static error_code_t process_args(int argc, char *argv[])
                           "%s : Argument value (%s) could not be parsed.\n",
                           block_size_arg[0], argv[i]);
                 return ERROR_ARG_VALUE_PARSING_FAILURE;
+            }
+
+            if ((tmp <= 0) || (tmp > UINT32_MAX)) {
+                write_log(LOG_ERR,
+                          "%s : Argument value (%s) is out-of-range.\n",
+                          block_size_arg[0], argv[i]);
+                return ERROR_ARG_VALUE_OUT_OF_RANGE;
             }
 
             block_size = (uint32_t)tmp;
@@ -480,9 +511,19 @@ static error_code_t process_args(int argc, char *argv[])
         input_file_count++;
     }
 
-    return ((in_file_piped || in_file_present) && out_file_present) ?
-                   ERROR_NONE :
-                   ERROR_ARG_MISSING;
+    if ((in_file_piped || in_file_present) && out_file_present) {
+        return ERROR_NONE;
+    } else {
+        if (!out_file_present) {
+            write_log(LOG_ERR, "Missing required %s argument.\n", output_file_arg[0]);
+        }
+
+        if (!(in_file_piped || in_file_present)) {
+            write_log(LOG_ERR, "Missing required input from either %s or stdin.\n", input_file_arg[0]);
+        }
+
+        return ERROR_ARG_MISSING;
+    }
 }
 
 static int fpeek(FILE *in_file)
@@ -499,11 +540,18 @@ int main(int argc, char *argv[])
     FILE *in_file = NULL;
     FILE *out_file = NULL;
 
-    if (show_help || exit_code) {
+    if (show_help) {
         print_help(argv[0]);
-        return exit_code;
+    } else if (exit_code) {
+        printf("Specify --help for usage.\n");
     } else if (show_version) {
         printf("version %s\n", VERSION);
+    }
+
+    if (show_version || show_help || exit_code) {
+        if (input_files)
+            free(input_files);
+
         return exit_code;
     }
 
@@ -516,6 +564,8 @@ int main(int argc, char *argv[])
         FOPEN(out_file, output_filename, "wb+");
 
     if (out_file == NULL) {
+        write_log(LOG_ERR, "Failed to open file (%s).\n", output_filename);
+
         if (in_file != NULL)
             fclose(in_file);
 
@@ -554,7 +604,7 @@ int main(int argc, char *argv[])
         }
 
         if (in_file == NULL) {
-            write_log(LOG_ERR, "Failed to open file (%s).",
+            write_log(LOG_ERR, "Failed to open file (%s).\n",
                       input_files[file_index].filename);
             exit_code = ERROR_FILE_SYSTEM;
             break;
@@ -606,7 +656,7 @@ int main(int argc, char *argv[])
                   input_files[file_index].filename);
 
         if (exit_code == ERROR_OUT_OF_RESOURCES) {
-            write_log(LOG_ERR, "Failed to allocate memory.");
+            write_log(LOG_ERR, "Failed to allocate memory.\n");
             break;
         } else if (exit_code == ERROR_OVERLAPPING_INPUT_DATA) {
             write_log(LOG_ERR, "Overlapping input data detected.\n");
@@ -622,8 +672,10 @@ int main(int argc, char *argv[])
     }
 
     if (truncate_out_file && (exit_code == ERROR_NONE) &&
-        (TRUNCATE(FILENO(out_file), last_write_offset) != 0))
+        (TRUNCATE(FILENO(out_file), last_write_offset) != 0)) {
+        write_log(LOG_ERR, "Failed to truncate file.\n");
         exit_code = ERROR_FILE_SYSTEM;
+    }
 
     if (exit_code == ERROR_NONE) {
         fseek(out_file, 0L, SEEK_END);
