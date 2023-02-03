@@ -3,10 +3,12 @@ cmake_minimum_required(VERSION 3.20)
 project(fatfs_mkimage LANGUAGES C)
 set(TARGET_NAME fatfs_mkimage)
 
-message(STATUS ${CMAKE_SOURCE_DIR})
-
 # Some source files are in the parent directory
-set(FATFS_HOST_PATH "${CMAKE_SOURCE_DIR}/modules/sw_services/fatfs")
+#set(FATFS_HOST_PATH "${CMAKE_SOURCE_DIR}/modules/sw_services/fatfs")
+set(FATFS_HOST_PATH "${FRAMEWORK_RTOS_ROOT_PATH}/modules/sw_services/fatfs")
+#cmake_path(GET FATFS_HOST_PATH PARENT_PATH FATFS_HOST_PATH)
+message(STATUS ${CMAKE_CURRENT_LIST_DIR})
+message(STATUS ${FATFS_HOST_PATH})
 
 file(READ ${FRAMEWORK_RTOS_ROOT_PATH}/settings.json JSON_STRING)
 # Get the "version" value from the JSON element
