@@ -47,6 +47,8 @@
 #define NUM_ELEMS(x)              (sizeof(x) / sizeof(x[0]))
 
 #define STDIN_FILENAME            "[STDIN]"
+#define ERR_STR                   "ERROR: "
+#define WRN_STR                   "WARNING: "
 
 #define SHOW_PAD_OUTPUT           0
 
@@ -152,10 +154,10 @@ static void write_log(log_level_t level, const char *format, ...)
     if (level >= log_level) {
         switch (level) {
         case LOG_WRN:
-            printf("WARNING: ");
+            printf(WRN_STR);
             break;
         case LOG_ERR:
-            printf("ERROR: ");
+            printf(ERR_STR);
             break;
         default:
             break;
@@ -164,6 +166,50 @@ static void write_log(log_level_t level, const char *format, ...)
     }
 
     va_end(args);
+}
+
+static error_code_t write_arg_error(error_code_t error_code, ...)
+{
+    va_list args;
+    va_start(args, error_code);
+
+    switch (error_code) {
+    case ERROR_ARG_VALUE_PARSING_FAILURE:
+        printf(ERR_STR "%s : ", va_arg(args, char *));
+        printf("Argument value (%s) could not be parsed.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_VALUE_OUT_OF_RANGE:
+        printf(ERR_STR "%s : ", va_arg(args, char *));
+        printf("Argument value (%s) is out-of-range.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_VALUE_MISSING:
+        printf(ERR_STR "%s : Argument value missing.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_ORDER:
+        printf(ERR_STR "%s : ", va_arg(args, char *));
+        printf("Argument must be specified prior to %s.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_UNKOWN:
+        printf(ERR_STR "%s : Unkown argument.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_SINGLE_INSTANCE:
+        printf(ERR_STR "%s : Argument must only be specified once.\n",
+               va_arg(args, char *));
+        break;
+    default:
+        printf(ERR_STR "Application encountered an error (%d).\n",
+               error_code);
+        break;
+    }
+
+    va_end(args);
+
+    return error_code;
 }
 
 static bool is_matching_arg(char *arg, const char *arg_options[],
@@ -369,10 +415,7 @@ static error_code_t process_args(int argc, char *argv[])
              * should be informed that only one instance of '-i' is supported.
              * This is particularly important due to the malloc. */
             if (in_file_present) {
-                write_log(LOG_ERR,
-                          "%s : Only one instance of argument is supported.\n",
-                          input_file_arg[0]);
-                    return ERROR_ARG_SINGLE_INSTANCE;
+                return write_arg_error(ERROR_ARG_SINGLE_INSTANCE, argv[i]);
             }
 
             input_file_count = num_arg_values(argc, argv, i);
@@ -382,8 +425,7 @@ static error_code_t process_args(int argc, char *argv[])
                 num_entries_allocated++;
 
             if (num_entries_allocated == 0) {
-                write_log(LOG_ERR, "Missing argument value (%s).\n", argv[i]);
-                return ERROR_ARG_VALUE_MISSING;
+                return write_arg_error(ERROR_ARG_VALUE_MISSING, argv[i]);
             }
 
             input_files = malloc(num_entries_allocated * sizeof(file_entry_t));
@@ -408,10 +450,8 @@ static error_code_t process_args(int argc, char *argv[])
                 }
 
                 if ((token == NULL) || !parse_number(token, (long *)&blocks)) {
-                    write_log(LOG_ERR,
-                              "%s : Argument value (%s) could not be parsed.\n",
-                              input_file_arg[0], argv[i]);
-                    return ERROR_ARG_VALUE_PARSING_FAILURE;
+                    return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                           input_file_arg[0], argv[i]);
                 }
 
                 input_files[j].offset = blocks * block_size;
@@ -430,44 +470,34 @@ static error_code_t process_args(int argc, char *argv[])
             if (next_arg_value(argc, argv, &i) != ERROR_NONE) {
                 return ERROR_ARG_VALUE_MISSING;
             } else if (!parse_number(argv[i], &tmp)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) could not be parsed.\n",
-                          seek_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                       seek_arg[0], argv[i]);
             }
 
             if ((tmp < 0) || (tmp > UINT32_MAX)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) is out-of-range.\n",
-                          block_size_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_OUT_OF_RANGE;
+                return write_arg_error(ERROR_ARG_VALUE_OUT_OF_RANGE,
+                                       block_size_arg[0], argv[i]);
             }
 
              stdin_seek_blocks = (uint32_t)tmp;
         } else if (is_matching_arg(argv[i], block_size_arg,
                                    NUM_ELEMS(block_size_arg))) {
             if (in_file_present) {
-                write_log(LOG_ERR,
-                          "%s : Argument must be specified prior to %s.\n",
-                          block_size_arg[0], input_file_arg[0]);
-                return ERROR_ARG_ORDER;
+                return write_arg_error(ERROR_ARG_ORDER,
+                                       block_size_arg[0], input_file_arg[0]);
             }
 
             if (next_arg_value(argc, argv, &i) != ERROR_NONE)
                 return ERROR_ARG_VALUE_MISSING;
 
             if (!parse_number(argv[i], &tmp)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) could not be parsed.\n",
-                          block_size_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                       block_size_arg[0], argv[i]);
             }
 
             if ((tmp <= 0) || (tmp > UINT32_MAX)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) is out-of-range.\n",
-                          block_size_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_OUT_OF_RANGE;
+                return write_arg_error(ERROR_ARG_VALUE_OUT_OF_RANGE,
+                                       block_size_arg[0], argv[i]);
             }
 
             block_size = (uint32_t)tmp;
@@ -477,21 +507,16 @@ static error_code_t process_args(int argc, char *argv[])
                 return ERROR_ARG_VALUE_MISSING;
 
             if (!parse_number(argv[i], &tmp)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) could not be parsed.\n",
-                          fill_byte_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                       fill_byte_arg[0], argv[i]);
             } else if ((tmp <= 0) || (tmp > UCHAR_MAX)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) is out-of-range.\n",
-                          fill_byte_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_OUT_OF_RANGE;
+                return write_arg_error(ERROR_ARG_VALUE_OUT_OF_RANGE,
+                                       fill_byte_arg[0], argv[i]);
             }
 
             fill_value = (uint8_t)tmp;
         } else {
-            write_log(LOG_ERR, "Unkown argument (%s).\n", argv[i]);
-            return ERROR_ARG_UNKOWN;
+            return write_arg_error(ERROR_ARG_UNKOWN, argv[i]);
         }
     }
 
