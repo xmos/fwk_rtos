@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 
 // Abstractions for portability
 #ifdef __GNUC__
@@ -441,15 +441,17 @@ static error_code_t process_args(int argc, char *argv[])
                 /* Handle tokenization in reverse. This avoids complication with
                  * fullpath handling on Windows with drive letters. */
                 char *token = strrchr(argv[i], delim);
-                uint32_t blocks;
+                long blocks;
+                bool valid_value = false;
 
                 if (token != NULL) {
                     *token = '\0';
                     token++;
                     input_files[j].filename = argv[i];
+                    valid_value = parse_number(token, &blocks);
                 }
 
-                if ((token == NULL) || !parse_number(token, (long *)&blocks)) {
+                if (!valid_value) {
                     return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
                                            input_file_arg[0], argv[i]);
                 }
