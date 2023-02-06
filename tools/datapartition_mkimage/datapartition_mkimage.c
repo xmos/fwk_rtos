@@ -9,7 +9,7 @@
 #include <limits.h>
 #include <string.h>
 
-#define VERSION "1.0.2"
+#define VERSION "1.0.3"
 
 // Abstractions for portability
 #ifdef __GNUC__
@@ -47,6 +47,8 @@
 #define NUM_ELEMS(x)              (sizeof(x) / sizeof(x[0]))
 
 #define STDIN_FILENAME            "[STDIN]"
+#define ERR_STR                   "ERROR: "
+#define WRN_STR                   "WARNING: "
 
 #define SHOW_PAD_OUTPUT           0
 
@@ -54,6 +56,8 @@ typedef enum error_code {
     ERROR_NONE,
     ERROR_ARG_MISSING,
     ERROR_ARG_UNKOWN,
+    ERROR_ARG_ORDER,
+    ERROR_ARG_SINGLE_INSTANCE,
     ERROR_ARG_VALUE_MISSING,
     ERROR_ARG_VALUE_PARSING_FAILURE,
     ERROR_ARG_VALUE_OUT_OF_RANGE,
@@ -122,7 +126,8 @@ static void print_help(char *arg0)
            "                                output file contains data that extends past this\n"
            "                                offset, it will be lost/truncated.\n");
     printf("    -b, --block-size <BSIZE>    The max number of bytes to read/write at a time.\n"
-           "                                Default = 512.\n");
+           "                                This argument, if specified, must appear before\n"
+           "                                the --in-file option. Default = 512.\n");
     printf("    -f, --fill-byte <FBYTE>     The 8-bit fill value when seeking to an offset\n"
            "                                past the current output filesize.\n"
            "                                Default = 0xFF.\n");
@@ -149,10 +154,10 @@ static void write_log(log_level_t level, const char *format, ...)
     if (level >= log_level) {
         switch (level) {
         case LOG_WRN:
-            printf("WARNING: ");
+            printf(WRN_STR);
             break;
         case LOG_ERR:
-            printf("ERROR: ");
+            printf(ERR_STR);
             break;
         default:
             break;
@@ -161,6 +166,50 @@ static void write_log(log_level_t level, const char *format, ...)
     }
 
     va_end(args);
+}
+
+static error_code_t write_arg_error(error_code_t error_code, ...)
+{
+    va_list args;
+    va_start(args, error_code);
+
+    switch (error_code) {
+    case ERROR_ARG_VALUE_PARSING_FAILURE:
+        printf(ERR_STR "%s : ", va_arg(args, char *));
+        printf("Argument value (%s) could not be parsed.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_VALUE_OUT_OF_RANGE:
+        printf(ERR_STR "%s : ", va_arg(args, char *));
+        printf("Argument value (%s) is out-of-range.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_VALUE_MISSING:
+        printf(ERR_STR "%s : Argument value missing.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_ORDER:
+        printf(ERR_STR "%s : ", va_arg(args, char *));
+        printf("Argument must be specified prior to %s.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_UNKOWN:
+        printf(ERR_STR "%s : Unkown argument.\n",
+               va_arg(args, char *));
+        break;
+    case ERROR_ARG_SINGLE_INSTANCE:
+        printf(ERR_STR "%s : Argument must only be specified once.\n",
+               va_arg(args, char *));
+        break;
+    default:
+        printf(ERR_STR "Application encountered an error (%d).\n",
+               error_code);
+        break;
+    }
+
+    va_end(args);
+
+    return error_code;
 }
 
 static bool is_matching_arg(char *arg, const char *arg_options[],
@@ -316,6 +365,8 @@ static error_code_t copy_data(FILE *in_file, FILE *out_file, long in_filesize)
             if (bytes_read == 0)
                 continue;
         }
+#else
+        (void) in_filesize; // Suppress unused parameter warning.
 #endif
 
         bytes_to_write = bytes_read;
@@ -336,7 +387,7 @@ static error_code_t copy_data(FILE *in_file, FILE *out_file, long in_filesize)
 
 static error_code_t process_args(int argc, char *argv[])
 {
-    bool in_file_piped;
+    bool in_file_piped = false;
     bool in_file_present = false;
     bool out_file_present = false;
 
@@ -364,10 +415,7 @@ static error_code_t process_args(int argc, char *argv[])
              * should be informed that only one instance of '-i' is supported.
              * This is particularly important due to the malloc. */
             if (in_file_present) {
-                write_log(LOG_ERR,
-                          "%s : Only one instance of argument is supported.\n",
-                          input_file_arg[0]);
-                    return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_SINGLE_INSTANCE, argv[i]);
             }
 
             input_file_count = num_arg_values(argc, argv, i);
@@ -375,6 +423,10 @@ static error_code_t process_args(int argc, char *argv[])
 
             if (in_file_piped)
                 num_entries_allocated++;
+
+            if (num_entries_allocated == 0) {
+                return write_arg_error(ERROR_ARG_VALUE_MISSING, argv[i]);
+            }
 
             input_files = malloc(num_entries_allocated * sizeof(file_entry_t));
             if (input_files == NULL)
@@ -388,20 +440,20 @@ static error_code_t process_args(int argc, char *argv[])
 
                 /* Handle tokenization in reverse. This avoids complication with
                  * fullpath handling on Windows with drive letters. */
-                char* token = strrchr(argv[i], delim);
-                uint32_t blocks;
+                char *token = strrchr(argv[i], delim);
+                long blocks;
+                bool valid_value = false;
 
                 if (token != NULL) {
                     *token = '\0';
                     token++;
                     input_files[j].filename = argv[i];
+                    valid_value = parse_number(token, &blocks);
                 }
 
-                if ((token == NULL) || !parse_number(token, (long *)&blocks)) {
-                    write_log(LOG_ERR,
-                              "%s : Argument value (%s) could not be parsed.\n",
-                              input_file_arg[0], argv[i]);
-                    return ERROR_ARG_VALUE_PARSING_FAILURE;
+                if (!valid_value) {
+                    return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                           input_file_arg[0], argv[i]);
                 }
 
                 input_files[j].offset = blocks * block_size;
@@ -420,23 +472,34 @@ static error_code_t process_args(int argc, char *argv[])
             if (next_arg_value(argc, argv, &i) != ERROR_NONE) {
                 return ERROR_ARG_VALUE_MISSING;
             } else if (!parse_number(argv[i], &tmp)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) could not be parsed.\n",
-                          seek_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                       seek_arg[0], argv[i]);
+            }
+
+            if ((tmp < 0) || (tmp > UINT32_MAX)) {
+                return write_arg_error(ERROR_ARG_VALUE_OUT_OF_RANGE,
+                                       block_size_arg[0], argv[i]);
             }
 
              stdin_seek_blocks = (uint32_t)tmp;
         } else if (is_matching_arg(argv[i], block_size_arg,
                                    NUM_ELEMS(block_size_arg))) {
+            if (in_file_present) {
+                return write_arg_error(ERROR_ARG_ORDER,
+                                       block_size_arg[0], input_file_arg[0]);
+            }
+
             if (next_arg_value(argc, argv, &i) != ERROR_NONE)
                 return ERROR_ARG_VALUE_MISSING;
 
             if (!parse_number(argv[i], &tmp)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) could not be parsed.\n",
-                          block_size_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                       block_size_arg[0], argv[i]);
+            }
+
+            if ((tmp <= 0) || (tmp > UINT32_MAX)) {
+                return write_arg_error(ERROR_ARG_VALUE_OUT_OF_RANGE,
+                                       block_size_arg[0], argv[i]);
             }
 
             block_size = (uint32_t)tmp;
@@ -446,21 +509,16 @@ static error_code_t process_args(int argc, char *argv[])
                 return ERROR_ARG_VALUE_MISSING;
 
             if (!parse_number(argv[i], &tmp)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) could not be parsed.\n",
-                          fill_byte_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_PARSING_FAILURE;
+                return write_arg_error(ERROR_ARG_VALUE_PARSING_FAILURE,
+                                       fill_byte_arg[0], argv[i]);
             } else if ((tmp <= 0) || (tmp > UCHAR_MAX)) {
-                write_log(LOG_ERR,
-                          "%s : Argument value (%s) is out-of-range.\n",
-                          fill_byte_arg[0], argv[i]);
-                return ERROR_ARG_VALUE_OUT_OF_RANGE;
+                return write_arg_error(ERROR_ARG_VALUE_OUT_OF_RANGE,
+                                       fill_byte_arg[0], argv[i]);
             }
 
             fill_value = (uint8_t)tmp;
         } else {
-            write_log(LOG_ERR, "Unkown argument (%s).\n", argv[i]);
-            return ERROR_ARG_UNKOWN;
+            return write_arg_error(ERROR_ARG_UNKOWN, argv[i]);
         }
     }
 
@@ -480,9 +538,19 @@ static error_code_t process_args(int argc, char *argv[])
         input_file_count++;
     }
 
-    return ((in_file_piped || in_file_present) && out_file_present) ?
-                   ERROR_NONE :
-                   ERROR_ARG_MISSING;
+    if ((in_file_piped || in_file_present) && out_file_present) {
+        return ERROR_NONE;
+    } else {
+        if (!out_file_present) {
+            write_log(LOG_ERR, "Missing required %s argument.\n", output_file_arg[0]);
+        }
+
+        if (!(in_file_piped || in_file_present)) {
+            write_log(LOG_ERR, "Missing required input from either %s or stdin.\n", input_file_arg[0]);
+        }
+
+        return ERROR_ARG_MISSING;
+    }
 }
 
 static int fpeek(FILE *in_file)
@@ -499,11 +567,18 @@ int main(int argc, char *argv[])
     FILE *in_file = NULL;
     FILE *out_file = NULL;
 
-    if (show_help || exit_code) {
+    if (show_help) {
         print_help(argv[0]);
-        return exit_code;
+    } else if (exit_code) {
+        printf("Specify --help for usage.\n");
     } else if (show_version) {
         printf("version %s\n", VERSION);
+    }
+
+    if (show_version || show_help || exit_code) {
+        if (input_files)
+            free(input_files);
+
         return exit_code;
     }
 
@@ -516,6 +591,8 @@ int main(int argc, char *argv[])
         FOPEN(out_file, output_filename, "wb+");
 
     if (out_file == NULL) {
+        write_log(LOG_ERR, "Failed to open file (%s).\n", output_filename);
+
         if (in_file != NULL)
             fclose(in_file);
 
@@ -554,7 +631,7 @@ int main(int argc, char *argv[])
         }
 
         if (in_file == NULL) {
-            write_log(LOG_ERR, "Failed to open file (%s).",
+            write_log(LOG_ERR, "Failed to open file (%s).\n",
                       input_files[file_index].filename);
             exit_code = ERROR_FILE_SYSTEM;
             break;
@@ -606,7 +683,7 @@ int main(int argc, char *argv[])
                   input_files[file_index].filename);
 
         if (exit_code == ERROR_OUT_OF_RESOURCES) {
-            write_log(LOG_ERR, "Failed to allocate memory.");
+            write_log(LOG_ERR, "Failed to allocate memory.\n");
             break;
         } else if (exit_code == ERROR_OVERLAPPING_INPUT_DATA) {
             write_log(LOG_ERR, "Overlapping input data detected.\n");
@@ -622,8 +699,10 @@ int main(int argc, char *argv[])
     }
 
     if (truncate_out_file && (exit_code == ERROR_NONE) &&
-        (TRUNCATE(FILENO(out_file), last_write_offset) != 0))
+        (TRUNCATE(FILENO(out_file), last_write_offset) != 0)) {
+        write_log(LOG_ERR, "Failed to truncate file.\n");
         exit_code = ERROR_FILE_SYSTEM;
+    }
 
     if (exit_code == ERROR_NONE) {
         fseek(out_file, 0L, SEEK_END);

@@ -164,7 +164,7 @@ block_size=256
 
 # Reinitialize the output file using non-default fill.
 rm -f $OUT_FILE
-cmd="echo -n \"\" | $APPLICATION --verbose --fill-byte $fill_byte --block-size $block_size --seek $block_offset --out-file \"$OUT_FILE\""
+cmd="echo -n \"\" | $APP --verbose --fill-byte $fill_byte --block-size $block_size --seek $block_offset --out-file \"$OUT_FILE\""
 run_command
 
 # Verify initial filesize matches expectation.
@@ -183,7 +183,7 @@ block_size=$MIN_BLOCK_SIZE
 # Specify input data that effectively writes to addresses smaller than the
 # current filesize to observe truncation. Using $MIN_BLOCK_SIZE for the block
 # size verifies that minimum block size completes without error.
-cmd="cat $TEST_FILE_A | $APPLICATION --verbose --truncate --block-size $block_size --seek $block_offset --in-file \"$TEST_FILE_C:1\" --out-file \"$OUT_FILE\""
+cmd="cat $TEST_FILE_A | $APP --verbose --truncate --block-size $block_size --seek $block_offset --in-file \"$TEST_FILE_C:1\" --out-file \"$OUT_FILE\""
 run_command
 
 # Verify that truncation occurred and no errors/warnings reported.
@@ -203,7 +203,7 @@ verify_sha512
 # Verify that truncation does not occur when -t is omitted.
 #
 
-cmd="echo -n \"\" | $APPLICATION --verbose --out-file \"$OUT_FILE\""
+cmd="echo -n \"\" | $APP --verbose --out-file \"$OUT_FILE\""
 run_command
 
 # File size reported should be unchanged.
@@ -220,7 +220,7 @@ verify_sha512
 #
 
 block_size=$((MIN_BLOCK_SIZE - 1))
-cmd="cat $TEST_FILE_C | $APPLICATION -v -b $block_size -i \"$TEST_FILE_C:2\" \"$TEST_FILE_A:3\" -o \"$OUT_FILE\""
+cmd="cat $TEST_FILE_C | $APP -v -b $block_size -i \"$TEST_FILE_C:2\" \"$TEST_FILE_A:3\" -o \"$OUT_FILE\""
 run_command
 
 result_errors=$(grep -c "ERROR: Overlapping input data detected." $APP_LOG || true)
