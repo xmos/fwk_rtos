@@ -13,7 +13,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_link_libraries(framework_rtos_drivers_clock_control
         INTERFACE
-            core::clock_control
+            framework_core_clock_control
             rtos::osal
             rtos::sw_services::concurrency_support
     )

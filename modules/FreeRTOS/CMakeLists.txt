@@ -84,7 +84,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     target_link_libraries(framework_rtos_freertos_plus_tcp
         INTERFACE
             rtos::FreeRTOS::FreeRTOS_SMP
-            core::random
+            lib_random
     )
 
     ## Create an alias
