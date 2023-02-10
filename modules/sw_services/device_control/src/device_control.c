@@ -252,16 +252,19 @@ void device_control_payload_transfer_bidir(device_control_t *ctx,
     const size_t requested_payload_len = ctx->requested_payload_len;
     const control_resid_t requested_resid = ctx->requested_resid;
     const control_cmd_t requested_cmd = ctx->requested_cmd;
-
     if (resource_table_search(ctx, requested_resid, &servicer) == 0) {
         if(!IS_CONTROL_CMD_READ(requested_cmd)) // Write command
         {
             if(requested_payload_len > rx_size)
             {
                 tx_buf[0] = CONTROL_DATA_LENGTH_ERROR;
+                ret = CONTROL_DATA_LENGTH_ERROR;
             }
-            ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len);
-            tx_buf[0] = ret;
+            else
+            {
+                ret = do_command(ctx, servicer, requested_resid, requested_cmd, rx_buf, requested_payload_len);
+                tx_buf[0] = ret;
+            }
         }
         else // Read command
         {
@@ -275,6 +278,7 @@ void device_control_payload_transfer_bidir(device_control_t *ctx,
     {
         rtos_printf("resource %d not found\n", requested_resid);
         tx_buf[0] = CONTROL_BAD_RESOURCE;
+        ret = CONTROL_BAD_RESOURCE;
     }
 
     ctx->last_status = ret;
