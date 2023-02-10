@@ -252,6 +252,7 @@ void device_control_payload_transfer_bidir(device_control_t *ctx,
     const size_t requested_payload_len = ctx->requested_payload_len;
     const control_resid_t requested_resid = ctx->requested_resid;
     const control_cmd_t requested_cmd = ctx->requested_cmd;
+
     if (resource_table_search(ctx, requested_resid, &servicer) == 0) {
         if(!IS_CONTROL_CMD_READ(requested_cmd)) // Write command
         {
