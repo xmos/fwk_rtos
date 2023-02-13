@@ -69,7 +69,24 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   DBG(printf("control write command: resid %d, cmd %d\n", resid, cmd));
   unsigned char command_status[1]; // status
   unsigned char buffer_to_send[I2C_TRANSACTION_MAX_BYTES + 3];
-  int len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
+  int len;
+
+// When LOW_LEVEL_TESTING is defined, resid and cmd fields are ignored and payload is sent directly to the device.
+// This allows the user to write a stream of bytes directly into the device allowing for low level testing like testing the
+// error handling mechanism.
+#if LOW_LEVEL_TESTING
+  if((resid == 0) && (cmd == 0))
+  {
+    memcpy(buffer_to_send, payload, payload_len); // Send the payload as is to the device.
+    len = payload_len;
+  }
+  else
+  {
+    len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
+  }
+#else  
+  len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
+#endif
   
   // Not doing ioctl I2C_RDWR due to the issue seen when write length is a multiple of 12 bytes
   // https://github.com/xmos/sw_xvf3800/issues/314
@@ -101,11 +118,32 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
 {
   DBG(printf("control read command: resid %d, cmd %d\n", resid, cmd));
   unsigned char read_hdr[I2C_TRANSACTION_MAX_BYTES];
-  unsigned len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
+
+  unsigned len;
+// When LOW_LEVEL_TESTING is defined, resid and cmd fields are ignored and payload is sent directly to the device.
+// This allows the user to write a stream of bytes directly into the device allowing for low level testing like testing the
+// error handling mechanism.
+#if LOW_LEVEL_TESTING
+  if((resid == 0) && (cmd == 0))
+  {
+    memcpy(read_hdr, payload, payload_len);
+    len = payload_len;
+  }
+  else
+  {
+    len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
+    if (len != 3){
+      fprintf(stderr, "Error building read command section of read_device. len should be 3 but is %d\n", len);
+      return CONTROL_ERROR;
+    }
+  }
+#else
+  len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
   if (len != 3){
     fprintf(stderr, "Error building read command section of read_device. len should be 3 but is %d\n", len);
     return CONTROL_ERROR;
   }
+#endif
 
   // Do a repeated start (write followed by read with no stop bit)
   struct i2c_msg rdwr_msgs[2] = {

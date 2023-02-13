@@ -38,9 +38,26 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
 
   do
   {
-      int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      int data_len;
+// When LOW_LEVEL_TESTING is defined, resid and cmd fields are ignored and payload is sent directly to the device.
+// This allows the user to write a stream of bytes directly into the device allowing for low level testing like testing the
+// error handling mechanism.
+#if LOW_LEVEL_TESTING
+      if((resid == 0) && (cmd == 0))
+      {
+        memcpy(data_sent_recieved, payload, payload_len);
+        data_len = payload_len;
+      }
+      else
+      {
+        data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      }
+#else
+      data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+#endif
       bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+
   do
   {
       // get status
@@ -61,7 +78,20 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   //printf("control_read_command(): resid 0x%x, cmd_id 0x%x, payload_len 0x%x\n",resid, cmd, payload_len);
   do
   {
-      int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      int data_len;
+#if LOW_LEVEL_TESTING
+      if((resid == 0) && (cmd == 0))
+      {
+        memcpy(data_sent_recieved, payload, payload_len);
+        data_len = payload_len;
+      }
+      else
+      {
+        data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      }
+#else
+      data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+#endif
       bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
 
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
