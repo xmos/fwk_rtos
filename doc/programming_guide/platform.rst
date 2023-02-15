@@ -15,7 +15,7 @@ The xcore platform provides a range of powerful, flexible and economic crossover
 Architecture & Hardware Guide
 *****************************
 
-At the heart of the platform, the `Architecture & Hardware Guide <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/html/arch-hw-guide/index.html>`_ describes the multicore processors. Multiple xcore processors can themselves be “networked” together with seamless communications.
+At the heart of the platform, the `Architecture & Hardware Guide <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/html/prog-guide/arch-hw-guide/index.html>`_ describes the multicore processors. Multiple xcore processors can themselves be “networked” together with seamless communications.
 
 *****************
 Programming Guide
