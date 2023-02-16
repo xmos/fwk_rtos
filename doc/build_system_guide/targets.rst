@@ -1,14 +1,14 @@
-.. _build_system_target_aliases:
+.. _build_system_targets:
 
-##############
-Target Aliases
-##############
+#######
+Targets
+#######
 
 The following library target aliases can be used in your application `CMakeLists.txt`.  An example of how to add aliases to your target link libraries is shown below:
 
 .. code-block:: cmake
 
-  target_link_libraries(my_app PUBLIC core::general rtos::freertos sdk::rtos_bsp::xcore_ai_explorer)
+  target_link_libraries(my_app PUBLIC core::general rtos::freertos)
 
 *******
 General
@@ -23,19 +23,20 @@ Several aliases are provided that specify a collection of libraries with similar
 
     * - Target
       - Description
-    * - core::all
-      - All core libraries
-    * - io::all
-      - All peripheral libraries
+    * - core::general
+      - Commonly used core libraries
+    * - io::general
+      - Commonly used peripheral libraries
+    * - io::audio
+      - Commonly used peripheral libraries for audio applications
     * - rtos::freertos
-      - All RTOS libraries
-
+      - Commonly used RTOS libraries
 
 ****
 Core
 ****
 
-If you prefer, you can specify individual core libraries.
+If you prefer, you can specify individual core library targets.
 
 .. list-table:: Core Libraries
     :widths: 50 50
@@ -44,14 +45,14 @@ If you prefer, you can specify individual core libraries.
 
     * - Target
       - Description
-    * - core::clock_control
+    * - framework_core_clock_control
       - Clock control API
-    * - core::utils
+    * - framework_core_utils
       - General utilities used by most applications
-    * - core::xs3_math
-      - Optimize math and DSP API
-    * - core::general
-      - All core libraries
+    * - framework_core_legacy_compat
+      - For compatibility with XC 
+    * - lib_xcore_math
+      - VPU-optimized math library
 
 ***********
 Peripherals
@@ -66,19 +67,19 @@ If you prefer, you can specify individual peripheral libraries.
 
     * - Target
       - Description
-    * - io::i2c
+    * - lib_i2c
       - I2C library
-    * - io::spi
+    * - lib_spi
       - SPI library
-    * - io::uart
+    * - lib_uart
       - UART library
-    * - io::qspi_io
+    * - lib_qspi_io
       - QSPI library
-    * - io::xud
+    * - lib_xud
       - XUD USB library
-    * - io::i2s
+    * - lib_i2s
       - I2S library
-    * - io::mic_array
+    * - lib_mic_array
       - Microphone Array library
 
 ****
@@ -95,7 +96,7 @@ Several aliases are provided that specify a collection of RTOS libraries with si
     * - Target
       - Description
     * - rtos::freertos
-      - All libraries used my most xcore FreeRTOS applications
+      - All libraries used my most FreeRTOS applications
     * - rtos::drivers:all
       - All RTOS Driver libraries
     * - rtos::freertos_usb
@@ -142,6 +143,8 @@ If you prefer, you can specify individual RTOS driver libraries.
       - Microphone Array RTOS driver library
     * - rtos::drivers::usb
       - USB RTOS driver library
+    * - rtos::drivers::dfu_image
+      - RTOS DFU driver library
     * - rtos::drivers::gpio
       - GPIO RTOS driver library
     * - rtos::drivers::l2_cache
@@ -158,6 +161,8 @@ If you prefer, you can specify individual RTOS driver libraries.
       - Intertile RTOS driver library
     * - rtos::drivers::rpc
       - Remote procedure call RTOS driver library
+    * - rtos::drivers::trace
+      - Debug tracing RTOS driver library
 
 If you prefer, you can specify individual software service libraries.
 

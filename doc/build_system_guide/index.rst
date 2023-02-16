@@ -3,9 +3,10 @@ Build System User Guide
 #######################
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    introduction
    cmakelists
-   target_aliases
+   targets
+   macros
    ../shared/legal.rst

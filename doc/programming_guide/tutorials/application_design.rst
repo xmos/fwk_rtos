@@ -184,4 +184,4 @@ Applications using the RTOS Framework are built using `CMake`. The RTOS framewor
 
 See the :ref:`Build System Guide <build_system_guide>` for more information on the build system.
 
-See the :ref:`Build System Guide - Target Aliases <build_system_target_aliases>` for more information on the build system target aliases.
+See the :ref:`Build System Guide - Targets <build_system_targets>` for more information on the build system target aliases.
