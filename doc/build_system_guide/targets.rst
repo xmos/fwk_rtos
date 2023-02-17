@@ -161,8 +161,6 @@ If you prefer, you can specify individual RTOS driver libraries.
       - Intertile RTOS driver library
     * - rtos::drivers::rpc
       - Remote procedure call RTOS driver library
-    * - rtos::drivers::trace
-      - Debug tracing RTOS driver library
 
 If you prefer, you can specify individual software service libraries.
 
