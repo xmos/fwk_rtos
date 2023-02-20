@@ -105,7 +105,7 @@ endmacro()
 
 ## Creates a directory populated with all components related to the data partition
 ##   folder must end in "_data_partition"
-## Optional argument can be used to dependency targets
+## Optional argument can be used to specify dependency targets
 ## create_data_partition_directory(_EXECUTABLE_TARGET_NAME _FILES_TO_COPY _OPTIONAL_DEPENDS_TARGETS)
 macro(create_data_partition_directory)
   if(${ARGC} EQUAL 2)
