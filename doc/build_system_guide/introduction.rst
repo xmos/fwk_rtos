@@ -21,7 +21,7 @@ An xcore RTOS project can be seen as an integration of several modules. For exam
 - |I2S| driver for outputting to the DAC
 - Application code tying it all together
 
-When a project is compiled, the build system will build all libraries and source files required for the application.  For this to happen, your ``CMakeLists.txt`` file will need to specify:
+When a project is compiled, the build system will build all libraries and source files required for the application. For this to happen, your ``CMakeLists.txt`` file will need to specify:
 
 - Application sources and include paths
 - Compile flags
@@ -42,12 +42,15 @@ Your `CMakeLists.txt` file will need to specify the `target link libraries <http
     target_link_libraries(my_target PUBLIC 
         core::general
         rtos::freertos
+        rtos::drivers::mic_array
+        rtos::drivers::i2c
+        rtos::drivers::i2s
         lib_mic_array
         lib_i2c
         lib_i2s
     )
 
-It is very common for target link `alias libraries <https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries>`_, like ``rtos::freertos`` in the snippet above, to include common sets of target link libraries.  The snippet above could be simplified because the `rtos::freertos` alias includes many commonly used drivers and peripheral IO libraries.
+It is very common for target link `alias libraries <https://cmake.org/cmake/help/latest/command/add_library.html#alias-libraries>`_, like ``rtos::freertos`` in the snippet above, to include common sets of target link libraries. The snippet above could be simplified because the `rtos::freertos` alias includes many commonly used drivers and peripheral IO libraries as a dependency.
 
 .. code-block:: cmake
 
@@ -56,4 +59,12 @@ It is very common for target link `alias libraries <https://cmake.org/cmake/help
         rtos::freertos
     )
 
-XMOS libraries and frameworks provide several target aliases.  Being aware of the :ref:`build_system_targets` will simplify your application ``CMakeLists.txt``.
+Application target link libraries can be further simplified using existing bsp_configs. These provide their dependent link libraries enabling applications to simplify their target link libraries list. The snippet above could be simplified because the `rtos::bsp_config::xcore_ai_explorer` alias includes `core::general`, `rtos::freertos`, and all required drivers and peripheral IO libraries used by the bsp_config. More information on bsp_configs can be found in the RTOS Programming Guide.
+
+.. code-block:: cmake
+
+    target_link_libraries(my_target PUBLIC 
+        rtos::bsp_config::xcore_ai_explorer
+    )
+
+XMOS libraries and frameworks provide several target aliases. Being aware of the :ref:`build_system_targets` will simplify your application ``CMakeLists.txt``.

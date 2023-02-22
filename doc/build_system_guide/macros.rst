@@ -12,7 +12,7 @@ Common Macros
 merge_binaries
 --------------
 
-merge_binaries combines multiple xcore applications into one by extracting a tile elf and recombining it into another binary.
+merge_binaries combines multiple xcore applications into one by extracting a tile elf and recombining it into another binary. This is used in multitile RTOS applications to enable building unique instances of the FreeRTOS kernel and task sets on a per tile basis.
 This macro takes an output target name, a base target, a target containing a tile to merge, and the tile number to merge.
 The resulting output will be a target named ``<OUTPUT_TARGET_NAME>``, which contains the ``<BASE_TARGET>`` application with tile ``<TILE_NUM_TO_MERGE>`` replaced with
 the respective tile from ``<OTHER_TARGET>``.
@@ -25,13 +25,13 @@ the respective tile from ``<OTHER_TARGET>``.
 create_run_target
 -----------------
 
-create_run_target creates a run target for ``<TARGET_NAME>``.  
+create_run_target creates a run target for ``<TARGET_NAME>`` with xscope output.  
 
 .. code-block:: cmake
 
   create_run_target(<TARGET_NAME>)
 
-create_run_target allows you to run a binary with the following command instead of invoking ``xrun``.
+create_run_target allows you to run a binary with the following command instead of invoking ``xrun --xscope``.
 
 .. code-block:: console
 
@@ -47,27 +47,11 @@ create_debug_target creates a debug target for ``<TARGET_NAME>``.
 
   create_debug_target(<TARGET_NAME>)
 
-create_debug_target allows you to debug a binary with the following command instead of invoking ``xgdb``.
+create_debug_target allows you to debug a binary with the following command instead of invoking ``xgdb``.  This target implicitly sets up the xscope debug interface as well.
 
 .. code-block:: console
 
     make debug_my_target
-
-
-create_flash_app_target
------------------------
-
-create_flash_app_target creates a debug target for ``<TARGET_NAME>``.  
-
-.. code-block:: cmake
-
-  create_flash_app_target(<TARGET_NAME>)
-
-create_flash_app_target allows you to flash binary with the following command instead of invoking ``xflash``.
-
-.. code-block:: console
-
-    make flash_my_target
 
 
 create_filesystem_target
@@ -89,6 +73,23 @@ Optional argument ``<OPTIONAL_DEPENDS_TARGETS>`` can be used to specify other de
 .. code-block:: cmake
 
   create_data_partition_directory(<TARGET_NAME> <FILES_TO_COPY> <OPTIONAL_DEPENDS_TARGETS>)
+
+
+
+create_flash_app_target
+-----------------------
+
+create_flash_app_target creates a debug target for ``<TARGET_NAME>`` with optional arguments ``<BOOT_PARTITION_SIZE>``, ``<DATA_PARTITION_CONTENTS>``, and ``<OPTIONAL_DEPENDS_TARGETS>``. ``<BOOT_PARTITION_SIZE>`` specificies the size in bytes of the boot partition. ``<DATA_PARTITION_CONTENTS>`` specifies the optional binary contents of the data partition. ``<OPTIONAL_DEPENDS_TARGETS>`` specifies CMake targets that should be dependencies of the resulting create_flash_app_target target. This may be used to create recipes that generate the data partition contents.
+
+.. code-block:: cmake
+
+  create_flash_app_target(<TARGET_NAME> <BOOT_PARTITION_SIZE> <DATA_PARTITION_CONTENTS> <OPTIONAL_DEPENDS_TARGETS>)
+
+create_flash_app_target allows you to flash a factory image binary and optional data partition with the following command instead of invoking ``xflash``.
+
+.. code-block:: console
+
+    make flash_app_my_target
 
 
 Less Common Macros
@@ -130,7 +131,7 @@ create_run_xscope_to_file_target allows you to run a binary with the following c
 create_upgrade_img_target
 -------------------------
 
-create_upgrade_img_target creates an xflash image upgrade target for a provided binary
+create_upgrade_img_target creates an xflash image upgrade target for a provided binary for use in DFU
 
 .. code-block:: cmake
 
