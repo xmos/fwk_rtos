@@ -1,3 +1,5 @@
+.. include:: ../substitutions.rst
+
 .. _build_system_targets:
 
 #######
@@ -68,7 +70,7 @@ If you prefer, you can specify individual peripheral libraries.
     * - Target
       - Description
     * - lib_i2c
-      - I2C library
+      - |I2C| library
     * - lib_spi
       - SPI library
     * - lib_uart
@@ -78,7 +80,7 @@ If you prefer, you can specify individual peripheral libraries.
     * - lib_xud
       - XUD USB library
     * - lib_i2s
-      - I2S library
+      - |I2S| library
     * - lib_mic_array
       - Microphone Array library
 
@@ -132,9 +134,9 @@ If you prefer, you can specify individual RTOS driver libraries.
     * - rtos::drivers::uart
       - UART RTOS driver library
     * - rtos::drivers::i2c
-      - I2C RTOS driver library
+      - |I2C| RTOS driver library
     * - rtos::drivers::i2s
-      - I2S RTOS driver library
+      - |I2S| RTOS driver library
     * - rtos::drivers::spi
       - SPI RTOS driver library
     * - rtos::drivers::qspi_io

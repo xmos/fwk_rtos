@@ -6,7 +6,7 @@ Example CMakeLists.txt
 
 CMake is powerful tool that provides the developer a great deal of flexibility in how their projects are built.  As a result, ``CMakeLists.txt`` files can accomplish the same function in multiple ways.
 
-Below is an example ``CMakeLists.txt`` that shows both required and conventional commands for a basic FreeRTOS project.  This example can be used as a starting point for your application.  Or, you may choose to copy a ``CMakeLists.txt`` from an XMOS reference design or other example application that closely resembles your application.
+Below is an example ``CMakeLists.txt`` that shows both required and conventional commands for a basic FreeRTOS project.  This example can be used as a starting point for your application, but it is recommended to copy a ``CMakeLists.txt`` from an XMOS reference design or other example application that closely resembles your application.
 
 .. code-block:: cmake
 
@@ -35,8 +35,7 @@ Below is an example ``CMakeLists.txt`` that shows both required and conventional
 
    ## Set your link libraries
    set(APP_LINK_LIBRARIES
-      core::general
-      rtos::freertos
+      rtos::bsp_config::xcore_ai_explorer
    )
 
    ## Set your link options
