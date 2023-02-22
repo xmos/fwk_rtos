@@ -28,13 +28,29 @@ This document assumes familiarity with real time operating systems in general. F
 SMP FreeRTOS
 ************
 
-To support this new programming model for xcore, XMOS has extended the popular and free FreeRTOS kernel to support SMP (now upstreamed to Amazon Web Services). This allows for the kernel's scheduler to be started on any number of available xcore logical cores per tile, leaving the remaining free to support other program elements that combine to create complete systems. Once the scheduler is started, FreeRTOS threads are placed on cores dynamically at runtime, rather than statically at compile time. All the usual FreeRTOS rules for thread scheduling are followed, except that rather than only running the single highest priority thread that is ready at any given time, multiple threads may run simultaneously. The threads chosen to run are always the highest priority threads that are ready. When there are more threads of a single priority that are ready to run than the number of cores available, they are scheduled in a round robin fashion. Dynamic scheduling allows FreeRTOS to optimize physical core usage based on priority and availability at runtime, opening up the potential for using tile wide MIPs more efficiently than what could be manually specified in a static compile time setting.
+To support this new programming model for xcore, XMOS has extended the popular and free FreeRTOS kernel to support SMP. This allows for the kernel's scheduler to be started on any number of available xcore logical cores per tile, leaving the remaining free to support other program elements that combine to create complete systems. Once the scheduler is started, FreeRTOS threads are placed on cores dynamically at runtime, rather than statically at compile time. All the usual FreeRTOS rules for thread scheduling are followed, except that rather than only running the single highest priority thread that is ready at any given time, multiple threads may run simultaneously. The threads chosen to run are always the highest priority threads that are ready. When there are more threads of a single priority that are ready to run than the number of cores available, they are scheduled in a round robin fashion. Dynamic scheduling allows FreeRTOS to optimize physical core usage based on priority and availability at runtime, opening up the potential for using tile wide MIPs more efficiently than what could be manually specified in a static compile time setting.
 
 One of xcore’s primary strengths is its guarantee of deterministic behavior and timing. RTOS threads can also benefit from this determinism provided by the xcore architecture. An RTOS thread with interrupts disabled and a high enough priority behaves just as a bare-metal thread. An SMP RTOS kernel does not need to preempt a high priority thread because it has many other cores to utilize to schedule lower priority threads. Using an SMP RTOS allows developers to concentrate on specific requirements of their application without worrying about what affect they might have on non-preemptable thread response times. Furthermore, modification of the program in the future is much easier because the developer does not have to worry about affecting existing responsiveness with changes in unrelated areas. The non-preemptable threads will not be effected by adding lower-priority functionality.
 
-Another xcore strength is it's performance. xcore.ai provides lightning fast general purpose compute, AI acceleration, powerful DSP and instantaneous I/O control. RTOS threads can also benefit from the performance provided by the xcore architecture, allowing an application developer to dynamically shift performance usage from one application feature to another. If more general purpose compute is needed, simply make those tasks higher priority, if more AI acceleration suddenly is required, simply make those tasks higher priority. The same is true for DSP and I/O control.
+Another xcore strength is it's performance. xcore.ai provides lightning fast general purpose compute, AI acceleration, powerful DSP and instantaneous I/O control. RTOS threads can also benefit from the performance provided by the xcore architecture, allowing an application developer to dynamically shift performance usage from one application feature to another.
 
-See `Symmetric Multiprocessing (SMP) with FreeRTOS <https://freertos.org/symmetric-multiprocessing-introduction.html>`_ for information on SMP support in the FreeRTOS kernel and SMP specific considerations.
+The standard FreeRTOS kernel supports `dynamic task priorities <https://freertos.org/a00112.html>`_, while the FreeRTOS-SMP kernel adds the following additional APIs:  
+
+- vTaskCoreAffinitySet
+- vTaskCoreAffinityGet
+- vTaskPreemptionDisable
+- vTaskPreemptionEnable
+
+Together, these API enable a developer to take full advantage of xcore's performance.
+
+Some additional configuration options are also available to the FreeRTOS-SMP Kernel:
+
+- configNUM_CORES
+- configRUN_MULTIPLE_PRIORITIES
+- configUSE_CORE_AFFINITY
+- configUSE_TASK_PREEMPTION_DISABLE
+
+See `Symmetric Multiprocessing (SMP) with FreeRTOS <https://freertos.org/symmetric-multiprocessing-introduction.html>`_ for additional information on SMP support in the FreeRTOS kernel and SMP specific considerations.
 
 ****************
 AMP SMP FreeRTOS
