@@ -1,0 +1,38 @@
+[submodule "mbedtls"]
+	path = modules/sw_services/tls_support/thirdparty/mbedtls
+	url = git@github.com:ARMmbed/mbedtls.git
+	shallow = true
+[submodule "paho.mqtt.embedded-c"]
+	path = modules/sw_services/mqtt/thirdparty/paho.mqtt.embedded-c
+	url = git@github.com:eclipse/paho.mqtt.embedded-c.git
+	shallow = true
+[submodule "jsmn"]
+	path = modules/sw_services/json/thirdparty/jsmn
+	url = git@github.com:zserge/jsmn.git
+	shallow = true
+[submodule "wfx-fullMAC-driver"]
+	path = modules/drivers/wifi/sl_wf200/thirdparty/wfx-fullMAC-driver
+	url = git@github.com:SiliconLabs/wfx-fullMAC-driver.git
+[submodule "FreeRTOS-SMP-Kernel"]
+	path = modules/FreeRTOS/FreeRTOS-SMP-Kernel
+	url = git@github.com:FreeRTOS/FreeRTOS-Kernel.git
+	branch = smp
+[submodule "FreeRTOS-Plus-TCP"]
+	path = modules/FreeRTOS/FreeRTOS-Plus-TCP
+	url = git@github.com:xmos/FreeRTOS-Plus-TCP.git
+	branch = main
+[submodule "wfx-firmware"]
+	path = modules/drivers/wifi/sl_wf200/thirdparty/wfx-firmware
+	url = git@github.com:SiliconLabs/wfx-firmware.git
+[submodule "coreHTTP"]
+	path = modules/sw_services/http/thirdparty/coreHTTP
+	url = git@github.com:FreeRTOS/coreHTTP.git
+[submodule "tinyusb_src"]
+	path = modules/sw_services/usb/thirdparty/tinyusb_src
+	url = git@github.com:hathach/tinyusb_src.git
+[submodule "xmos_cmake_toolchain"]
+	path = xmos_cmake_toolchain
+	url = git@github.com:xmos/xmos_cmake_toolchain.git
+[submodule "tracealyzer"]
+	path = modules/drivers/trace/FreeRTOS/tracealyzer
+	url = git@github.com:percepio/TraceRecorderSource.git

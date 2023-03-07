@@ -1,0 +1,13 @@
+
+add_subdirectory(concurrency_support)
+add_subdirectory(device_control)
+add_subdirectory(dhcpd)
+add_subdirectory(fatfs)
+add_subdirectory(generic_pipeline)
+add_subdirectory(http)
+add_subdirectory(json)
+add_subdirectory(mqtt)
+add_subdirectory(sntpd)
+add_subdirectory(tls_support)
+add_subdirectory(usb)
+add_subdirectory(wifi_manager)
