@@ -112,7 +112,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
     return CONTROL_DATA_LENGTH_ERROR;
 
   control_usb_fill_header(&windex, &wvalue, &wlength,
-    resid, CONTROL_CMD_SET_WRITE(cmd), payload_len);
+    resid, CONTROL_CMD_SET_WRITE(cmd), (unsigned int)payload_len);
 
   DBG(printf("%u: send write command: 0x%04x 0x%04x 0x%04x ",
     num_commands, windex, wvalue, wlength));
@@ -168,7 +168,7 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
     return CONTROL_DATA_LENGTH_ERROR;
 
   control_usb_fill_header(&windex, &wvalue, &wlength,
-    resid, CONTROL_CMD_SET_READ(cmd), payload_len);
+    resid, CONTROL_CMD_SET_READ(cmd), (unsigned int)payload_len);
 
   DBG(printf("%u: send read command: 0x%04x 0x%04x 0x%04x\n",
     num_commands, windex, wvalue, wlength));
