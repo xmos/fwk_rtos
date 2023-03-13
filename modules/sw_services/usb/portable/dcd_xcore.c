@@ -48,15 +48,20 @@ static union setup_packet_struct {
     uint8_t pad[CFG_TUD_ENDPOINT0_SIZE]; /* In case an OUT data packet comes in instead of a SETUP packet */
 } setup_packet;
 
-static bool waiting_for_setup;
+static bool waiting_for_setup = false;
 
 static void prepare_setup(bool in_isr)
 {
     XUD_Result_t res;
+    const uint32_t ep0_out_addr = 0x00;
+    bool is_setup = true;
 
-//  rtos_printf("preparing for setup packet\n");
-    waiting_for_setup = true;
-    res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
+    waiting_for_setup = is_setup;
+    res = rtos_usb_endpoint_transfer_start(&usb_ctx,
+                                           ep0_out_addr,
+                                           (uint8_t *)&setup_packet,
+                                           sizeof(setup_packet),
+                                           is_setup);
 
     xassert(res == XUD_RES_OKAY);
 
@@ -165,7 +170,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
     }
     case rtos_usb_setup_packet:
         rtos_printf("Setup packet of %d bytes received on %02x\n", xfer_len, ep_address);
-        waiting_for_setup = 0;
+        waiting_for_setup = false;
         dcd_event_setup_received(0, (uint8_t *) &setup_packet, true);
         break;
     case rtos_usb_sof_packet:
@@ -429,6 +434,7 @@ bool dcd_edpt_xfer(uint8_t rhport,
 {
     XUD_Result_t res;
     static uint32_t dummy_zlp_word;
+    uint8_t is_setup = 0;
 
     rtos_printf("xfer of %d bytes requested on %02x\n", total_bytes, ep_addr);
 
@@ -465,7 +471,7 @@ bool dcd_edpt_xfer(uint8_t rhport,
         }
     }
 
-    res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
+    res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes, is_setup);
     if (res == XUD_RES_OKAY) {
         return true;
     }
