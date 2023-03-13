@@ -28,6 +28,7 @@
 
 #include <stdint.h>
 #include "app_conf.h"
+#include "rtos_printf.h"
 
 //--------------------------------------------------------------------
 // COMMON CONFIGURATION

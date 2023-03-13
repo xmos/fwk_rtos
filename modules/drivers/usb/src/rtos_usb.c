@@ -3,10 +3,13 @@
 
 #define DEBUG_UNIT RTOS_USB
 
+#include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdbool.h>
 #include <xcore/triggerable.h>
 #include "rtos_interrupt.h"
+#include "rtos_printf.h"
 #include "rtos_usb.h"
 #include "xud.h"
 #include "xud_xfer_data.h"

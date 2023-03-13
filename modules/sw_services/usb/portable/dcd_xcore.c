@@ -4,7 +4,10 @@
 #define DEBUG_UNIT TUSB_DCD
 #define DEBUG_PRINT_ENABLE_TUSB_DCD 0
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <xcore/hwtimer.h>
+#include "rtos_printf.h"
 
 #ifndef LIBXCORE_HWTIMER_HAS_REFERENCE_TIME
 #error This library requires reference time
