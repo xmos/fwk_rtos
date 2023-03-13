@@ -225,18 +225,18 @@ XUD_Result_t rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
 XUD_BusSpeed_t rtos_usb_endpoint_reset(rtos_usb_t *ctx,
                                        uint32_t endpoint_addr)
 {
-    uint8_t const epnum = endpoint_num(endpoint_addr);
+    uint8_t ep_num = endpoint_num(endpoint_addr);
     uint8_t dir = endpoint_dir(endpoint_addr);
 
-    XUD_ep one = ctx->ep[epnum][dir];
+    XUD_ep one = ctx->ep[ep_num][dir];
     XUD_ep *two = NULL;
 
     xassert(ctx->reset_received);
 
     dir = dir ? 0 : 1;
 
-    if (ctx->ep[epnum][dir] != 0) {
-        two = &ctx->ep[epnum][dir];
+    if (ctx->ep[ep_num][dir] != 0) {
+        two = &ctx->ep[ep_num][dir];
     }
 
     if (one == 0) {
@@ -347,7 +347,7 @@ void rtos_usb_init(
             RTOS_THREAD_STACK_SIZE(usb_xud_thread),
             RTOS_OSAL_HIGHEST_PRIORITY);
 
-    /* Ensure the I2C thread is never preempted */
+    /* Ensure the USB thread is never preempted */
     rtos_osal_thread_preemption_disable(&ctx->hil_thread);
     /* And ensure it only runs on one of the specified cores */
     rtos_osal_thread_core_exclusion_set(&ctx->hil_thread, ~io_core_mask);
