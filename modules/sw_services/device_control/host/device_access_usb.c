@@ -135,7 +135,27 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
     return CONTROL_ERROR;
   }
 
-  return CONTROL_SUCCESS;
+  // Read back write command status
+  uint8_t status;
+  control_usb_fill_header(&windex, &wvalue, &wlength,
+    resid, CONTROL_CMD_SET_WRITE(cmd), 1);
+
+#ifdef _WIN32
+  ret = usb_control_msg(devh,
+    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+    0, wvalue, windex, (char*)payload, wlength, sync_timeout_ms);
+#else
+  ret = libusb_control_transfer(devh,
+    LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
+    0, wvalue, windex, &status, wlength, sync_timeout_ms);
+#endif
+
+  if (ret != (int)1) {
+    debug_libusb_error(ret);
+    return CONTROL_ERROR;
+  }
+
+  return status;
 }
 
 control_ret_t
