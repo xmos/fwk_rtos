@@ -4,7 +4,6 @@ tools
 projects
 test
 xmos_cmake_toolchain
-modules/rtos/FreeRTOS
-
+modules/FreeRTOS
 build
 build_*
