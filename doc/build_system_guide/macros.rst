@@ -6,6 +6,12 @@ Macros
 
 Several CMake macros and functions are provide to make building for XCORE easier.  These macros are located in the file `tools/cmake_utils/xmos_macros.cmake <https://github.com/xmos/fwk_rtos/blob/develop/tools/cmake_utils/xmos_macros.cmake>`_ and are documented below.  
 
+To see what XTC Tools commands the macros and functions are running, add ``VERBOSE=1`` to your build command line.  For example:
+
+.. code-block:: console
+
+    make run_my_target VERBOSE=1
+
 Common Macros
 =============
 
