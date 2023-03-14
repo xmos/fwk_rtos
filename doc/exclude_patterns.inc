@@ -5,5 +5,6 @@ projects
 test
 xmos_cmake_toolchain
 modules/FreeRTOS
+modules/sw_services
 build
 build_*
