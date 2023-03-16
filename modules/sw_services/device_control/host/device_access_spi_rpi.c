@@ -13,8 +13,21 @@
 #define DBG(x)
 #define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
+// Number of usec to delay between spi transactions
+static long intertransaction_delay;
+
+// Sleep for intertransaction_delay nanoseconds. Yields to the OS so expect minimum delay to be hundreds
+// of microseconds at least.
+static void apply_intertransaction_delay() {
+	if(0 < intertransaction_delay) {
+		struct timespec req = {0, intertransaction_delay};
+		struct timespec rem;
+		while(nanosleep(&req, &rem));
+	}
+}
+
 control_ret_t
-control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider)
+control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long delay)
 {
   if(!bcm2835_init() ||
      !bcm2835_spi_begin()) {
@@ -22,6 +35,7 @@ control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider)
     return CONTROL_ERROR;
   }
 
+  intertransaction_delay = delay;
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(spi_mode);
   bcm2835_spi_setClockDivider(clock_divider);
@@ -56,6 +70,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
       data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
 #endif
       bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
+      apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
   do
@@ -64,6 +79,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
       memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
       unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
+      apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
   //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
   // data_sent_received[0] contains write command status so return it.
@@ -93,6 +109,7 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
       data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
 #endif
       bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
+      apply_intertransaction_delay();
 
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
   
@@ -102,6 +119,7 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
       unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
 
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
+      apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
   //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
