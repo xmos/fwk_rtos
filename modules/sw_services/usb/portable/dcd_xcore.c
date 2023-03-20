@@ -2,7 +2,10 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT TUSB_DCD
+
+#ifndef DEBUG_PRINT_ENABLE_TUSB_DCD
 #define DEBUG_PRINT_ENABLE_TUSB_DCD 0
+#endif
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -129,7 +132,6 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         bool cb_result;
 
         if (res == XUD_RES_OKAY) {
-            rtos_printf("xfer of %d bytes complete on %02x\n", xfer_len, ep_address);
             tu_result = XFER_RESULT_SUCCESS;
 
             if (ep_address == 0x00) {
@@ -145,6 +147,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                      * with lib_xud. This is under investigation.
                      */
                     prepare_setup(true);
+                    rtos_printf("xfer ZLP on 00 complete\n");
                 } else if (waiting_for_setup) {
                     /*
                      * We are waiting for a setup packet but OUT data on EP0 came in
@@ -152,9 +155,11 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                      * case just drop the data and prepare for the next setup packet.
                      */
                     prepare_setup(true);
-                    rtos_printf("Dropped unhandled OUT packet on EP0\n");
+                    rtos_printf("xfer error - unhandled OUT packet on EP0 (bytes: %d)\n", xfer_len);
                     return;
                 }
+            } else {
+                rtos_printf("xfer %d bytes on %02x complete\n", xfer_len, ep_address);
             }
         } else {
             rtos_printf("xfer on %02x failed with status %d\n", ep_address, res);
@@ -437,19 +442,18 @@ bool dcd_edpt_xfer(uint8_t rhport,
 {
     XUD_Result_t res;
     static uint32_t dummy_zlp_word;
+    uint8_t is_zlp = (total_bytes == 0) && (buffer == NULL);
     uint8_t is_setup = 0;
 
-    rtos_printf("xfer of %d bytes requested on %02x\n", total_bytes, ep_addr);
-
-    if (buffer == NULL) {
-        if (total_bytes == 0) {
-            /*
-             * lib_xud crashes if a NULL buffer is provided when
-             * transferring a zero length buffer.
-             */
-            rtos_printf("transferring ZLP on %02x\n", ep_addr);
-            buffer = (uint8_t *) &dummy_zlp_word;
-        }
+    if (is_zlp) {
+        /*
+        * lib_xud crashes if a NULL buffer is provided when
+        * transferring a zero length buffer.
+        */
+        rtos_printf("xfer ZLP on %02x\n", ep_addr);
+        buffer = (uint8_t *) &dummy_zlp_word;
+    } else {
+        rtos_printf("xfer %d bytes on %02x\n", total_bytes, ep_addr);
     }
 
     xassert(buffer != NULL);
@@ -501,7 +505,7 @@ void dcd_edpt_stall (uint8_t rhport, uint8_t ep_addr)
 {
     (void) rhport;
 
-    rtos_printf("STALLING EP %02x\n", ep_addr);
+    rtos_printf("STALL EP %02x: Set\n", ep_addr);
     rtos_usb_endpoint_stall_set(&usb_ctx, ep_addr);
 
     if (ep_addr == 0x00 && !waiting_for_setup) {
@@ -514,5 +518,6 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
 {
     (void) rhport;
 
+    rtos_printf("STALL EP %02x: Clear\n", ep_addr);
     rtos_usb_endpoint_stall_clear(&usb_ctx, ep_addr);
 }
