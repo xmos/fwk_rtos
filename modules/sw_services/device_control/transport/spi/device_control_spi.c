@@ -42,8 +42,8 @@ void device_control_spi_xfer_done_cb(rtos_spi_slave_t *ctx,
     uint8_t *rx_buf, *tx_buf;
     size_t rx_len, tx_len;
 
-    spi_slave_xfer_complete(ctx, &rx_buf, &rx_len, &tx_buf, &tx_len, 0);
-    
+    spi_slave_xfer_complete(ctx, (void **)&rx_buf, &rx_len, (void **)&tx_buf, &tx_len, 0);
+
     if(rx_buf == &spi_xfer_tx_default_buf[0])
     {
         // xfer completed in default buffer. Ignore
