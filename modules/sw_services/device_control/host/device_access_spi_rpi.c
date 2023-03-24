@@ -13,7 +13,7 @@
 #define DBG(x)
 #define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
-// Number of usec to delay between spi transactions
+// Number of nsec to delay between spi transactions
 static long intertransaction_delay;
 
 // Sleep for intertransaction_delay nanoseconds. Yields to the OS so expect minimum delay to be hundreds
@@ -27,7 +27,7 @@ static void apply_intertransaction_delay() {
 }
 
 control_ret_t
-control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long delay)
+control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long delay_ns)
 {
   if(!bcm2835_init() ||
      !bcm2835_spi_begin()) {
@@ -35,7 +35,7 @@ control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, l
     return CONTROL_ERROR;
   }
 
-  intertransaction_delay = delay;
+  intertransaction_delay = delay_ns;
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(spi_mode);
   bcm2835_spi_setClockDivider(clock_divider);

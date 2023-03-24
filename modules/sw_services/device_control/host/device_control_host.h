@@ -134,7 +134,7 @@ control_ret_t control_cleanup_usb(void);
  *
  *  \returns                    Whether the initialization was successful or not
  */
-control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long intertransation_delay);
+control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long intertransation_delay_ns);
 #else
 /** Initialize the SPI host (master) interface
  *
