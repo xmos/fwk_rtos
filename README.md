@@ -41,8 +41,6 @@ Supported RTOS stacks and software services include:
 - MQTT
 - WiFi
 
-This repository can be used standalone.  However, it is meant to be used as part of the [XCORE SDK](https://github.com/xmos/xcore_sdk).
-
 ## Build Status
 
 Build Type       |    Status     |
@@ -57,7 +55,7 @@ Some dependent components are included as git submodules. These can be obtained 
 
 ## Testing
 
-No tests exist in this repository yet.  Several tests for the RTOS framework modules exist in the [XCORE SDK tests](https://github.com/xmos/xcore_sdk/tree/develop/test).  
+Several tests for the RTOS framework modules exist in the [test folder](https://github.com/xmos/fwk_rtos/tree/develop/test).  
 
 ## Documentation
 
@@ -67,5 +65,5 @@ Information on building the documentation can be found in the docs [README](http
 
 This Software is subject to the terms of the [XMOS Public Licence: Version 1](https://github.com/xmos/fwk_rtos/blob/develop/LICENSE.rst)
 
-Third party copyrighted code is specified in the XCORE SDK [Copyrights and Licenses](https://github.com/xmos/xcore_sdk/blob/develop/doc/copyright.rst).  
+Third party copyrighted code is specified in the fwk_rtos [Copyrights and Licenses](https://github.com/xmos/fwk_rtos/blob/develop/doc/copyright.rst).  
 

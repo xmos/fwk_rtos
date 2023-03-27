@@ -1,7 +1,7 @@
 # This file provides overrides to the Doxyfile configuration
 
-PROJECT_NAME = "RTOS Framework"
-PROJECT_BRIEF = "RTOS Framework"
+PROJECT_NAME = "XCORE RTOS Framework"
+PROJECT_BRIEF = "XCORE RTOS Framework"
 
 PREDEFINED = __DOXYGEN__=1 
 PREDEFINED += DWORD_ALIGNED=

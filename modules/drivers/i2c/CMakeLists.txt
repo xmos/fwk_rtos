@@ -14,7 +14,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_link_libraries(framework_rtos_drivers_i2c
         INTERFACE
-            io::i2c
+            lib_i2c
             rtos::osal
     )
 
