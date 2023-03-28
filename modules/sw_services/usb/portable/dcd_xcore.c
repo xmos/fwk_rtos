@@ -68,6 +68,22 @@ static tusb_speed_t xud_to_tu_speed(XUD_BusSpeed_t xud_speed)
     }
 }
 
+static void prepare_setup(bool in_isr)
+{
+    XUD_Result_t res = 0;
+
+//  rtos_printf("preparing for setup packet\n");
+    waiting_for_setup = true;
+#if RUN_EP0_VIA_PROXY
+    chan_out_byte(usb_ctx.c_ep0_proxy, e_prepare_setup);
+    res = chan_in_byte(usb_ctx.c_ep0_proxy);
+#else
+    res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
+#endif
+
+    xassert(res == XUD_RES_OKAY);
+}
+
 static void reset_ep(uint8_t ep_addr, bool in_isr)
 {
     XUD_BusSpeed_t xud_speed;
@@ -83,22 +99,6 @@ static void reset_ep(uint8_t ep_addr, bool in_isr)
 
     tu_speed = xud_to_tu_speed(xud_speed);
     dcd_event_bus_reset(0, tu_speed, in_isr);
-}
-
-static void prepare_setup(bool in_isr)
-{
-    XUD_Result_t res = 0;
-
-//  rtos_printf("preparing for setup packet\n");
-    waiting_for_setup = true;
-#if RUN_EP0_VIA_PROXY
-    chan_out_byte(usb_ctx.c_ep0_proxy, e_prepare_setup);
-    res = chan_in_byte(usb_ctx.c_ep0_proxy);
-#else
-    res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
-#endif
-
-    xassert(res == XUD_RES_OKAY);
 }
 
 RTOS_USB_ISR_CALLBACK_ATTR
