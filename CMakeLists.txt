@@ -17,8 +17,8 @@ option(FRAMEWORK_RTOS_TESTS     "Enable framework_core tests"  OFF)
 ## Setup a framework root path
 set(FRAMEWORK_RTOS_ROOT_PATH ${PROJECT_SOURCE_DIR} CACHE STRING "Root folder of framework_rtos in this cmake project tree")
 
-## Add top level project targets
-if(PROJECT_IS_TOP_LEVEL)
+## These must be included before adding the modules subdirectory
+if(FRAMEWORK_RTOS_TESTS)
     ## Import some helpful macros
     include(tools/cmake_utils/xmos_macros.cmake)
 
