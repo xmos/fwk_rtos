@@ -41,7 +41,11 @@ TU_ATTR_WEAK bool tud_xcore_data_cb(uint32_t cur_time, uint32_t ep_num, uint32_t
 
 #include "rtos_usb.h"
 
+#if RUN_EP0_VIA_PROXY
+rtos_usb_t usb_ctx;
+#else
 static rtos_usb_t usb_ctx;
+#endif
 
 static union setup_packet_struct {
     tusb_control_request_t req;
@@ -49,25 +53,6 @@ static union setup_packet_struct {
 } setup_packet;
 
 static bool waiting_for_setup;
-
-static void prepare_setup(bool in_isr)
-{
-    XUD_Result_t res;
-
-//  rtos_printf("preparing for setup packet\n");
-    waiting_for_setup = true;
-    res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
-
-    xassert(res == XUD_RES_OKAY);
-
-    /*
-     * Calling reset_ep() here would result in recursion.
-     * TODO: Is there a way to handle this case?
-     */
-//    if (res == XUD_RES_RST) {
-//        reset_ep(0x00, in_isr);
-//    }
-}
 
 static tusb_speed_t xud_to_tu_speed(XUD_BusSpeed_t xud_speed)
 {
@@ -88,12 +73,32 @@ static void reset_ep(uint8_t ep_addr, bool in_isr)
     XUD_BusSpeed_t xud_speed;
     tusb_speed_t tu_speed;
 
+#if RUN_EP0_VIA_PROXY
+    xud_speed = offtile_rtos_usb_endpoint_reset(usb_ctx.c_ep0_proxy, ep_addr); // Proxy calls prepare_setup automatically after resetting the EP.
+    waiting_for_setup = true;
+#else
     xud_speed = rtos_usb_endpoint_reset(&usb_ctx, ep_addr);
-    tu_speed = xud_to_tu_speed(xud_speed);
-
     prepare_setup(in_isr);
+#endif
 
+    tu_speed = xud_to_tu_speed(xud_speed);
     dcd_event_bus_reset(0, tu_speed, in_isr);
+}
+
+static void prepare_setup(bool in_isr)
+{
+    XUD_Result_t res = 0;
+
+//  rtos_printf("preparing for setup packet\n");
+    waiting_for_setup = true;
+#if RUN_EP0_VIA_PROXY
+    chan_out_byte(usb_ctx.c_ep0_proxy, e_prepare_setup);
+    res = chan_in_byte(usb_ctx.c_ep0_proxy);
+#else
+    res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
+#endif
+
+    xassert(res == XUD_RES_OKAY);
 }
 
 RTOS_USB_ISR_CALLBACK_ATTR
@@ -112,6 +117,13 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         reset_ep(ep_address, true);
         return;
     }
+
+#if RUN_EP0_VIA_PROXY // Setup packet needs to be fetched from the EP0 proxy tile
+    if(packet_type == rtos_usb_setup_packet)
+    {
+        chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)&setup_packet, sizeof(tusb_control_request_t));
+    }
+#endif
 
     // rtos_printf("packet rx'd, timestamp %d\n", cur_time);
 
@@ -386,7 +398,11 @@ void dcd_edpt0_status_complete(uint8_t rhport,
 
         const unsigned dev_addr = request->wValue;
         rtos_printf("Setting device address to %d now\n", dev_addr);
+#if (!RUN_EP0_VIA_PROXY)
         rtos_usb_device_address_set(&usb_ctx, dev_addr);
+#else
+        offtile_rtos_usb_device_address_set(&usb_ctx, dev_addr);
+#endif
     }
 }
 
@@ -395,7 +411,6 @@ bool dcd_edpt_open(uint8_t rhport,
                    tusb_desc_endpoint_t const *ep_desc)
 {
     (void) rhport;
-
     rtos_usb_endpoint_state_reset(&usb_ctx, ep_desc->bEndpointAddress);
 
     return true;
@@ -464,8 +479,11 @@ bool dcd_edpt_xfer(uint8_t rhport,
             prepare_setup(false);
         }
     }
-
+#if (!RUN_EP0_VIA_PROXY)
     res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
+#else
+    res = offtile_rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
+#endif
     if (res == XUD_RES_OKAY) {
         return true;
     }
@@ -473,7 +491,6 @@ bool dcd_edpt_xfer(uint8_t rhport,
     if (res == XUD_RES_RST) {
         reset_ep(ep_addr, false);
     }
-
     return false;
 }
 

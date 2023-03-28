@@ -16,6 +16,10 @@ void usb_manager_start(unsigned priority);
  * Initializes the TinyUSB stack. This should be called
  * prior to starting the RTOS scheduler.
  */
+#if RUN_EP0_VIA_PROXY
+void usb_manager_init(chanend_t c_ep0_out_proxy, chanend_t c_ep0_proxy_xfer_complete);
+#else
 void usb_manager_init(void);
+#endif /* RUN_EP0_VIA_PROXY */
 
 #endif /* USB_SUPPORT_H_ */

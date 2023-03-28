@@ -45,10 +45,12 @@ static void flash_start(void)
 
 static void audio_codec_start(void)
 {
+#if (!RUN_EP0_VIA_PROXY) // Disabled till I fix rtos_gpio_port_enable() hanging due to deadlock caused during USB start
 #if ON_TILE(I2C_TILE_NO)
     if (aic3204_init() != 0) {
         rtos_printf("DAC initialization failed\n");
     }
+#endif
 #endif
 }
 

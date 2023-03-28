@@ -42,7 +42,18 @@ void usb_manager_start(unsigned priority)
                 NULL);
 }
 
+#if RUN_EP0_VIA_PROXY
+#include "rtos_usb.h"
+extern rtos_usb_t usb_ctx;
+void usb_manager_init(chanend_t c_ep0_proxy, chanend_t c_ep0_proxy_xfer_complete)
+{
+    tusb_init();
+    usb_ctx.c_ep0_proxy = c_ep0_proxy;
+    usb_ctx.c_ep0_proxy_xfer_complete = c_ep0_proxy_xfer_complete;
+}
+#else /* RUN_EP0_VIA_PROXY */
 void usb_manager_init(void)
 {
     tusb_init();
 }
+#endif /* RUN_EP0_VIA_PROXY */

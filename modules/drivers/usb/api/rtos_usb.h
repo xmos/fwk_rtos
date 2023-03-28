@@ -45,6 +45,7 @@ typedef enum {
     rtos_usb_sof_packet
 } rtos_usb_packet_type_t;
 
+
 /**
  * Typedef to the RTOS USB driver instance struct.
  */
@@ -114,6 +115,10 @@ struct rtos_usb_struct {
     RTOS_USB_ISR_CALLBACK_ATTR rtos_usb_isr_cb_t isr_cb;
     void *isr_app_data;
     rtos_usb_ep_xfer_info_t ep_xfer_info[RTOS_USB_ENDPOINT_COUNT_MAX][2];
+#if RUN_EP0_VIA_PROXY
+    chanend_t c_ep0_proxy;
+    chanend_t c_ep0_proxy_xfer_complete;
+#endif
 };
 
 /**
@@ -207,8 +212,13 @@ static inline XUD_Result_t rtos_usb_device_address_set(rtos_usb_t *ctx,
 static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
+#if RUN_EP0_VIA_PROXY
+    printf("rtos_usb_endpoint_state_reset() called on the wrong tile!!\n");
+    xassert(0);
+#endif
     (void) ctx;
     XUD_ResetEpStateByAddr(endpoint_addr);
+    
 }
 
 /**
@@ -222,6 +232,10 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
 static inline void rtos_usb_endpoint_stall_set(rtos_usb_t *ctx,
                                                uint32_t endpoint_addr)
 {
+#if RUN_EP0_VIA_PROXY
+    printf("rtos_usb_endpoint_stall_set() called on the wrong tile!!\n");
+    xassert(0);
+#endif
     (void) ctx;
     XUD_SetStallByAddr(endpoint_addr);
 }
@@ -235,8 +249,22 @@ static inline void rtos_usb_endpoint_stall_set(rtos_usb_t *ctx,
 static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
+#if RUN_EP0_VIA_PROXY
+    printf("rtos_usb_endpoint_stall_clear() called on the wrong tile!!\n");
+    xassert(0);
+#endif
     (void) ctx;
     XUD_ClearStallByAddr(endpoint_addr);
+}
+
+static inline int endpoint_num(uint32_t endpoint_addr)
+{
+    return endpoint_addr & 0xF;
+}
+
+static inline int endpoint_dir(uint32_t endpoint_addr)
+{
+    return (endpoint_addr >> 7) & 1;
 }
 
 /**
@@ -367,5 +395,33 @@ void rtos_usb_simple_init(
 
 
 /**@}*/
+
+#if RUN_EP0_VIA_PROXY
+typedef enum {
+    e_reset_ep=36,
+    e_prepare_setup,
+    e_usb_endpoint_transfer_start,
+    e_xud_data_get_start,
+    e_usb_device_address_set
+}ep0_proxy_cmds_t;
+
+XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
+                                              uint32_t endpoint_addr,
+                                              uint8_t *buffer,
+                                              size_t len);
+
+static inline XUD_Result_t offtile_rtos_usb_device_address_set(rtos_usb_t *ctx,
+                                                       uint32_t addr)
+{
+    (void) ctx;
+    chan_out_byte(ctx->c_ep0_proxy, e_usb_device_address_set);
+    chan_out_word(ctx->c_ep0_proxy, addr);
+    XUD_Result_t res = chan_in_byte(ctx->c_ep0_proxy);
+    return res;
+}
+
+uint8_t offtile_rtos_usb_endpoint_reset(chanend_t chan_ep0_proxy, uint8_t ep_addr);
+
+#endif
 
 #endif /* RTOS_USB_H_ */
