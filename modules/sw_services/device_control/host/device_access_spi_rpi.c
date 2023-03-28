@@ -13,8 +13,21 @@
 #define DBG(x)
 #define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
+// Number of nsec to delay between spi transactions
+static long intertransaction_delay;
+
+// Sleep for intertransaction_delay nanoseconds. Yields to the OS so expect minimum delay to be hundreds
+// of microseconds at least.
+static void apply_intertransaction_delay() {
+	if(0 < intertransaction_delay) {
+		struct timespec req = {0, intertransaction_delay};
+		struct timespec rem;
+		while(nanosleep(&req, &rem));
+	}
+}
+
 control_ret_t
-control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider)
+control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long delay_ns)
 {
   if(!bcm2835_init() ||
      !bcm2835_spi_begin()) {
@@ -22,6 +35,7 @@ control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider)
     return CONTROL_ERROR;
   }
 
+  intertransaction_delay = delay_ns;
   bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
   bcm2835_spi_setDataMode(spi_mode);
   bcm2835_spi_setClockDivider(clock_divider);
@@ -38,15 +52,34 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
 
   do
   {
-      int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      int data_len;
+// When LOW_LEVEL_TESTING is defined, resid and cmd fields are ignored and payload is sent directly to the device.
+// This allows the user to write a stream of bytes directly into the device allowing for low level testing like testing the
+// error handling mechanism.
+#if LOW_LEVEL_TESTING
+      if((resid == 0) && (cmd == 0))
+      {
+        memcpy(data_sent_recieved, payload, payload_len);
+        data_len = payload_len;
+      }
+      else
+      {
+        data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      }
+#else
+      data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+#endif
       bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
+      apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+
   do
   {
       // get status
       memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
       unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
+      apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
   //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
   // data_sent_received[0] contains write command status so return it.
@@ -61,8 +94,22 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   //printf("control_read_command(): resid 0x%x, cmd_id 0x%x, payload_len 0x%x\n",resid, cmd, payload_len);
   do
   {
-      int data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      int data_len;
+#if LOW_LEVEL_TESTING
+      if((resid == 0) && (cmd == 0))
+      {
+        memcpy(data_sent_recieved, payload, payload_len);
+        data_len = payload_len;
+      }
+      else
+      {
+        data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+      }
+#else
+      data_len = control_build_spi_data(data_sent_recieved, resid, cmd, payload, payload_len);
+#endif
       bcm2835_spi_transfern((char *)data_sent_recieved, data_len);
+      apply_intertransaction_delay();
 
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
   
@@ -72,6 +119,7 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
       unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
 
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
+      apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
   //printf("data_sent_recieved[0] = 0x%x, 0x%x, 0x%x, 0x%x\n",data_sent_recieved[0], data_sent_recieved[1], data_sent_recieved[2], data_sent_recieved[3]);
