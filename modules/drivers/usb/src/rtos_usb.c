@@ -282,8 +282,11 @@ static void ep_cfg(rtos_usb_t *ctx,
     ctx->ep_xfer_info[ep_num][direction].ep_address = (direction << 7) | ep_num;
     ctx->ep_xfer_info[ep_num][direction].usb_ctx = ctx;
 #if (!RUN_EP0_VIA_PROXY)
-    triggerable_setup_interrupt_callback(ctx->c_ep[ep_num][direction], &ctx->ep_xfer_info[ep_num][direction], RTOS_INTERRUPT_CALLBACK(usb_isr));
-    triggerable_enable_trigger(ctx->c_ep[ep_num][direction]);
+    if(ep_num == 0) // We're currently investigating running only EP0 using TUSB
+    {
+        triggerable_setup_interrupt_callback(ctx->c_ep[ep_num][direction], &ctx->ep_xfer_info[ep_num][direction], RTOS_INTERRUPT_CALLBACK(usb_isr));
+        triggerable_enable_trigger(ctx->c_ep[ep_num][direction]);
+    }
 #endif
 }
 
