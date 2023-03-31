@@ -118,10 +118,22 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         return;
     }
 
+    // xud_data_get_check() ensures that if res is XUD_RES_RST, xfer_len and is_setup are both set to 0.
+    // So its safe to assume, that if there was a reset, the proxy would not send any data.
 #if RUN_EP0_VIA_PROXY // Setup packet needs to be fetched from the EP0 proxy tile
-    if(packet_type == rtos_usb_setup_packet)
+    if(endpoint_dir(ep_address) == RTOS_USB_OUT_EP)
     {
-        chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)&setup_packet, sizeof(tusb_control_request_t));
+        if(packet_type == rtos_usb_setup_packet)
+        {
+            chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)&setup_packet, xfer_len);
+        }
+        else if(xfer_len > 0)
+        {
+            // This is the H2D completed data xfer. It needs to be read in the correct buffer
+            // _usbd_ctrl_buf is defined as static uint8_t _usbd_ctrl_buf[CFG_TUD_ENDPOINT0_SIZE];
+            // in usbd_control.c. How do we access it here without changing a tinyusb source file
+            //chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)_usbd_ctrl_buf, xfer_len);
+        }
     }
 #endif
 
