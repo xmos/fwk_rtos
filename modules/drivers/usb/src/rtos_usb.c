@@ -141,12 +141,13 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 #else /* RUN_EP0_VIA_PROXY */
 DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 {
-    printf("In usb_isr()\n");
     rtos_usb_t *ctx = (rtos_usb_t*)arg;
     uint8_t dir = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
     uint8_t is_setup = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
     uint32_t xfer_len = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
     XUD_Result_t res = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
+
+    printf("In usb_isr(). dir %d, xfer_len %d, res %d\n", dir, xfer_len, res);
 
     if (res == XUD_RES_RST) {
         ctx->reset_received = 1;

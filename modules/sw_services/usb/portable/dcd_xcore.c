@@ -52,6 +52,10 @@ static union setup_packet_struct {
     uint8_t pad[CFG_TUD_ENDPOINT0_SIZE]; /* In case an OUT data packet comes in instead of a SETUP packet */
 } setup_packet;
 
+#if RUN_EP0_VIA_PROXY
+static uint8_t* ep0_out_last_data_xfer_address;
+#endif
+
 static bool waiting_for_setup;
 
 static tusb_speed_t xud_to_tu_speed(XUD_BusSpeed_t xud_speed)
@@ -129,10 +133,12 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         }
         else if(xfer_len > 0)
         {
+            //uint8_t some_buf[64];
             // This is the H2D completed data xfer. It needs to be read in the correct buffer
             // _usbd_ctrl_buf is defined as static uint8_t _usbd_ctrl_buf[CFG_TUD_ENDPOINT0_SIZE];
             // in usbd_control.c. How do we access it here without changing a tinyusb source file
             //chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)_usbd_ctrl_buf, xfer_len);
+            chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)ep0_out_last_data_xfer_address, xfer_len);
         }
     }
 #endif
@@ -494,6 +500,11 @@ bool dcd_edpt_xfer(uint8_t rhport,
 #if (!RUN_EP0_VIA_PROXY)
     res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
 #else
+    if((tu_edpt_number(ep_addr) == 0) && (tu_edpt_dir(ep_addr) == TUSB_DIR_OUT) && (total_bytes > 0))
+    {
+        // Save the buffer address, since when we get the H2D data back from the host it would be expected in this buffer by the tusb layer.
+        ep0_out_last_data_xfer_address = buffer; // buffer is _usbd_ctrl_buf but we can't access it from this file since it's static in usbd_control.c
+    }
     res = offtile_rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
 #endif
     if (res == XUD_RES_OKAY) {
