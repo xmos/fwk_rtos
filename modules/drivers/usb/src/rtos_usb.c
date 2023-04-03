@@ -22,9 +22,6 @@ XUD_Result_t XUD_SetBuffer_Finish(chanend c, XUD_ep e);
 
 static void usb_xud_thread(rtos_usb_t *ctx)
 {
-    XUD_EpType endpoint_out_type[RTOS_USB_ENDPOINT_COUNT_MAX];
-    XUD_EpType endpoint_in_type[RTOS_USB_ENDPOINT_COUNT_MAX];
-
     /*
      * XUD_Main() appears to require that interrupts be initially disabled.
      */
@@ -40,16 +37,13 @@ static void usb_xud_thread(rtos_usb_t *ctx)
 
     rtos_printf("Starting XUD_Main() on core %d with %d endpoints\n", rtos_core_id_get(), ctx->endpoint_count);
 
-    memcpy(endpoint_out_type, ctx->endpoint_out_type, sizeof(endpoint_out_type));
-    memcpy(endpoint_in_type, ctx->endpoint_in_type, sizeof(endpoint_in_type));
-
     XUD_Main(ctx->c_ep_out_xud,
              ctx->endpoint_count,
              ctx->c_ep_in_xud,
              ctx->endpoint_count,
              ctx->sof_interrupt_enabled ? ctx->c_sof_xud : 0,
-             endpoint_out_type,
-             endpoint_in_type,
+             ctx->endpoint_out_type,
+             ctx->endpoint_in_type,
              ctx->speed,
              ctx->power_source);
 
