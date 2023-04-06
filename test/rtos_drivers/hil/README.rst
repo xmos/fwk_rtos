@@ -1,6 +1,13 @@
-#################
-RTOS Driver Tests
-#################
+##################
+Check RTOS Drivers
+##################
+
+*******
+Purpose
+*******
+
+Description
+===========
 
 The RTOS driver tests are designed to regression test RTOS driver behavior for the following drivers:
 
@@ -41,3 +48,32 @@ Wiring Diagram
 
 .. image:: images/explorer_wiring_rtos_hil.png
     :align: left
+
+**************************
+Building and Running Tests
+**************************
+
+.. note::
+
+    The Python environment is required to run this test.  See the Requirements section of test/README.rst
+
+To build the test application firmware, run the following command from the top of the repository: 
+
+.. code-block:: console
+
+    bash tools/ci/build_rtos_tests.sh
+
+The `build_test.sh` script will copy the test applications to the `dist` folder.
+
+Run the test with the following command from the top of the repository:
+
+.. code-block:: console
+
+    bash test/rtos_drivers/hil/check_drivers_hil.sh
+
+
+The output file can be verified via python:
+
+.. code-block:: console
+
+    pytest test/rtos_drivers/hil
