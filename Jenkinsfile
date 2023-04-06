@@ -83,7 +83,7 @@ pipeline {
         }
         stage('Standard tests') {
             agent {
-                label 'vrd-us'
+                label 'xcore.ai-explorer-us'
             }
             when {
                 expression { params.NIGHTLY_TEST_ONLY == false }
