@@ -48,11 +48,8 @@ pipeline {
                             uid = sh(returnStdout: true, script: 'id -u').trim()
                             gid = sh(returnStdout: true, script: 'id -g').trim()
                         }
-                        // // pull docker image
-                        // sh "docker pull ghcr.io/xmos/xcore_builder:latest"
                         withTools(params.TOOLS_VERSION) {
                             // test applications and firmware
-                            // sh "docker run --rm -u $uid:$gid -w /fwk_rtos -v $WORKSPACE:/fwk_rtos ghcr.io/xmos/xcore_builder:latest bash -l tools/ci/build_rtos_tests.sh"
                             sh "bash tools/ci/build_rtos_tests.sh"
                         }
                         // List built files for log
@@ -98,7 +95,7 @@ pipeline {
                             withVenv {
                                 script {
                                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                        sh "test/rtos_drivers/hil/check_drivers_hil " + adapterIDs[0]
+                                        sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
                                     }
                                     sh "pytest test/rtos_drivers/hil"
                                 }
