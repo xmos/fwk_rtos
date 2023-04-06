@@ -20,9 +20,6 @@ pipeline {
             defaultValue: '15.2.1',
             description: 'The XTC tools version'
         )
-        booleanParam(name: 'NIGHTLY_TEST_ONLY',
-            defaultValue: false,
-            description: 'Tests that only run during nightly builds.')
     }    
     environment {
         PYTHON_VERSION = "3.8.11"
@@ -85,9 +82,6 @@ pipeline {
             agent {
                 label 'xcore.ai-explorer-us'
             }
-            when {
-                expression { params.NIGHTLY_TEST_ONLY == false }
-            }
             stages{
                 stage('Run Drivers Hil test') {
                     steps {
@@ -113,37 +107,5 @@ pipeline {
                 }
             }
         }
-        // stage('Nightly tests') {
-        //     agent {
-        //         label 'xcore.ai-explorer-us'
-        //     }
-        //     when {
-        //         expression { params.NIGHTLY_TEST_ONLY == true }
-        //     }
-        //     stages{
-        //         stage('Run Some test') {
-        //             steps {
-        //                 withTools(params.TOOLS_VERSION) {
-        //                     withVenv {
-        //                         script {
-        //                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-        //                                 sh "something.sh " + adapterIDs[0]
-        //                             }
-        //                             sh "pytest test/something"
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        //     post {
-        //         cleanup {
-        //             // cleanWs removes all output and artifacts of the Jenkins pipeline
-        //             //   Comment out this post section to leave the workspace which can be useful for running items on the Jenkins agent. 
-        //             //   However, beware that this pipeline will not run if the workspace is not manually cleaned.
-        //             cleanWs()
-        //         }
-        //     }
-        // }
     }
 }
