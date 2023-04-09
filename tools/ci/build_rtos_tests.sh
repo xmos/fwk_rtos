@@ -1,10 +1,11 @@
 #!/bin/bash
 # Copyright (c) 2023, XMOS Ltd, All rights reserved
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
-set -e
 
+set -e # exit on first error
+
+# discern repo root
 REPO_ROOT=`git rev-parse --show-toplevel`
-
 source ${REPO_ROOT}/tools/ci/helper_functions.sh
 
 # setup distribution folder
@@ -14,7 +15,7 @@ mkdir -p ${DIST_DIR}
 # setup configurations
 # row format is: "make_target BOARD toolchain"
 applications=(
-    # "test_rtos_driver_clock_control_test  XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
+    "test_rtos_driver_clock_control_test  XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     "test_rtos_driver_hil                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     "test_rtos_driver_hil_add             XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     # "test_rtos_driver_usb                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
