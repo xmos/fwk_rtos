@@ -156,7 +156,10 @@ XUD_Result_t rtos_usb_all_endpoints_ready(rtos_usb_t *ctx,
  * \param ctx           A pointer to the USB driver instance to use.
  * \param endpoint_addr The address of the endpoint to perform the transfer on.
  * \param buffer        A pointer to the buffer to transfer data into for OUT
- *                      endpoints, or from for IN endpoints.
+ *                      endpoints, or from for IN endpoints. For OUT endpoint,
+ *                      the buffer needs an additional +4 bytes of space, this
+ *                      additional data should not be reflected in the \p len
+ *                      parameter.
  * \param len           The maximum number of bytes to receive for OUT endpoints,
  *                      or the actual number of bytes to send for IN endpoints.
  * \param is_setup      To be set when preparing for the transfer of a setup

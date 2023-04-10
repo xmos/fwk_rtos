@@ -49,6 +49,24 @@ TU_ATTR_WEAK bool tud_xcore_data_cb(uint32_t cur_time, uint32_t ep_num, uint32_t
 
 static rtos_usb_t usb_ctx;
 
+/*
+ * lib_xud uses the provided data buffer to not only store the received data but
+ * also to receive the CRC (for output endpoints). This introduces a
+ * compatibility issue particularly around TinyUSB's _usbd_ctrl_buf[]. In other
+ * instances, the application can account for this by adding +4 bytes to the
+ * buffer's actual size, but advertize the endpoint's max size without this
+ * adjustment. 2 of the 4 bytes are for the actual CRC16, and an additional 2
+ * bytes are for the nature of operating on and storing 32-bit words.
+ * Additional checks are performed to determine when to use an intermediate
+ * buffer for EP0 control transfers.
+ */
+static void* dest_ctrl_buffer = NULL;
+static uint16_t dest_ctrl_buffer_len = 0;
+
+__attribute__ ((aligned(8)))
+static uint32_t intermediate_buffer[(CFG_TUD_ENDPOINT0_SIZE >> 2) + 1];
+
+__attribute__ ((aligned(8)))
 static union setup_packet_struct {
     tusb_control_request_t req;
     uint8_t pad[CFG_TUD_ENDPOINT0_SIZE]; /* In case an OUT data packet comes in instead of a SETUP packet */
@@ -157,6 +175,9 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                     prepare_setup(true);
                     rtos_printf("xfer error - unhandled OUT packet on EP0 (bytes: %d)\n", xfer_len);
                     return;
+                } else if (dest_ctrl_buffer != NULL) {
+                    memcpy(dest_ctrl_buffer, intermediate_buffer, xfer_len);
+                    dest_ctrl_buffer = NULL;
                 }
             } else {
                 rtos_printf("xfer %d bytes on %02x complete\n", xfer_len, ep_address);
@@ -442,8 +463,9 @@ bool dcd_edpt_xfer(uint8_t rhport,
 {
     XUD_Result_t res;
     static uint32_t dummy_zlp_word;
-    uint8_t is_zlp = (total_bytes == 0) && (buffer == NULL);
-    uint8_t is_setup = 0;
+    bool is_ep0_output = (ep_addr == 0x00);
+    bool is_zlp = (total_bytes == 0) && (buffer == NULL);
+    bool is_setup = 0;
 
     if (is_zlp) {
         /*
@@ -455,6 +477,18 @@ bool dcd_edpt_xfer(uint8_t rhport,
     } else {
         rtos_printf("xfer %d bytes on %02x\n", total_bytes, ep_addr);
     }
+
+    dest_ctrl_buffer = (is_ep0_output) ? (void *)buffer : NULL;
+    dest_ctrl_buffer_len = total_bytes;
+
+    /*
+     * lib_xud requires additional space to receive the CRC16 (TinyUSB does not
+     * assume the CRC16 is to be written to its control buffer.
+     */
+    if (is_ep0_output) {
+        buffer = (uint8_t *)intermediate_buffer;
+    }
+
 
     xassert(buffer != NULL);
 
