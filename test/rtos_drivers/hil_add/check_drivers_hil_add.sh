@@ -9,7 +9,7 @@ help()
 {
    echo "Framework RTOS Drivers Hardware in the Loop test"
    echo
-   echo "Syntax: check_drivers_hil.sh [-h] adapterID_optional"
+   echo "Syntax: check_drivers_hil_add.sh [-h] adapterID_optional"
    echo
    echo "options:"
    echo "h     Print this Help."
@@ -26,7 +26,7 @@ done
 
 # assign vars
 REPORT=testing/test.rpt
-FIRMWARE=dist/test_rtos_driver_hil.xe
+FIRMWARE=test_rtos_driver_hil_add.xe
 TIMEOUT_S=60
 if [ ! -z "${@:$OPTIND:1}" ]
 then
@@ -48,9 +48,9 @@ echo "*************"
 echo "* Run Tests *"
 echo "*************"
 if [ "$UNAME" == "Linux" ] ; then
-    timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 elif [ "$UNAME" == "Darwin" ] ; then
-    gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 fi
 
 echo "****************"
