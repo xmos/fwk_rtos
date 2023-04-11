@@ -70,4 +70,4 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -u $(id -u):$(id -g) -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all
+          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all

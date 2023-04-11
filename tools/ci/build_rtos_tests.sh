@@ -4,6 +4,11 @@
 
 set -e # exit on first error
 
+if [ -f /.dockerenv ]; then
+    # Docker workaround for: "fatal: detected dubious ownership in repository"
+    git config --global --add safe.directory /fwk_rtos
+fi
+
 # discern repo root
 REPO_ROOT=`git rev-parse --show-toplevel`
 source ${REPO_ROOT}/tools/ci/helper_functions.sh
