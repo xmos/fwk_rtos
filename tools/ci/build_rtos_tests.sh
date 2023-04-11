@@ -12,6 +12,7 @@ fi
 # discern repo root
 REPO_ROOT=`git rev-parse --show-toplevel`
 source ${REPO_ROOT}/tools/ci/helper_functions.sh
+export_ci_build_vars
 
 # setup distribution folder
 DIST_DIR=${REPO_ROOT}/dist
@@ -40,6 +41,6 @@ for ((i = 0; i < ${#applications[@]}; i += 1)); do
 
     (cd ${path}; rm -rf build_${board})
     (cd ${path}; mkdir -p build_${board})
-    (cd ${path}/build_${board}; log_errors cmake ../ -DCMAKE_TOOLCHAIN_FILE=${toolchain_file} -DBOARD=${board} -DFRAMEWORK_RTOS_TESTS=ON; log_errors make ${make_target} -j)
+    (cd ${path}/build_${board}; log_errors cmake ../ -G "$CI_CMAKE_GENERATOR" -DCMAKE_TOOLCHAIN_FILE=${toolchain_file} -DBOARD=${board} -DFRAMEWORK_RTOS_TESTS=ON; log_errors $CI_BUILD_TOOL ${make_target} $CI_BUILD_TOOL_ARGS)
     (cd ${path}/build_${board}; cp ${make_target}.xe ${DIST_DIR})
 done
