@@ -47,7 +47,7 @@ REPO_ROOT=`git rev-parse --show-toplevel`
 echo "*************"
 echo "* Run Tests *"
 echo "*************"
-if [ "$UNAME" == "Linux" ] ; then
+if [ "$UNAME" == "Linux" ] || [ -n "$MSYSTEM" ]; then
     timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 elif [ "$UNAME" == "Darwin" ] ; then
     gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
