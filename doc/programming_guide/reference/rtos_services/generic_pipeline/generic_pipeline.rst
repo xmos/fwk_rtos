@@ -1,5 +1,3 @@
-.. include:: ../../../../substitutions.rst
-
 ########################
 Generic Pipeline
 ########################
@@ -11,4 +9,5 @@ The `generic_pipeline_init()` creates `stage_count` tasks. In the first stage th
 .. toctree::
    :maxdepth: 1
 
+   generic_pipeline_example
    generic_pipeline_api
