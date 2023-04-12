@@ -10,3 +10,5 @@ Several RTOS software services are included to accelerate development of new app
    :maxdepth: 1
 
    device_control/index
+   concurrency_support/concurrency_support
+   generic_pipeline/generic_pipeline
