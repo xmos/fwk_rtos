@@ -11,9 +11,13 @@
  * @{
  */
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
 #include <xcore/channel.h>
-#include <xud.h>
-#include <xud_device.h>
+#include "xud.h"
+#include "XUD_HAL.h"
+#include "xud_device.h"
 
 #include "rtos_osal.h"
 #include "rtos_driver_rpc.h"
@@ -152,9 +156,14 @@ XUD_Result_t rtos_usb_all_endpoints_ready(rtos_usb_t *ctx,
  * \param ctx           A pointer to the USB driver instance to use.
  * \param endpoint_addr The address of the endpoint to perform the transfer on.
  * \param buffer        A pointer to the buffer to transfer data into for OUT
- *                      endpoints, or from for IN endpoints.
+ *                      endpoints, or from for IN endpoints. For OUT endpoint,
+ *                      the buffer needs an additional +4 bytes of space, this
+ *                      additional data should not be reflected in the \p len
+ *                      parameter.
  * \param len           The maximum number of bytes to receive for OUT endpoints,
  *                      or the actual number of bytes to send for IN endpoints.
+ * \param is_setup      To be set when preparing for the transfer of a setup
+ *                      packet.
  *
  * \retval XUD_RES_OKAY if the transfer was requested successfully.
  * \retval XUD_RES_RST  if the transfer was not requested and the USB bus needs
@@ -164,7 +173,8 @@ XUD_Result_t rtos_usb_all_endpoints_ready(rtos_usb_t *ctx,
 XUD_Result_t rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
                                               uint32_t endpoint_addr,
                                               uint8_t *buffer,
-                                              size_t len);
+                                              size_t len,
+                                              bool is_setup);
 
 /**
  * This function will complete a reset on an endpoint. The address of the endpoint
@@ -195,7 +205,8 @@ static inline XUD_Result_t rtos_usb_device_address_set(rtos_usb_t *ctx,
                                                        uint32_t addr)
 {
     (void) ctx;
-    return XUD_SetDevAddr(addr);
+    XUD_HAL_SetDeviceAddress(addr);
+    return XUD_RES_OKAY;
 }
 
 /**

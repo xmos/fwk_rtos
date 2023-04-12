@@ -3,33 +3,25 @@
 
 #define DEBUG_UNIT RTOS_USB
 
+#include <stddef.h>
+#include <stdint.h>
 #include <string.h>
+#include <stdbool.h>
 #include <xcore/triggerable.h>
 #include "rtos_interrupt.h"
+#include "rtos_printf.h"
 #include "rtos_usb.h"
+#include "xud.h"
 #include "xud_xfer_data.h"
 
-int XUD_Main(chanend_t c_epOut[],
-             int noEpOut,
-             chanend_t c_epIn[],
-             int noEpIn,
-             chanend_t c_sof,
-             XUD_EpType epTypeTableOut[],
-             XUD_EpType epTypeTableIn[],
-#if !XUD_DEV_XS3
-             unsigned a, unsigned b, unsigned c,
-#endif
-             XUD_BusSpeed_t desiredSpeed,
-             XUD_PwrConfig pwrConfig);
 
 #define SETSR(c) asm volatile("setsr %0" : : "n"(c));
 #define CLRSR(c) asm volatile("clrsr %0" : : "n"(c));
 
+XUD_Result_t XUD_SetBuffer_Finish(chanend c, XUD_ep e);
+
 static void usb_xud_thread(rtos_usb_t *ctx)
 {
-    XUD_EpType endpoint_out_type[RTOS_USB_ENDPOINT_COUNT_MAX];
-    XUD_EpType endpoint_in_type[RTOS_USB_ENDPOINT_COUNT_MAX];
-
     /*
      * XUD_Main() appears to require that interrupts be initially disabled.
      */
@@ -45,19 +37,13 @@ static void usb_xud_thread(rtos_usb_t *ctx)
 
     rtos_printf("Starting XUD_Main() on core %d with %d endpoints\n", rtos_core_id_get(), ctx->endpoint_count);
 
-    memcpy(endpoint_out_type, ctx->endpoint_out_type, sizeof(endpoint_out_type));
-    memcpy(endpoint_in_type, ctx->endpoint_in_type, sizeof(endpoint_in_type));
-
     XUD_Main(ctx->c_ep_out_xud,
              ctx->endpoint_count,
              ctx->c_ep_in_xud,
              ctx->endpoint_count,
              ctx->sof_interrupt_enabled ? ctx->c_sof_xud : 0,
-             endpoint_out_type,
-             endpoint_in_type,
-#if !XUD_DEV_XS3
-             0, 0, -1,
-#endif
+             ctx->endpoint_out_type,
+             ctx->endpoint_in_type,
              ctx->speed,
              ctx->power_source);
 
@@ -78,10 +64,13 @@ static XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
     xassert(ep_num < RTOS_USB_ENDPOINT_COUNT_MAX);
 
     if (dir == RTOS_USB_IN_EP) {
-        res = xud_data_set_finish(ctx->c_ep[ep_num][dir], ctx->ep[ep_num][dir]);
+        res = XUD_SetBuffer_Finish(ctx->c_ep[ep_num][dir], ctx->ep[ep_num][dir]);
         *is_setup = 0;
         *len = ctx->ep_xfer_info[ep_num][dir].len;
     } else {
+        /* NOTE: XUD_GetBuffer_Finish() is essentially, xud_data_get_check()
+         * combined with xud_data_get_finish(). There is no equivalent that
+         * handles the finalization of the setup packet. */
         res = xud_data_get_check(ctx->c_ep[ep_num][dir], len, is_setup);
 
         if (*len > ctx->ep_xfer_info[ep_num][dir].len) {
@@ -199,7 +188,8 @@ XUD_Result_t rtos_usb_all_endpoints_ready(rtos_usb_t *ctx,
 XUD_Result_t rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
                                               uint32_t endpoint_addr,
                                               uint8_t *buffer,
-                                              size_t len)
+                                              size_t len,
+                                              bool is_setup)
 {
     XUD_Result_t res;
     const int ep_num = endpoint_num(endpoint_addr);
@@ -214,9 +204,14 @@ XUD_Result_t rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
     ctx->ep_xfer_info[ep_num][dir].len = len;
 
     if (dir == RTOS_USB_IN_EP) {
-        res = xud_data_set_start(ctx->ep[ep_num][dir], buffer, len);
+        res = XUD_SetReady_InPtr(ctx->ep[ep_num][dir], (unsigned int)buffer, len);
     } else {
-        res = xud_data_get_start(ctx->ep[ep_num][dir], buffer);
+        if (is_setup) {
+            // NOTE: A candidate name for this function in lib_xud would be: XUD_SetReady_SetupPtr
+            res = xud_setup_data_get_start(ctx->ep[ep_num][dir], buffer);
+        } else {
+            res = XUD_SetReady_OutPtr(ctx->ep[ep_num][dir], (unsigned int)buffer);
+        }
     }
 
     return res;
@@ -225,18 +220,18 @@ XUD_Result_t rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
 XUD_BusSpeed_t rtos_usb_endpoint_reset(rtos_usb_t *ctx,
                                        uint32_t endpoint_addr)
 {
-    uint8_t const epnum = endpoint_num(endpoint_addr);
+    uint8_t ep_num = endpoint_num(endpoint_addr);
     uint8_t dir = endpoint_dir(endpoint_addr);
 
-    XUD_ep one = ctx->ep[epnum][dir];
+    XUD_ep one = ctx->ep[ep_num][dir];
     XUD_ep *two = NULL;
 
     xassert(ctx->reset_received);
 
     dir = dir ? 0 : 1;
 
-    if (ctx->ep[epnum][dir] != 0) {
-        two = &ctx->ep[epnum][dir];
+    if (ctx->ep[ep_num][dir] != 0) {
+        two = &ctx->ep[ep_num][dir];
     }
 
     if (one == 0) {
@@ -347,7 +342,7 @@ void rtos_usb_init(
             RTOS_THREAD_STACK_SIZE(usb_xud_thread),
             RTOS_OSAL_HIGHEST_PRIORITY);
 
-    /* Ensure the I2C thread is never preempted */
+    /* Ensure the USB thread is never preempted */
     rtos_osal_thread_preemption_disable(&ctx->hil_thread);
     /* And ensure it only runs on one of the specified cores */
     rtos_osal_thread_core_exclusion_set(&ctx->hil_thread, ~io_core_mask);

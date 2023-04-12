@@ -39,12 +39,12 @@ jobs:
       rtos_tests: ${{ github.event.inputs.run_rtos_tests || steps.filter.outputs.rtos_tests }}
     steps:
       - name: Checkout
-        if: ${{ github.event.inputs.run_rtos_tests }}
+        if: ${{ github.event.inputs.run_rtos_tests == false }}
         uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Paths filter
-        if: ${{ github.event.inputs.run_rtos_tests }}
+        if: ${{ github.event.inputs.run_rtos_tests == false }}
         uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -70,4 +70,4 @@ jobs:
 
       - name: Build
         run: |
-          docker run --rm -u $(id -u):$(id -g) -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all
+          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all
