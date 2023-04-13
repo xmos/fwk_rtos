@@ -3,6 +3,7 @@
 #**********************
 set(SPI_TEST  1)
 set(UART_TEST  0)   # Appears to be broken
+set(QSPI_FLASH_FAST_READ_TEST 1)
 
 #**********************
 # Gather Sources
@@ -18,7 +19,6 @@ set(APP_COMPILER_FLAGS
     -g
     -report
     -fxscope
-    -lquadspi
     -mcmodel=large
     -Wno-xcore-fptrgroup
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
@@ -38,10 +38,10 @@ set(APP_COMPILE_DEFINITIONS
     XUD_CORE_CLOCK=600
     RUN_SPI_TESTS=${SPI_TEST}
     RUN_UART_TESTS=${UART_TEST}
+    RUN_QSPI_FLASH_FAST_READ_TESTS=${QSPI_FLASH_FAST_READ_TEST}
 )
 
 set(APP_LINK_OPTIONS
-    -lquadspi
     -report
     ${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
     ${CMAKE_CURRENT_LIST_DIR}/src/config.xscope
@@ -74,3 +74,9 @@ unset(TARGET_NAME)
 # Merge binaries
 #**********************
 merge_binaries(test_rtos_driver_hil_add tile0_test_rtos_driver_hil_add tile1_test_rtos_driver_hil_add 1)
+
+add_custom_target(flash_calibration_test_rtos_driver_hil_add
+    COMMAND xflash --write-all ${LIB_QSPI_FAST_READ_ROOT_PATH}/lib_qspi_fast_read/calibration_pattern.bin --target-file=${CMAKE_CURRENT_LIST_DIR}/XCORE-AI-EXPLORER.xn
+    COMMENT
+        "Flash calibration binary"
+)

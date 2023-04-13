@@ -1,4 +1,4 @@
-// Copyright 2020-2021 XMOS LIMITED.
+// Copyright 2020-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include <string.h>
@@ -370,9 +370,10 @@ void rtos_qspi_flash_rpc_client_init(
     rpc_config->host_address.intertile_ctx = host_intertile_ctx;
     rpc_config->host_ctx_ptr = (void *) s_chan_in_word(host_intertile_ctx->c);
     qspi_flash_ctx->flash_size = s_chan_in_word(host_intertile_ctx->c);
-    qspi_flash_ctx->ctx.page_size_bytes = s_chan_in_word(host_intertile_ctx->c);
-    qspi_flash_ctx->ctx.page_count = s_chan_in_word(host_intertile_ctx->c);
-    qspi_flash_ctx->ctx.erase_info[0].size_log2 = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->qspi_spec.pageSize = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->qspi_spec.numPages = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->qspi_spec.sectorEraseSize = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->calibration_valid = s_chan_in_word(host_intertile_ctx->c);
 }
 
 void rtos_qspi_flash_rpc_host_init(
@@ -392,9 +393,10 @@ void rtos_qspi_flash_rpc_host_init(
         rpc_config->client_address[i].intertile_ctx = client_intertile_ctx[i];
         s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx);
         s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->flash_size);
-        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->ctx.page_size_bytes);
-        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->ctx.page_count);
-        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->ctx.erase_info[0].size_log2);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->qspi_spec.pageSize);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->qspi_spec.numPages);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->qspi_spec.sectorEraseSize);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->calibration_valid);
 
         /* This must be configured later with rtos_qspi_flash_rpc_config() */
         rpc_config->client_address[i].port = -1;
