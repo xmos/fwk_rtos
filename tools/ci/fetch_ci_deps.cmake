@@ -8,7 +8,7 @@
         FetchContent_Declare(
             fwk_io
             GIT_REPOSITORY https://github.com/xmos/fwk_io.git
-            GIT_TAG        74e28b3d254e8e1a3b949ac91cab599aecbb8c11
+            GIT_TAG        d5eff02d2d57330f4358c134cc9f29913a6f5ea3
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/fwk_io

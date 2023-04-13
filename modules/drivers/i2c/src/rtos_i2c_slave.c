@@ -213,12 +213,12 @@ static void i2c_slave_app_thread(rtos_i2c_slave_t *ctx)
         }
 
         if (flags & TX_START_CB_FLAG) {
-            ctx->tx_data_len = ctx->tx_start(ctx, ctx->app_data, &ctx->tx_data);
+            ctx->tx_data_len = ctx->tx_start(ctx, ctx->app_data, (uint8_t **)&ctx->tx_data);
             s_chan_out_byte(ctx->c.end_b, 0);
         }
 
         if (flags & TX_DONE_CB_FLAG) {
-            ctx->tx_done(ctx, ctx->app_data, ctx->tx_data, ctx->tx_data_sent);
+            ctx->tx_done(ctx, ctx->app_data, (uint8_t *)ctx->tx_data, ctx->tx_data_sent);
             tx_state_clear(ctx);
             s_chan_out_byte(ctx->c.end_b, 0);
         }

@@ -241,7 +241,7 @@ static control_ret_t do_command(device_control_t *ctx,
 }
 
 void device_control_payload_transfer_bidir(device_control_t *ctx,
-                                              const uint8_t *rx_buf,
+                                              uint8_t *rx_buf,
                                               const size_t rx_size,
                                               uint8_t *tx_buf,
                                               size_t *tx_size)
