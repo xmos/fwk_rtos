@@ -10,10 +10,10 @@ UNAME=$(uname)
 rm -rf testing
 mkdir testing
 REPORT=testing/test.rpt
-FIRMWARE=rtos_drivers_usb.xe
+FIRMWARE=test_rtos_driver_usb.xe
 TIMEOUT_S=60
 
-REPO_ROOT=`git rev-parse --show-toplevel`
+REPO_ROOT=$(git rev-parse --show-toplevel)
 
 rm -f ${REPORT}
 
@@ -21,14 +21,14 @@ echo "****************"
 echo "* Run Tests    *"
 echo "****************"
 if [ "$UNAME" == "Linux" ] ; then
-    timeout ${TIMEOUT_S}s xrun --xscope bin/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    timeout ${TIMEOUT_S}s xrun --xscope dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 elif [ "$UNAME" == "Darwin" ] ; then
-    gtimeout ${TIMEOUT_S}s xrun --xscope bin/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    gtimeout ${TIMEOUT_S}s xrun --xscope dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 fi
 
 echo "****************"
 echo "* Parse Result *"
 echo "****************"
-python ${REPO_ROOT}/test/rtos_drivers/python/parse_test_output.py testing/test.rpt -outfile="testing/test_results" --print_test_results --verbose
+python "${REPO_ROOT}/test/rtos_drivers/python/parse_test_output.py" testing/test.rpt -outfile="testing/test_results" --print_test_results --verbose
 
 pytest

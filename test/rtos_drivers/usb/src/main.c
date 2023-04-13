@@ -2,6 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 /* System headers */
+#include <stdlib.h>
 #include <platform.h>
 #include <xs1.h>
 
