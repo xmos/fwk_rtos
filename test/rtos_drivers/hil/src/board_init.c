@@ -173,15 +173,15 @@ void board_tile1_init(
     port_out(p_rst_shared, 0xF);
 
     /* Clock blocks for PDM mics */
-    xclock_t pdmclk = clock_init(XS1_CLKBLK_1);
-    xclock_t pdmclk2 = clock_init(XS1_CLKBLK_2);
+    clock_init(XS1_CLKBLK_1);
+    clock_init(XS1_CLKBLK_2);
 
     /* Clock port for the PDM mics and I2S */
     port_t p_mclk = port_init(PORT_MCLK_IN, PORT_INPUT, PORT_UNBUFFERED);
 
     /* Ports for the PDM microphones */
-    port_t p_pdm_clk = port_init(PORT_PDM_CLK,   PORT_OUTPUT, PORT_UNBUFFERED);
-    port_t p_pdm_mics = port_init(PORT_PDM_DATA, PORT_INPUT,  PORT_BUFFERED, 32);
+    port_init(PORT_PDM_CLK,  PORT_OUTPUT, PORT_UNBUFFERED);
+    port_init(PORT_PDM_DATA, PORT_INPUT,  PORT_BUFFERED, 32);
 
     /* Ports for the I2S. */
     port_t p_i2s_dout[1] = {
