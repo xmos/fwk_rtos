@@ -15,7 +15,36 @@
 /* App headers */
 #include "app_conf.h"
 #include "individual_tests/usb/usb_test.h"
+#include "individual_tests/usb/local/usb_dfu_test.h"
 #include "usb_support.h"
+
+//--------------------------------------------------------------------+
+// Device callbacks
+//--------------------------------------------------------------------+
+
+void tud_mount_cb(void)
+{
+    usb_printf("tud_mount_cb");
+}
+
+void tud_umount_cb(void)
+{
+    usb_printf("tud_umount_cb");
+}
+
+void tud_suspend_cb(bool remote_wakeup_en)
+{
+    usb_printf("tud_suspend_cb: remote_wakeup_en=%u", (uint8_t)remote_wakeup_en);
+}
+
+void tud_resume_cb(void)
+{
+    usb_printf("tud_resume_cb");
+}
+
+//--------------------------------------------------------------------+
+// Top-level test logic
+//--------------------------------------------------------------------+
 
 static int run_usb_tests(usb_test_ctx_t *test_ctx, chanend_t c)
 {
@@ -50,6 +79,7 @@ static void start_usb_devices(usb_test_ctx_t *test_ctx)
 
 static void register_usb_tests(usb_test_ctx_t *test_ctx)
 {
+    register_dfu_test(test_ctx);
 }
 
 static void usb_init_tests(usb_test_ctx_t *test_ctx)

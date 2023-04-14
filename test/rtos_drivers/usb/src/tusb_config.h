@@ -67,5 +67,11 @@
 #define CFG_TUD_MIDI              0
 #define CFG_TUD_AUDIO             0
 #define CFG_TUD_VENDOR            0
+#define CFG_TUD_DFU               1
+
+//--------------------------------------------------------------------
+// DFU DRIVER CONFIGURATION
+//--------------------------------------------------------------------
+#define CFG_TUD_DFU_XFER_BUFSIZE  (128)
 
 #endif /* _TUSB_CONFIG_H_ */

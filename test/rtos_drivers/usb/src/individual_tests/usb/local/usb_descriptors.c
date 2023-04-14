@@ -23,8 +23,10 @@
  *
  */
 
+#include "tusb_config.h"
 #include "individual_tests/usb/local/usb_descriptors.h"
 #include "tusb.h"
+#include "class/dfu/dfu_device.h"
 
 #define XMOS_VID    0x20B1
 #define TEST_PID    0x4000
@@ -64,11 +66,16 @@ uint8_t const* tud_descriptor_device_cb(void)
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
-#define CONFIG_TOTAL_LEN        (TUD_CONFIG_DESC_LEN)
+#define CONFIG_TOTAL_LEN        (TUD_CONFIG_DESC_LEN + TUD_DFU_DESC_LEN(ALT_COUNT))
+
+#define FUNC_ATTRS (DFU_ATTR_CAN_UPLOAD | DFU_ATTR_CAN_DOWNLOAD | DFU_ATTR_WILL_DETACH | DFU_ATTR_MANIFESTATION_TOLERANT)
 
 uint8_t const desc_configuration[] = {
     // Interface count, string index, total length, attribute, power in mA
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 400),
+
+    // Interface number, Alternate count, starting string index, attributes, detach timeout, transfer size
+    TUD_DFU_DESCRIPTOR(ITF_NUM_DFU_MODE, ALT_COUNT, 4, FUNC_ATTRS, 1000, CFG_TUD_DFU_XFER_BUFSIZE)
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -85,11 +92,15 @@ uint8_t const* tud_descriptor_configuration_cb(uint8_t index)
 //--------------------------------------------------------------------+
 
 // array of pointer to string descriptors
-char const *string_desc_arr[] = {(const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
-        "XMOS",                    // 1: Manufacturer
-        "DRIVERTEST",              // 2: Product
-        "123456",                  // 3: Serials
-        };
+char const *string_desc_arr[] = {
+    (const char[]) {0x09, 0x04}, // 0: is supported language is English (0x0409)
+    "XMOS",                      // 1: Manufacturer
+    "DRIVERTEST",                // 2: Product
+    "123456",                    // 3: Serials
+    "TEST PARTITION 1",          // 4: DFU device
+    "TEST PARTITION 2",          // 5: DFU device
+    "TEST PARTITION 3",          // 6: DFU device
+};
 
 static uint16_t _desc_str[32];
 

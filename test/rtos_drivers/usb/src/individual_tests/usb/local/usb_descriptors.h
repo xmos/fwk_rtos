@@ -6,7 +6,11 @@
 
 #include "tusb_config.h"
 
+// Number of Alternate Interface (each for 1 flash partition)
+#define ALT_COUNT   3
+
 enum {
+    ITF_NUM_DFU_MODE,
     ITF_NUM_TOTAL
 };
 
