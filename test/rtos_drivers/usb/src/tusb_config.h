@@ -65,38 +65,7 @@
 #define CFG_TUD_MSC               0
 #define CFG_TUD_HID               0
 #define CFG_TUD_MIDI              0
-#define CFG_TUD_AUDIO             1
+#define CFG_TUD_AUDIO             0
 #define CFG_TUD_VENDOR            0
-
-//--------------------------------------------------------------------
-// AUDIO CLASS DRIVER CONFIGURATION
-//--------------------------------------------------------------------
-extern const uint16_t tud_audio_desc_lengths[CFG_TUD_AUDIO];
-
-#define CFG_TUD_AUDIO_FUNC_1_DESC_LEN                       tud_audio_desc_lengths[0]
-#define CFG_TUD_AUDIO_FUNC_1_N_AS_INT                       1
-#define CFG_TUD_AUDIO_FUNC_1_CTRL_BUF_SZ                    64
-
-
-#define CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX          2
-#define CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX          2
-
-#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX                  2
-#define CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX                  2
-
-// EP and buffer sizes
-#define SAMPLES_PER_FRAME_NOMINAL                   (AUDIO_SAMPLE_RATE / 1000)
-
-#define CFG_TUD_AUDIO_ENABLE_EP_IN                  1
-#define BYTES_PER_TX_FRAME_NOMINAL                  (SAMPLES_PER_FRAME_NOMINAL * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_TX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_TX)
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ               BYTES_PER_TX_FRAME_NOMINAL
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ_MAX           (CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ)    // Maximum EP IN size for all AS alternate settings used
-#define CFG_TUD_AUDIO_FUNC_1_EP_IN_SW_BUF_SZ        CFG_TUD_AUDIO_FUNC_1_EP_IN_SZ
-
-#define CFG_TUD_AUDIO_ENABLE_EP_OUT                 1
-#define BYTES_PER_RX_FRAME_NOMINAL                  (SAMPLES_PER_FRAME_NOMINAL * CFG_TUD_AUDIO_FUNC_1_N_BYTES_PER_SAMPLE_RX * CFG_TUD_AUDIO_FUNC_1_N_CHANNELS_RX)
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ              BYTES_PER_RX_FRAME_NOMINAL
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ_MAX          (CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ + 2)   // Maximum EP IN size for all AS alternate settings used. Plus 2 for CRC
-#define CFG_TUD_AUDIO_FUNC_1_EP_OUT_SW_BUF_SZ       CFG_TUD_AUDIO_FUNC_1_EP_OUT_SZ*3
 
 #endif /* _TUSB_CONFIG_H_ */

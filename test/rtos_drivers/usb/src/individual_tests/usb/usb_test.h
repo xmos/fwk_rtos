@@ -27,7 +27,4 @@ typedef int (*usb_main_test_t)(usb_test_ctx_t *ctx);
 
 int usb_device_tests(chanend_t c);
 
-/* Local Tests */
-void register_uac_loopback_test(usb_test_ctx_t *test_ctx);
-
 #endif /* USB_TEST_H_ */

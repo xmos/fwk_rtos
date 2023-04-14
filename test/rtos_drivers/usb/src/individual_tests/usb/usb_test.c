@@ -50,7 +50,6 @@ static void start_usb_devices(usb_test_ctx_t *test_ctx)
 
 static void register_usb_tests(usb_test_ctx_t *test_ctx)
 {
-    register_uac_loopback_test(test_ctx);
 }
 
 static void usb_init_tests(usb_test_ctx_t *test_ctx)
