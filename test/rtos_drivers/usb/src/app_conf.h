@@ -7,6 +7,10 @@
 #define appconfXUD_IO_CORE                      1
 #define appconfUSB_INTERRUPT_CORE               2
 
+/* Test case timeouts */
+#define DFU_FIRST_XFER_TIMEOUT_MS               10000
+#define DFU_NEXT_XFER_TIMEOUT_MS                5000
+
 /* Task Priorities */
 #define appconfSTARTUP_TASK_PRIORITY            (configMAX_PRIORITIES-1)
 
