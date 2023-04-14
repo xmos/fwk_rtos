@@ -24,7 +24,7 @@ applications=(
     "test_rtos_driver_clock_control_test  XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     "test_rtos_driver_hil                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     "test_rtos_driver_hil_add             XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
-    # "test_rtos_driver_usb                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
+    "test_rtos_driver_usb                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     # "test_rtos_driver_wifi                XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
 )
 
