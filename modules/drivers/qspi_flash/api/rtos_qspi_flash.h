@@ -336,13 +336,34 @@ inline unsigned rtos_qspi_flash_calibration_valid_get(
  *
  * rtos_qspi_flash_init() must be called on this QSPI flash driver instance prior to calling this.
  *
- * \param ctx       A pointer to the QSPI flash driver instance to start.
- * \param priority  The priority of the task that gets created by the driver to
- *                  handle the QSPI flash interface.
+ * \param ctx           A pointer to the QSPI flash driver instance to start.
+ * \param priority      The priority of the task that gets created by the driver to
+ *                      handle the QSPI flash interface.
  */
 void rtos_qspi_flash_start(
         rtos_qspi_flash_t *ctx,
         unsigned priority);
+
+/**
+ * Sets the core affinity for a RTOS QSPI flash driver instance.
+ * This must only be called by the tile that owns the driver instance.
+ * It may be called either before or after starting the RTOS, and should
+ * be called before any of the core QSPI flash driver functions are
+ * called with this instance.
+ *
+ * Since interrupts are disabled during the QSPI transaction on the op thread, a
+ * core mask is provided to allow users to avoid collisions with application ISRs.
+ *
+ * rtos_qspi_flash_start() must be called on this QSPI flash driver instance prior to calling this.
+ *
+ * \param ctx           A pointer to the QSPI flash driver instance to start.
+ * \param op_core_mask  A bitmask representing the cores on which the QSPI I/O thread
+ *                      created by the driver is allowed to run. Bit 0 is core 0, bit 1 is core 1,
+ *                      etc.
+ */
+void rtos_qspi_flash_op_core_affinity_set(
+        rtos_qspi_flash_t *ctx,
+        uint32_t op_core_mask);
 
 /**
  * Initializes an RTOS QSPI flash driver instance.
