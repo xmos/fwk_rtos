@@ -127,11 +127,21 @@ struct rtos_usb_struct {
     void *isr_app_data;
     rtos_usb_ep_xfer_info_t ep_xfer_info[RTOS_USB_ENDPOINT_COUNT_MAX][2];
 #if RUN_EP0_VIA_PROXY
-    chanend_t c_ep0_proxy;
+    chanend_t c_ep_proxy[RTOS_USB_ENDPOINT_COUNT_MAX];
     chanend_t c_ep0_proxy_xfer_complete;
-    rtos_osal_mutex_t mutex;
 #endif
 };
+
+static inline int endpoint_num(uint32_t endpoint_addr)
+{
+    return endpoint_addr & 0xF;
+}
+
+static inline int endpoint_dir(uint32_t endpoint_addr)
+{
+    return (endpoint_addr >> 7) & 1;
+}
+
 
 /**
  * Checks to see if a particular endpoint is ready to use.
@@ -225,11 +235,9 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
 #if RUN_EP0_VIA_PROXY
-    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
-    chan_out_byte(ctx->c_ep0_proxy, e_usb_endpoint_state_reset);
-    chan_out_word(ctx->c_ep0_proxy, endpoint_addr);
-    XUD_Result_t res = chan_in_byte(ctx->c_ep0_proxy);
-    rtos_osal_mutex_put(&ctx->mutex);
+    chan_out_byte(ctx->c_ep_proxy[0], e_usb_endpoint_state_reset); // ep state reset command is always sent over c_ep_proxy[0]
+    chan_out_word(ctx->c_ep_proxy[0], endpoint_addr);
+    XUD_Result_t res = chan_in_byte(ctx->c_ep_proxy[0]);
     (void) res;
 #else
     (void) ctx;
@@ -271,16 +279,6 @@ static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
 #endif
     (void) ctx;
     XUD_ClearStallByAddr(endpoint_addr);
-}
-
-static inline int endpoint_num(uint32_t endpoint_addr)
-{
-    return endpoint_addr & 0xF;
-}
-
-static inline int endpoint_dir(uint32_t endpoint_addr)
-{
-    return (endpoint_addr >> 7) & 1;
 }
 
 /**
@@ -423,11 +421,9 @@ static inline XUD_Result_t offtile_rtos_usb_device_address_set(rtos_usb_t *ctx,
                                                        uint32_t addr)
 {
     (void) ctx;
-    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
-    chan_out_byte(ctx->c_ep0_proxy, e_usb_device_address_set);
-    chan_out_word(ctx->c_ep0_proxy, addr);
-    XUD_Result_t res = chan_in_byte(ctx->c_ep0_proxy);
-    rtos_osal_mutex_put(&ctx->mutex);
+    chan_out_byte(ctx->c_ep_proxy[0], e_usb_device_address_set);
+    chan_out_word(ctx->c_ep_proxy[0], addr);
+    XUD_Result_t res = chan_in_byte(ctx->c_ep_proxy[0]);
     return res;
 }
 

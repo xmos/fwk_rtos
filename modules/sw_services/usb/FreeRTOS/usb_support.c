@@ -45,13 +45,12 @@ void usb_manager_start(unsigned priority)
 #if RUN_EP0_VIA_PROXY
 #include "rtos_usb.h"
 extern rtos_usb_t usb_ctx;
-void usb_manager_init(chanend_t c_ep0_proxy, chanend_t c_ep0_proxy_xfer_complete)
+void usb_manager_init(chanend_t c_ep0_proxy, chanend_t c_ep_hid_proxy, chanend_t c_ep0_proxy_xfer_complete)
 {
     tusb_init();
-    usb_ctx.c_ep0_proxy = c_ep0_proxy;
+    usb_ctx.c_ep_proxy[0] = c_ep0_proxy;
+    usb_ctx.c_ep_proxy[2] = c_ep_hid_proxy; // TODO Hardcoded, assuming endpoint 2 is HID
     usb_ctx.c_ep0_proxy_xfer_complete = c_ep0_proxy_xfer_complete;
-
-    rtos_osal_mutex_create(&usb_ctx.mutex, "ep_proxy_lock", RTOS_OSAL_NOT_RECURSIVE);
 }
 #else /* RUN_EP0_VIA_PROXY */
 void usb_manager_init(void)

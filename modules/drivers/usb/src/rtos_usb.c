@@ -334,14 +334,12 @@ void rtos_usb_start(
 #if (RUN_EP0_VIA_PROXY)
     triggerable_setup_interrupt_callback(ctx->c_ep0_proxy_xfer_complete, ctx, RTOS_INTERRUPT_CALLBACK(usb_isr));
 
-    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
     // At this point we should be signalling EP0 proxy with all this information, indicating that it is safe to start XUD
-    chan_out_word(ctx->c_ep0_proxy, endpoint_count);
-    chan_out_buf_byte(ctx->c_ep0_proxy, (uint8_t*)&ctx->endpoint_out_type[0], endpoint_count*sizeof(ctx->endpoint_out_type[0]));
+    chan_out_word(ctx->c_ep_proxy[0], endpoint_count);
+    chan_out_buf_byte(ctx->c_ep_proxy[0], (uint8_t*)&ctx->endpoint_out_type[0], endpoint_count*sizeof(ctx->endpoint_out_type[0]));
 
-    chan_out_word(ctx->c_ep0_proxy, endpoint_count);
-    chan_out_buf_byte(ctx->c_ep0_proxy, (uint8_t*)&ctx->endpoint_in_type[0], endpoint_count*sizeof(ctx->endpoint_in_type[0]));
-    rtos_osal_mutex_put(&ctx->mutex);
+    chan_out_word(ctx->c_ep_proxy[0], endpoint_count);
+    chan_out_buf_byte(ctx->c_ep_proxy[0], (uint8_t*)&ctx->endpoint_in_type[0], endpoint_count*sizeof(ctx->endpoint_in_type[0]));
 
     triggerable_enable_trigger(ctx->c_ep0_proxy_xfer_complete);
 #else
@@ -470,11 +468,11 @@ void rtos_usb_simple_init(
 }
 
 #if RUN_EP0_VIA_PROXY
-uint8_t offtile_rtos_usb_endpoint_reset(chanend_t c_ep0_proxy, uint8_t ep_addr)
+uint8_t offtile_rtos_usb_endpoint_reset(chanend_t c_ep_proxy, uint8_t ep_addr)
 {
-    chan_out_byte(c_ep0_proxy, e_reset_ep);
-    chan_out_byte(c_ep0_proxy, ep_addr);
-    uint8_t usb_bus_speed = chan_in_byte(c_ep0_proxy);
+    chan_out_byte(c_ep_proxy, e_reset_ep);
+    chan_out_byte(c_ep_proxy, ep_addr);
+    uint8_t usb_bus_speed = chan_in_byte(c_ep_proxy);
     return usb_bus_speed;
 }
 
@@ -495,24 +493,22 @@ XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
     
     ctx->ep_xfer_info[ep_num][dir].len = len;
 
-    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
-    chan_out_byte(ctx->c_ep0_proxy, e_usb_endpoint_transfer_start);
-    chan_out_byte(ctx->c_ep0_proxy, endpoint_addr);
-    chan_out_byte(ctx->c_ep0_proxy, len);
+    chan_out_byte(ctx->c_ep_proxy[ep_num], e_usb_endpoint_transfer_start);
+    chan_out_byte(ctx->c_ep_proxy[ep_num], endpoint_addr);
+    chan_out_byte(ctx->c_ep_proxy[ep_num], len);
 
     if (dir == RTOS_USB_IN_EP) {
         //res = xud_data_set_start(ctx->ep[ep_num][dir], buffer, len);        
         if(len > 0)
         {
-            chan_out_buf_byte(ctx->c_ep0_proxy, buffer, len);
+            chan_out_buf_byte(ctx->c_ep_proxy[ep_num], buffer, len);
         }
 
     } else {
         // No point passing buffer here, since buffer in which data is read will be different on EP0. At data_get_finish we need to copy the data to this 'buffer'
         //res = xud_data_get_start(ctx->ep[ep_num][dir], buffer);
     }
-    res = chan_in_byte(ctx->c_ep0_proxy);
-    rtos_osal_mutex_put(&ctx->mutex);
+    res = chan_in_byte(ctx->c_ep_proxy[ep_num]);
     return res;
 }
 #endif
