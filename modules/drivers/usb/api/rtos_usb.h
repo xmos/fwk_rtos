@@ -18,6 +18,17 @@
 #include "rtos_osal.h"
 #include "rtos_driver_rpc.h"
 
+#if RUN_EP0_VIA_PROXY
+typedef enum {
+    e_reset_ep=36,
+    e_prepare_setup,
+    e_usb_endpoint_transfer_start,
+    e_xud_data_get_start,
+    e_usb_device_address_set,
+    e_usb_endpoint_state_reset
+}ep0_proxy_cmds_t;
+#endif
+
 /**
  * The maximum number of USB endpoint numbers supported by the RTOS USB driver.
  */
@@ -213,12 +224,14 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
 #if RUN_EP0_VIA_PROXY
-    printf("rtos_usb_endpoint_state_reset() called on the wrong tile!!\n");
-    xassert(0);
-#endif
+    chan_out_byte(ctx->c_ep0_proxy, e_usb_endpoint_state_reset);
+    chan_out_word(ctx->c_ep0_proxy, endpoint_addr);
+    XUD_Result_t res = chan_in_byte(ctx->c_ep0_proxy);
+    (void) res;
+#else
     (void) ctx;
     XUD_ResetEpStateByAddr(endpoint_addr);
-    
+#endif
 }
 
 /**
@@ -397,13 +410,6 @@ void rtos_usb_simple_init(
 /**@}*/
 
 #if RUN_EP0_VIA_PROXY
-typedef enum {
-    e_reset_ep=36,
-    e_prepare_setup,
-    e_usb_endpoint_transfer_start,
-    e_xud_data_get_start,
-    e_usb_device_address_set
-}ep0_proxy_cmds_t;
 
 XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
                                               uint32_t endpoint_addr,
