@@ -79,8 +79,13 @@ static void prepare_setup(bool in_isr)
 //  rtos_printf("preparing for setup packet\n");
     waiting_for_setup = true;
 #if RUN_EP0_VIA_PROXY
+    //printf("prepare_setup 1\n");
+    //while (rtos_osal_mutex_get(&usb_ctx.mutex, RTOS_OSAL_NO_WAIT) != RTOS_OSAL_SUCCESS);
+
     chan_out_byte(usb_ctx.c_ep0_proxy, e_prepare_setup);
     res = chan_in_byte(usb_ctx.c_ep0_proxy);
+    //rtos_osal_mutex_put(&usb_ctx.mutex);
+    //printf("prepare_setup 2\n");
 #else
     res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
 #endif
@@ -94,7 +99,11 @@ static void reset_ep(uint8_t ep_addr, bool in_isr)
     tusb_speed_t tu_speed;
 
 #if RUN_EP0_VIA_PROXY
+    //printf("reset_ep 1\n");
+    //while (rtos_osal_mutex_get(&usb_ctx.mutex, RTOS_OSAL_NO_WAIT) != RTOS_OSAL_SUCCESS);
     xud_speed = offtile_rtos_usb_endpoint_reset(usb_ctx.c_ep0_proxy, ep_addr); // Proxy calls prepare_setup automatically after resetting the EP.
+    //rtos_osal_mutex_put(&usb_ctx.mutex);
+    //printf("reset_ep 2\n");
     waiting_for_setup = true;
 #else
     xud_speed = rtos_usb_endpoint_reset(&usb_ctx, ep_addr);

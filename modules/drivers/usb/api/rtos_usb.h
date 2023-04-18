@@ -129,6 +129,7 @@ struct rtos_usb_struct {
 #if RUN_EP0_VIA_PROXY
     chanend_t c_ep0_proxy;
     chanend_t c_ep0_proxy_xfer_complete;
+    rtos_osal_mutex_t mutex;
 #endif
 };
 
@@ -224,9 +225,11 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
 #if RUN_EP0_VIA_PROXY
+    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
     chan_out_byte(ctx->c_ep0_proxy, e_usb_endpoint_state_reset);
     chan_out_word(ctx->c_ep0_proxy, endpoint_addr);
     XUD_Result_t res = chan_in_byte(ctx->c_ep0_proxy);
+    rtos_osal_mutex_put(&ctx->mutex);
     (void) res;
 #else
     (void) ctx;
@@ -420,9 +423,11 @@ static inline XUD_Result_t offtile_rtos_usb_device_address_set(rtos_usb_t *ctx,
                                                        uint32_t addr)
 {
     (void) ctx;
+    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
     chan_out_byte(ctx->c_ep0_proxy, e_usb_device_address_set);
     chan_out_word(ctx->c_ep0_proxy, addr);
     XUD_Result_t res = chan_in_byte(ctx->c_ep0_proxy);
+    rtos_osal_mutex_put(&ctx->mutex);
     return res;
 }
 
