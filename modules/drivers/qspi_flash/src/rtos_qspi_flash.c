@@ -626,9 +626,7 @@ void rtos_qspi_flash_op_core_affinity_set(
         rtos_qspi_flash_t *ctx,
         uint32_t op_core_mask)
 {
-    if (&ctx->op_task != NULL) {
-        rtos_osal_thread_core_exclusion_set(&ctx->op_task, ~op_core_mask);
-    }
+    rtos_osal_thread_core_exclusion_set(&ctx->op_task, ~op_core_mask);
 }
 
 void rtos_qspi_flash_init(
