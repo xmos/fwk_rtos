@@ -9,13 +9,15 @@
 #include "rtos_spi_slave.h"
 #include "rtos_uart_tx.h"
 #include "rtos_uart_rx.h"
+#include "rtos_qspi_flash.h"
 
 void board_tile0_init(
         chanend_t tile1,
         rtos_intertile_t *intertile_ctx,
         rtos_spi_master_t *spi_master_ctx,
         rtos_spi_master_device_t *test_device_ctx,
-        rtos_uart_tx_t *rtos_uart_tx_ctx
+        rtos_uart_tx_t *rtos_uart_tx_ctx,
+        rtos_qspi_flash_t *qspi_flash_ctx
     );
 
 void board_tile1_init(
@@ -24,7 +26,8 @@ void board_tile1_init(
         rtos_spi_master_t *spi_master_ctx,
         rtos_spi_master_device_t *test_device_ctx,
         rtos_spi_slave_t *spi_slave_ctx,
-        rtos_uart_rx_t *rtos_uart_rx_ctx
+        rtos_uart_rx_t *rtos_uart_rx_ctx,
+        rtos_qspi_flash_t *qspi_flash_ctx
     );
 
 #endif /* BOARD_INIT_H_ */

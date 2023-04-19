@@ -20,10 +20,15 @@ on:
       - 'develop'
 
   # Allow manually triggering of the workflow.
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      run_rtos_tests:
+        description: 'Force RTOS Testing?'
+        type: boolean
+        default: false
 
 env:
-  SDK_BUILDER_IMAGE: 'ghcr.io/xmos/sdk_app_builder:develop'
+  XCORE_BUILDER_IMAGE: 'ghcr.io/xmos/xcore_builder:latest'
 
 jobs:
   changes:
@@ -31,13 +36,15 @@ jobs:
     name: Change detection
     # Set job outputs to values from filter step
     outputs:
-      rtos_tests: ${{ steps.filter.outputs.rtos_tests }}
+      rtos_tests: ${{ github.event.inputs.run_rtos_tests || steps.filter.outputs.rtos_tests }}
     steps:
-      - name: Checkout SDK
+      - name: Checkout
+        if: ${{ github.event.inputs.run_rtos_tests == false }}
         uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Paths filter
+        if: ${{ github.event.inputs.run_rtos_tests == false }}
         uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -49,7 +56,7 @@ jobs:
   build_rtos_tests:
     needs: changes
     name: Build RTOS tests
-    if: ${{ needs.changes.outputs.rtos_tests == 'true' }}  
+    if: ${{ needs.changes.outputs.rtos_tests }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,16 +64,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Pull SDK builder
+      - name: Pull Docker builder
         run: |
-          docker pull ${SDK_BUILDER_IMAGE}
+          docker pull ${XCORE_BUILDER_IMAGE}
 
       - name: Build
         run: |
-          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${SDK_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all
-
-      # - name: Upload artifacts
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: rtos_tests
-      #     path: ./dist/*.xe
+          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all

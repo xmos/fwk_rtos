@@ -1,8 +1,16 @@
 #!/bin/bash
-set -e
+# Copyright (c) 2023, XMOS Ltd, All rights reserved
+# This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+set -e # exit on first error
+
+if [ -f /.dockerenv ]; then
+    # Docker workaround for: "fatal: detected dubious ownership in repository"
+    git config --global --add safe.directory /fwk_rtos
+fi
+
+# discern repo root
 REPO_ROOT=`git rev-parse --show-toplevel`
-
 source ${REPO_ROOT}/tools/ci/helper_functions.sh
 
 # setup distribution folder
@@ -15,8 +23,8 @@ applications=(
     "test_rtos_driver_clock_control_test  XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     "test_rtos_driver_hil                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
     "test_rtos_driver_hil_add             XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
-    "test_rtos_driver_usb                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
-    "test_rtos_driver_wifi                XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
+    # "test_rtos_driver_usb                 XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
+    # "test_rtos_driver_wifi                XCORE-AI-EXPLORER  xmos_cmake_toolchain/xs3a.cmake"
 )
 
 # perform builds

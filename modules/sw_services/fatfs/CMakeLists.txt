@@ -28,6 +28,4 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
 
     ## Create an alias
     add_library(rtos::sw_services::fatfs ALIAS framework_rtos_sw_services_fatfs)
-else()
-    add_subdirectory(host)
 endif()

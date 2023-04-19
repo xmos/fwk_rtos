@@ -3,4 +3,8 @@ documents/README.rst
 tools
 projects
 test
-modules/rtos/FreeRTOS
+xmos_cmake_toolchain
+modules/FreeRTOS
+modules/sw_services
+build
+build_*

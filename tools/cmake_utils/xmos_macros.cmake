@@ -68,13 +68,73 @@ endmacro()
 
 ## Creates a filesystem file for a provided binary
 ##   filename must end in "_fat.fs"
-macro(create_filesystem_target _EXECUTABLE_TARGET_NAME)
-    add_custom_target(make_fs_${_EXECUTABLE_TARGET_NAME}
-      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${_EXECUTABLE_TARGET_NAME}_fat.fs ${_EXECUTABLE_TARGET_NAME}_fat.fs
-      DEPENDS ${_EXECUTABLE_TARGET_NAME}_fat.fs
+## Optional arguments can be used to specify other dependency targets, such as filesystem generators
+## create_filesystem_target(_EXECUTABLE_TARGET_NAME _FILESYSTEM_INPUT_DIR _IMAGE_SIZE _OPTIONAL_DEPENDS_TARGETS)
+macro(create_filesystem_target)
+  if(${ARGC} EQUAL 1)
+    add_custom_target(make_fs_${ARGV0} ALL
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/filesystem_support/${ARGV0}_fat.fs ${ARGV0}_fat.fs
+      DEPENDS ${ARGV0}_fat.fs
       COMMENT
         "Move filesystem"
+      VERBATIM
     )
+  elseif(${ARGC} EQUAL 3)
+    add_custom_target(make_fs_${ARGV0} ALL
+      COMMAND fatfs_mkimage --input=${ARGV1} --image_size=${ARGV2} --output=${ARGV0}_fat.fs
+      BYPRODUCTS
+        ${ARGV0}_fat.fs
+      COMMENT
+        "Create filesystem"
+      VERBATIM
+    )
+  elseif(${ARGC} EQUAL 4)
+    add_custom_target(make_fs_${ARGV0} ALL
+      COMMAND fatfs_mkimage --input=${ARGV1} --image_size=${ARGV2} --output=${ARGV0}_fat.fs
+      DEPENDS ${ARGV3}
+      BYPRODUCTS
+        ${ARGV0}_fat.fs
+      COMMENT
+        "Create filesystem"
+      VERBATIM
+    )
+  else()
+    message(FATAL_ERROR "Invalid number of arguments passed to create_filesystem_target")
+  endif()
+endmacro()
+
+## Creates a directory populated with all components related to the data partition
+##   folder must end in "_data_partition"
+## Optional argument can be used to specify dependency targets
+## create_data_partition_directory(_EXECUTABLE_TARGET_NAME _FILES_TO_COPY _OPTIONAL_DEPENDS_TARGETS)
+macro(create_data_partition_directory)
+  if(${ARGC} EQUAL 2)
+    add_custom_target(make_data_partition_${ARGV0} ALL
+      COMMAND ${CMAKE_COMMAND} -E rm -rf ${ARGV0}_data_partition/
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${ARGV0}_data_partition/
+        COMMAND ${CMAKE_COMMAND} -E copy ${ARGV1} ${ARGV0}_data_partition/
+        COMMENT
+            "Collect data partition components"
+        VERBATIM
+    )
+  elseif(${ARGC} EQUAL 3)
+    add_custom_target(make_data_partition_${ARGV0} ALL
+      COMMAND ${CMAKE_COMMAND} -E rm -rf ${ARGV0}_data_partition/
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${ARGV0}_data_partition/
+      COMMAND ${CMAKE_COMMAND} -E copy ${ARGV1} ${ARGV0}_data_partition/
+      DEPENDS
+          ${ARGV2}
+      COMMENT
+          "Collect data partition components"
+      VERBATIM
+    )
+  else()
+    message(FATAL_ERROR "Invalid number of arguments passed to create_data_partition_directory")
+  endif()
+
+  set_target_properties(make_data_partition_${ARGV0} PROPERTIES
+      ADDITIONAL_CLEAN_FILES ${ARGV0}_data_partition
+  )
 endmacro()
 
 ## Creates a flash app target for a provided binary

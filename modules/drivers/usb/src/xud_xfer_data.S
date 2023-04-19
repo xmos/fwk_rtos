@@ -27,7 +27,7 @@ xud_setup_data_get_finish:
 #endif
     stw         r11, r0[4]                      // Reset OUT toggle
 
-    ldc         r11, 640                        // Assuming MAX_NUM_EPS is 16 and struct size is 40 here!
+    ldc         r11, 832                        // Offset from OUT XUD_ep_info to the related IN XUD_ep_info. Constant must equal: (USB_MAX_NUM_EP_OUT * sizeof(XUD_ep_info))
     add         r11, r0, r11
 
     ldc         r0, USB_PIDn_DATA1
@@ -78,7 +78,6 @@ xud_data_get_finish:
 
                                                 // Check PID
     ldw         r11, r0[6]                      // Load received PID from EP structure
-    shr         r11, r11, 24                    // Shift off junk
 
     ldw         r1, r0[4]                       // Load expected PID
     xor         r11, r1, r11                    // Do the comparison
@@ -121,65 +120,3 @@ xud_data_get_finish_badpkt:
 .set xud_data_get_finish.locnoglobalaccess, 1
 .set xud_data_get_finish.locnointerfaceaccess, 1
 .set xud_data_get_finish.locnonotificationselect, 1
-
-
-/*
- * Note: This is essentially XUD_SetData_Select() from XUD_EpFuncs.S.
- * It returns the status, rather than passing it through a reference
- * parameter.
- */
-//XUD_Result_t xud_data_set_finish(chanend_t c, XUD_ep ep);
-//                                 r0,          r1
-.globl xud_data_set_finish
-.type xud_data_set_finish, @function
-.cc_top xud_data_set_finish.func
-.align 4
-xud_data_set_finish:
-#if defined(__XS2A__) || defined(__XS3A__)
-.issue_mode single
-  ENTSP_lu6 0
-#endif
-    testct      r3, res[r0]
-    bt          r3, xud_data_set_finish_reset
-
-    in          r11, res[r0]                     // Data sent okay
-    ldc         r0, XUD_RES_OKAY                 // Return XUD_RES_OKAY for success.
-
-    ldw         r11, r1[5]
-    bf          r11, xud_data_set_finish_donepid // Don't do any toggling for ISO
-
-                                                 // Toggle PID
-    ldw         r11, r1[4]                       // Load EP PID from structure
-    ldc         r3, 0x88
-    xor         r11, r11, r3
-    stw         r11, r1[4]                       // Store back PID
-
-xud_data_set_finish_donepid:
-    retsp       0
-
-xud_data_set_finish_reset:
-    mkmsk       r0, 32                           // Return -1 (XUD_RES_RST) as result
-  //ldw         r2, r1[0] //mystery instruction  // Load mem address of EP in XUD ep table
-    retsp       0
-
-.size xud_data_set_finish, .-xud_data_set_finish
-.cc_bottom xud_data_set_finish.func
-.globl xud_data_set_finish.nstackwords
-.globl xud_data_set_finish.maxchanends
-.globl xud_data_set_finish.maxtimers
-.globl xud_data_set_finish.maxcores
-.set xud_data_set_finish.nstackwords, 0
-.set xud_data_set_finish.maxchanends, 0
-.set xud_data_set_finish.maxtimers, 0
-.set xud_data_set_finish.maxcores, 1
-.globl xud_data_set_finish.locnoside
-.globl xud_data_set_finish.locnochandec
-.globl xud_data_set_finish.locnoglobalaccess
-.globl xud_data_set_finish.locnointerfaceaccess
-.globl xud_data_set_finish.locnonotificationselect
-.set xud_data_set_finish.locnoside, 1
-.set xud_data_set_finish.locnochandec, 1
-.set xud_data_set_finish.locnoglobalaccess, 1
-.set xud_data_set_finish.locnointerfaceaccess, 1
-.set xud_data_set_finish.locnonotificationselect, 1
-

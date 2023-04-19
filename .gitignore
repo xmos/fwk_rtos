@@ -23,7 +23,7 @@
 *.xmt
 **/_build/
 **/build_*/
-!doc/tutorials/build_system/
+!doc/build_system_guide/
 **/run_*.log
 **/_doxygen/*
 **/_templates/*
@@ -68,3 +68,5 @@ build/
 
 # ai_tools
 tools/ai/ai_tools
+*xcore_sdk_venv/*
+**/*.swp
