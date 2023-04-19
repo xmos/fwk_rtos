@@ -236,9 +236,9 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
 {
     //printf("ep_addr: %d\n", endpoint_addr);
 #if RUN_EP0_VIA_PROXY
-    chan_out_byte(ctx->c_ep0_proxy, e_reset_ep_by_address);
-    chan_out_byte(ctx->c_ep0_proxy, (uint8_t)endpoint_addr);
-    int res = chan_in_byte(ctx->c_ep0_proxy);
+    chan_out_byte(ctx->c_ep_proxy[0], e_reset_ep_by_address);
+    chan_out_byte(ctx->c_ep_proxy[0], (uint8_t)endpoint_addr);
+    int res = chan_in_byte(ctx->c_ep_proxy[0]);
     (void) res;
     //printf("res: %d\n", res);
 #else
