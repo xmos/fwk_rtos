@@ -43,7 +43,7 @@ static void usb_xud_thread(rtos_usb_t *ctx)
 
     (void) s_chan_in_byte(ctx->c_sof_xud);
 
-    rtos_printf("Starting XUD_Main() on core %d with %d endpoints\n", rtos_core_id_get(), ctx->endpoint_count);
+    //rtos_printf("Starting XUD_Main() on core %d with %d endpoints\n", rtos_core_id_get(), ctx->endpoint_count);
 
     memcpy(endpoint_out_type, ctx->endpoint_out_type, sizeof(endpoint_out_type));
     memcpy(endpoint_in_type, ctx->endpoint_in_type, sizeof(endpoint_in_type));
@@ -85,7 +85,7 @@ static XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
         res = xud_data_get_check(ctx->c_ep[ep_num][dir], len, is_setup);
 
         if (*len > ctx->ep_xfer_info[ep_num][dir].len) {
-            rtos_printf("Length of %d bytes transferred on ep %d direction %d. Should have been <= %d\n", *len, ep_num, dir, ctx->ep_xfer_info[ep_num][dir].len);
+            //rtos_printf("Length of %d bytes transferred on ep %d direction %d. Should have been <= %d\n", *len, ep_num, dir, ctx->ep_xfer_info[ep_num][dir].len);
         }
 
         xassert(*len <= ctx->ep_xfer_info[ep_num][dir].len);
@@ -95,16 +95,16 @@ static XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
             if (*is_setup) {
                 res = xud_setup_data_get_finish(ctx->ep[ep_num][dir]);
                 if (res == XUD_RES_ERR) {
-                    rtos_printf("USB XFER ERROR from xud_setup_data_get_finish()!\n");
+                    //rtos_printf("USB XFER ERROR from xud_setup_data_get_finish()!\n");
                 }
             } else {
                 res = xud_data_get_finish(ctx->ep[ep_num][dir]);
                 if (res == XUD_RES_ERR) {
-                    rtos_printf("USB XFER ERROR from xud_data_get_finish()!\n");
+                    //rtos_printf("USB XFER ERROR from xud_data_get_finish()!\n");
                 }
             }
         } else if (res == XUD_RES_ERR) {
-            rtos_printf("USB XFER ERROR from xud_data_get_check()!\n");
+            //rtos_printf("USB XFER ERROR from xud_data_get_check()!\n");
         }
     }
 
@@ -135,7 +135,7 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
         }
     } else {
         ctx->ep[ep_num][dir] = XUD_InitEp(ctx->c_ep[ep_num][dir]);
-        rtos_printf("EP %d %d initialized\n", ep_num, dir);
+        //rtos_printf("EP %d %d initialized\n", ep_num, dir);
     }
 }
 #else /* RUN_EP0_VIA_PROXY */
@@ -147,7 +147,7 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
     uint32_t xfer_len = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
     XUD_Result_t res = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
 
-    printf("In usb_isr(). dir %d, xfer_len %d, res %d\n", dir, xfer_len, res);
+    ////printf("In usb_isr(). dir %d, xfer_len %d, res %d\n", dir, xfer_len, res);
 
     if (res == XUD_RES_RST) {
         ctx->reset_received = 1;
@@ -493,7 +493,7 @@ XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
     
     ctx->ep_xfer_info[ep_num][dir].len = len;
 
-    printf("offtile_rtos_usb_endpoint_transfer_start. ep_num %d, dir %d, len %d\n", ep_num, dir, len);
+    //printf("offtile_rtos_usb_endpoint_transfer_start. ep_num %d, dir %d, len %d\n", ep_num, dir, len);
 
     chan_out_byte(ctx->c_ep0_proxy, e_usb_endpoint_transfer_start);
     chan_out_byte(ctx->c_ep0_proxy, endpoint_addr);
