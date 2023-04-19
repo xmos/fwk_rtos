@@ -18,17 +18,6 @@
 #include "rtos_osal.h"
 #include "rtos_driver_rpc.h"
 
-#if RUN_EP0_VIA_PROXY
-typedef enum {
-    e_reset_ep=36,
-    e_prepare_setup,
-    e_usb_endpoint_transfer_start,
-    e_xud_data_get_start,
-    e_usb_device_address_set,
-    e_usb_endpoint_state_reset
-}ep0_proxy_cmds_t;
-#endif
-
 /**
  * The maximum number of USB endpoint numbers supported by the RTOS USB driver.
  */
@@ -142,6 +131,17 @@ static inline int endpoint_dir(uint32_t endpoint_addr)
     return (endpoint_addr >> 7) & 1;
 }
 
+#if RUN_EP0_VIA_PROXY
+typedef enum {
+    e_reset_ep=36,
+    e_prepare_setup,
+    e_usb_endpoint_transfer_start,
+    e_xud_data_get_start,
+    e_usb_device_address_set,
+    e_reset_ep_by_address
+}ep0_proxy_cmds_t;
+
+#endif
 
 /**
  * Checks to see if a particular endpoint is ready to use.
@@ -234,15 +234,17 @@ static inline XUD_Result_t rtos_usb_device_address_set(rtos_usb_t *ctx,
 static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
+    //printf("ep_addr: %d\n", endpoint_addr);
 #if RUN_EP0_VIA_PROXY
-    chan_out_byte(ctx->c_ep_proxy[0], e_usb_endpoint_state_reset); // ep state reset command is always sent over c_ep_proxy[0]
-    chan_out_word(ctx->c_ep_proxy[0], endpoint_addr);
-    XUD_Result_t res = chan_in_byte(ctx->c_ep_proxy[0]);
+    chan_out_byte(ctx->c_ep0_proxy, e_reset_ep_by_address);
+    chan_out_byte(ctx->c_ep0_proxy, (uint8_t)endpoint_addr);
+    int res = chan_in_byte(ctx->c_ep0_proxy);
     (void) res;
+    //printf("res: %d\n", res);
 #else
     (void) ctx;
     XUD_ResetEpStateByAddr(endpoint_addr);
-#endif
+#endif    
 }
 
 /**
