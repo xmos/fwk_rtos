@@ -127,7 +127,7 @@ struct rtos_usb_struct {
     void *isr_app_data;
     rtos_usb_ep_xfer_info_t ep_xfer_info[RTOS_USB_ENDPOINT_COUNT_MAX][2];
 #if RUN_EP0_VIA_PROXY
-    chanend_t c_ep_proxy[RTOS_USB_ENDPOINT_COUNT_MAX];
+    chanend_t c_ep_proxy[RTOS_USB_ENDPOINT_COUNT_MAX]; // We'll try to make it work with one channel per endpoint that gets handled via the proxy
     chanend_t c_ep0_proxy_xfer_complete;
 #endif
 };
