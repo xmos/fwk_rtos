@@ -294,7 +294,6 @@ void rtos_usb_start(
         int sof_interrupt_core_id)
 {
     int i;
-    uint32_t core_exclude_map;
 
     ctx->power_source = power_source;
     ctx->speed = speed;
@@ -302,17 +301,23 @@ void rtos_usb_start(
     xassert(endpoint_count > 0 && endpoint_count <= RTOS_USB_ENDPOINT_COUNT_MAX);
     ctx->endpoint_count = endpoint_count;
 
+#if (appconfNUM_FREE_RTOS_CORES > 1)
+    uint32_t core_exclude_map;
     /* Ensure that all USB interrupts are enabled on the requested core */
     rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
+#endif
 
     if ((ctx->c_sof) && (sof_interrupt_core_id >= 0)) {
         ctx->sof_interrupt_enabled = 1;
+#if (appconfNUM_FREE_RTOS_CORES > 1)
         rtos_osal_thread_core_exclusion_set(NULL, ~(1 << sof_interrupt_core_id));
+#endif
         triggerable_setup_interrupt_callback(ctx->c_sof, ctx, RTOS_INTERRUPT_CALLBACK(usb_sof_isr));
         triggerable_enable_trigger(ctx->c_sof);
     }
-
+#if (appconfNUM_FREE_RTOS_CORES > 1)
     rtos_osal_thread_core_exclusion_set(NULL, ~(1 << interrupt_core_id));
+#endif
 
     for (i = 0; i < endpoint_count; i++) {
 
@@ -341,9 +346,10 @@ void rtos_usb_start(
     /* Tells the I/O thread to enter XUD_Main() */
     s_chan_out_byte(ctx->c_sof, 0);
 #endif
-
+#if (appconfNUM_FREE_RTOS_CORES > 1)
     /* Restore the core exclusion map for the calling thread */
     rtos_osal_thread_core_exclusion_set(NULL, core_exclude_map);
+#endif
 }
 
 void rtos_usb_init(
