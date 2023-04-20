@@ -10,6 +10,10 @@
 #define ALT_COUNT   3
 
 enum {
+    ITF_NUM_CDC_0,
+    ITF_NUM_CDC_0_DATA,
+    ITF_NUM_CDC_1,
+    ITF_NUM_CDC_1_DATA,
     ITF_NUM_DFU_MODE,
     ITF_NUM_TOTAL
 };

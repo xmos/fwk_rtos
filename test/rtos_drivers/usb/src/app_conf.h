@@ -8,6 +8,9 @@
 #define appconfUSB_INTERRUPT_CORE               2
 
 /* Test case timeouts */
+#define CDC_FIRST_BYTE_TIMEOUT_MS               10000
+#define CDC_NEXT_BYTE_TIMEOUT_MS                5000
+
 #define DFU_FIRST_XFER_TIMEOUT_MS               10000
 #define DFU_NEXT_XFER_TIMEOUT_MS                5000
 

@@ -15,6 +15,7 @@
 /* App headers */
 #include "app_conf.h"
 #include "individual_tests/usb/usb_test.h"
+#include "individual_tests/usb/local/usb_cdc_test.h"
 #include "individual_tests/usb/local/usb_dfu_test.h"
 #include "usb_support.h"
 
@@ -79,6 +80,7 @@ static void start_usb_devices(usb_test_ctx_t *test_ctx)
 
 static void register_usb_tests(usb_test_ctx_t *test_ctx)
 {
+    register_cdc_test(test_ctx);
     register_dfu_test(test_ctx);
 }
 
