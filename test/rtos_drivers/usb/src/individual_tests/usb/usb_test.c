@@ -16,6 +16,7 @@
 #include "app_conf.h"
 #include "individual_tests/usb/usb_test.h"
 #include "individual_tests/usb/local/usb_sof_test.h"
+#include "individual_tests/usb/local/usb_mount_test.h"
 #include "individual_tests/usb/local/usb_cdc_test.h"
 #include "individual_tests/usb/local/usb_dfu_test.h"
 #include "usb_support.h"
@@ -23,11 +24,6 @@
 //--------------------------------------------------------------------+
 // Device callbacks
 //--------------------------------------------------------------------+
-
-void tud_mount_cb(void)
-{
-    usb_printf("tud_mount_cb");
-}
 
 void tud_umount_cb(void)
 {
@@ -84,6 +80,7 @@ static void register_usb_tests(usb_test_ctx_t *test_ctx)
     // NOTE: The ordering of these tests ensure fundamental USB mechanisms work
     // prior to testing higher level mechanisms.
     register_sof_test(test_ctx);
+    register_mount_test(test_ctx);
     register_cdc_test(test_ctx);
     register_dfu_test(test_ctx);
 }

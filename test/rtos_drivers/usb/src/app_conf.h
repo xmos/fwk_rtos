@@ -10,6 +10,8 @@
 /* Test case timeouts */
 #define SOF_TIMEOUT_MS                          1000
 
+#define USB_MOUNT_TIMEOUT_MS                    5000
+
 #define CDC_FIRST_BYTE_TIMEOUT_MS               10000
 #define CDC_NEXT_BYTE_TIMEOUT_MS                5000
 
