@@ -423,6 +423,7 @@ static int servicer_register(device_control_t *ctx,
     return ret;
 }
 
+
 control_ret_t device_control_resources_register(device_control_t *ctx,
                                                 unsigned timeout)
 {
@@ -455,7 +456,7 @@ control_ret_t device_control_resources_register(device_control_t *ctx,
     if (registered_count == ctx->servicer_count) {
         return CONTROL_SUCCESS;
     } else {
-        printf("registered_count %d, ctx->servicer_count = %d\n", registered_count, ctx->servicer_count);
+        //printf("registered_count %d, ctx->servicer_count = %d\n", registered_count, ctx->servicer_count);
         return CONTROL_REGISTRATION_FAILED;
     }
 }
