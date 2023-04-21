@@ -43,7 +43,7 @@ static uint16_t device_control_usb_open(uint8_t rhport, tusb_desc_interface_t co
 
     uint16_t const drv_len = sizeof(tusb_desc_interface_t);
     TU_VERIFY(max_len >= drv_len);
-
+#if 0 // TODO Do this properly by overriding with our own driver
     control_ret_t dc_ret;
 
     dc_ret = device_control_resources_register(device_control_ctx,
@@ -55,7 +55,7 @@ static uint16_t device_control_usb_open(uint8_t rhport, tusb_desc_interface_t co
         //rtos_printf("Device control resources registered for USB on tile %d\n", THIS_XCORE_TILE);
     }
     TU_VERIFY(dc_ret == CONTROL_SUCCESS);
-
+#endif
     //rtos_printf("Device control USB interface #%d opened\n", itf_desc->bInterfaceNumber);
 
     return drv_len;
