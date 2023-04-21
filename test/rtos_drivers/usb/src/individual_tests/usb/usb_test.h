@@ -9,7 +9,7 @@
 
 #define usb_printf( FMT, ... )      module_printf("USB", FMT, ##__VA_ARGS__)
 
-#define USB_MAX_TESTS               2
+#define USB_MAX_TESTS               3
 
 #define USB_MAIN_TEST_ATTR          __attribute__((fptrgroup("rtos_test_usb_main_test_fptr_grp")))
 
