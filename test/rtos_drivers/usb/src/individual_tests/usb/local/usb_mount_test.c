@@ -53,6 +53,8 @@ void tud_mount_cb(void)
 USB_MAIN_TEST_ATTR
 static int mount_test(usb_test_ctx_t *ctx)
 {
+    int result = 0;
+
     LOCAL_PRINTF("Start");
 
 #if ON_TILE(0)
@@ -80,10 +82,14 @@ static int mount_test(usb_test_ctx_t *ctx)
     LOCAL_PRINTF("Done");
 
 #if ON_TILE(0)
-    return (mounted) ? 0 : 1;
-#else
-    return 0;
+    if (mounted) {
+        ctx->flags |= USB_MOUNTED_FLAG;
+    } else {
+        result = 1;
+    }
 #endif
+
+    return result;
 }
 
 void register_mount_test(usb_test_ctx_t *test_ctx)

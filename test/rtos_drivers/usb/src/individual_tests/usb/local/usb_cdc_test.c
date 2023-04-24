@@ -63,22 +63,32 @@ static void echo_serial_port(uint8_t itf, uint8_t buf[], uint32_t count)
 USB_MAIN_TEST_ATTR
 static int cdc_test(usb_test_ctx_t *ctx)
 {
+    int result = 0;
+
     LOCAL_PRINTF("Start");
 
 #if ON_TILE(0)
     bool test_complete = false;
-    test_timeout_ctx = xTimerCreate("test_tmo",
-                                    pdMS_TO_TICKS(CDC_FIRST_BYTE_TIMEOUT_MS),
-                                    pdFALSE,
-                                    NULL,
-                                    timeout_cb);
 
-    xTimerStart(test_timeout_ctx, 0);
+    if ((ctx->flags & USB_MOUNTED_FLAG) == 0) {
+        LOCAL_PRINTF("Skipped (not mounted)");
+        result = 1;
+    } else {
+        test_timeout_ctx = xTimerCreate("test_tmo",
+                                        pdMS_TO_TICKS(CDC_FIRST_BYTE_TIMEOUT_MS),
+                                        pdFALSE,
+                                        NULL,
+                                        timeout_cb);
 
-    while (1) {
-        for (uint8_t itf = 0; itf < CFG_TUD_CDC; itf++) {
-            if (tud_cdc_n_available(itf)) {
+        xTimerStart(test_timeout_ctx, 0);
+
+        while (1) {
+            for (uint8_t itf = 0; itf < CFG_TUD_CDC; itf++) {
+                if (tud_cdc_n_available(itf) == 0)
+                    continue;
+
                 uint8_t other_itf = (itf) ? 0 : 1;
+
                 if (rx_first_byte) {
                     rx_first_byte = false;
                     xTimerStop(test_timeout_ctx, 0);
@@ -100,10 +110,10 @@ static int cdc_test(usb_test_ctx_t *ctx)
                     test_complete = true;
                 }
             }
-        }
 
-        if (test_complete || rx_timeout) {
-            break;
+            if (test_complete || rx_timeout) {
+                break;
+            }
         }
 
         xTimerStop(test_timeout_ctx, 0);
@@ -112,7 +122,16 @@ static int cdc_test(usb_test_ctx_t *ctx)
 #endif
 
     LOCAL_PRINTF("Done");
-    return 0;
+
+#if ON_TILE(0)
+    if (test_complete) {
+        ctx->flags |= USB_BULK_TRANSFER_FLAG;
+    } else {
+        result = 1;
+    }
+#endif
+
+    return result;
 }
 
 void register_cdc_test(usb_test_ctx_t *test_ctx)

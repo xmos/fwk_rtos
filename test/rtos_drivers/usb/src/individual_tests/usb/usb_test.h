@@ -13,9 +13,18 @@
 
 #define USB_MAIN_TEST_ATTR          __attribute__((fptrgroup("rtos_test_usb_main_test_fptr_grp")))
 
+/* Flags which may be set by a test to indicate a USB function is working,
+ * this allows other tests that may be dependent on such functionality to skip
+ * being tested if required functionality has not passed verification. */
+#define USB_SOF_RECEIVED_FLAG       1
+#define USB_MOUNTED_FLAG            2
+#define USB_BULK_TRANSFER_FLAG      4
+#define USB_CTRL_TRANSFER_FLAG      8
+
 typedef struct usb_test_ctx usb_test_ctx_t;
 
 struct usb_test_ctx {
+    uint32_t flags;
     uint32_t cur_test;
     uint32_t test_cnt;
     char *name[USB_MAX_TESTS];

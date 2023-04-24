@@ -58,6 +58,8 @@ bool tud_xcore_sof_cb(uint8_t rhport)
 USB_MAIN_TEST_ATTR
 static int sof_test(usb_test_ctx_t *ctx)
 {
+    int result = 0;
+
     LOCAL_PRINTF("Start");
 
 #if ON_TILE(0)
@@ -86,10 +88,14 @@ static int sof_test(usb_test_ctx_t *ctx)
     LOCAL_PRINTF("Done");
 
 #if ON_TILE(0)
-    return (received_sof_event) ? 0 : 1;
-#else
-    return 0;
+    if (received_sof_event) {
+        ctx->flags |= USB_SOF_RECEIVED_FLAG;
+    } else {
+        result = 1;
+    }
 #endif
+
+    return result;
 }
 
 void register_sof_test(usb_test_ctx_t *test_ctx)

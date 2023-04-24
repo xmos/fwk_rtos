@@ -157,31 +157,47 @@ void tud_dfu_detach_cb(void)
 USB_MAIN_TEST_ATTR
 static int dfu_test(usb_test_ctx_t *ctx)
 {
+    int result = 0;
+
     LOCAL_PRINTF("Start");
 
 #if ON_TILE(0)
-    test_timeout_ctx = xTimerCreate("test_tmo",
-                                    pdMS_TO_TICKS(DFU_FIRST_XFER_TIMEOUT_MS),
-                                    pdFALSE,
-                                    NULL,
-                                    timeout_cb);
+    if ((ctx->flags & USB_MOUNTED_FLAG) == 0) {
+        LOCAL_PRINTF("Skipped (not mounted)");
+        result = 1;
+    } else {
+        test_timeout_ctx = xTimerCreate("test_tmo",
+                                        pdMS_TO_TICKS(DFU_FIRST_XFER_TIMEOUT_MS),
+                                        pdFALSE,
+                                        NULL,
+                                        timeout_cb);
 
-    xTimerStart(test_timeout_ctx, 0);
+        xTimerStart(test_timeout_ctx, 0);
 
-    while (1) {
-        vTaskDelay(pdMS_TO_TICKS(1));
+        while (1) {
+            vTaskDelay(pdMS_TO_TICKS(1));
 
-        if (dfu_detach || dfu_timeout || dfu_abort) {
-            break;
+            if (dfu_detach || dfu_timeout || dfu_abort) {
+                break;
+            }
         }
-    }
 
-    xTimerStop(test_timeout_ctx, 0);
-    xTimerDelete(test_timeout_ctx, 0);
+        xTimerStop(test_timeout_ctx, 0);
+        xTimerDelete(test_timeout_ctx, 0);
+    }
 #endif
 
     LOCAL_PRINTF("Done");
-    return 0;
+
+#if ON_TILE(0)
+    if (dfu_detach) {
+        ctx->flags |= USB_CTRL_TRANSFER_FLAG;
+    } else {
+        result = 1;
+    }
+#endif
+
+    return result;
 }
 
 void register_dfu_test(usb_test_ctx_t *test_ctx)
