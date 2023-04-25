@@ -1,7 +1,7 @@
 #**********************
 # Individual tests
 #**********************
-set(SPI_TEST  0)
+set(SPI_TEST  1)
 set(UART_TEST  0)   # Appears to be broken
 set(QSPI_FLASH_FAST_READ_TEST 1)
 
