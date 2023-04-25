@@ -37,6 +37,9 @@ struct rtos_qspi_flash_struct {
     __attribute__((fptrgroup("rtos_qspi_flash_read_fptr_grp")))
     void (*read)(rtos_qspi_flash_t *, uint8_t *, unsigned, size_t);
 
+    __attribute__((fptrgroup("rtos_qspi_flash_read_mode_fptr_grp")))
+    void (*read_mode)(rtos_qspi_flash_t *, uint8_t *, unsigned, size_t, qspi_fast_flash_read_transfer_mode_t);
+
     __attribute__((fptrgroup("rtos_qspi_flash_write_fptr_grp")))
     void (*write)(rtos_qspi_flash_t *, const uint8_t *, unsigned, size_t);
 
@@ -130,6 +133,34 @@ inline void rtos_qspi_flash_read(
 }
 
 /**
+ * This reads data from the flash in quad I/O mode. All four lines are
+ * used to send the address and to read the data.
+ *
+ * Note: This only works with fast flash read and successful calibration.
+ * See rtos_qspi_flash_fast_read_init() versus rtos_qspi_flash_init()
+ * 
+ * If used with non fast flash read setups, this function will behave exactly
+ * the same as rtos_qspi_flash_read(), regardless of the value of \p mode.
+ * 
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ * \param data    Pointer to the buffer to save the read data to.
+ * \param address The byte address in the flash to begin reading at.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
+ * \param len     The number of bytes to read and save to \p data.
+ * \param mode    The transfer mode for this read operation \p data.
+ */
+inline void rtos_qspi_flash_read_mode(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len,
+        qspi_fast_flash_read_transfer_mode_t mode)
+{
+    ctx->read_mode(ctx, data, address, len, mode);
+}
+
+/**
  * This is a lower level version of rtos_qspi_flash_read() that is safe
  * to call from within ISRs. If a task currently own the flash lock, or
  * if another core is actively doing a read with this function, then the
@@ -198,6 +229,18 @@ int rtos_qspi_flash_fast_read_ll(
         uint8_t *data,
         unsigned address,
         size_t len);
+
+/**
+ * This is a lower level function that enables the user to setup the ports for
+ * fast flash access.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ */
+void rtos_qspi_flash_fast_read_setup_ll(
+        rtos_qspi_flash_t *ctx);
 
 /**
  * This writes data to the QSPI flash. The standard page program command

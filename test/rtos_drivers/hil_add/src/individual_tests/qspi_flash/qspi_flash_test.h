@@ -8,7 +8,7 @@
 
 #define qspi_flash_printf( FMT, ... )       module_printf("QSPI_FLASH", FMT, ##__VA_ARGS__)
 
-#define QSPI_FLASH_MAX_TESTS   4
+#define QSPI_FLASH_MAX_TESTS   6
 
 #define QSPI_FLASH_MAIN_TEST_ATTR      __attribute__((fptrgroup("rtos_test_qspi_flash_main_test_fptr_grp")))
 
@@ -34,8 +34,10 @@ void register_multiple_user_test(qspi_flash_test_ctx_t *test_ctx);
 
 /* Local Tests */
 void register_read_write_read_test(qspi_flash_test_ctx_t *test_ctx);
+void register_read_write_read_mode_test(qspi_flash_test_ctx_t *test_ctx);
 
 /* RPC Tests */
 void register_rpc_read_write_read_test(qspi_flash_test_ctx_t *test_ctx);
+void register_rpc_read_write_read_mode_test(qspi_flash_test_ctx_t *test_ctx);
 
 #endif /* QSPI_FLASH_TEST_H_ */

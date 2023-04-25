@@ -65,7 +65,7 @@ void board_tile0_init(
             UART_PARITY_ODD,
             1,
             tmr_tx);
-
+            
     rtos_qspi_flash_fast_read_init(
             qspi_flash_ctx,
             XS1_CLKBLK_2,
