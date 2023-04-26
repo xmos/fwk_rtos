@@ -42,7 +42,7 @@
         FetchContent_Declare(
             lib_qspi_fast_read
             GIT_REPOSITORY git@github.com:xmos/lib_qspi_fast_read.git
-            GIT_TAG        b0e3fd1b9cc0582310cb06959e33ee0602774efa
+            GIT_TAG        a3b1a3b9410669da6a3aa0ccd78679c20eea989a
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/lib_qspi_fast_read
