@@ -14,11 +14,11 @@
 #include "app_conf.h"
 #include "individual_tests/qspi_flash/qspi_flash_test.h"
 
-static const char* test_name = "read_write_read_test";
+static const char* test_name = "read_write_read_mode_test";
 
 #define local_printf( FMT, ... )    qspi_flash_printf("%s|" FMT, test_name, ##__VA_ARGS__)
 
-#define QSPI_FLASH_TILE         0
+#define QSPI_FLASH_TILE         1
 #define QSPI_FLASH_TEST_ADDR    0
 
 #if ON_TILE(QSPI_FLASH_TILE)
@@ -39,14 +39,14 @@ static int read_write_read(rtos_qspi_flash_t *ctx, unsigned addr, size_t test_le
     local_printf("Erase");
     rtos_qspi_flash_erase(ctx, addr, test_len);
     local_printf("Read");
-    rtos_qspi_flash_read(ctx, test_buf, addr, test_len);
+    rtos_qspi_flash_read_mode(ctx, test_buf, addr, test_len, qspi_fast_flash_read_transfer_nibble_swap);
 
     local_printf("Verify");
     for (int i=0; i<test_len; i++)
     {
         if (test_buf[i] != 0xFF)
         {
-            local_printf("Failed. rx_buf[%d]: Expected 0 got 0x%x", i, test_buf[i]);
+            local_printf("Failed. rx_buf[%d]: Expected 0xFF got 0x%x", i, test_buf[i]);
             rtos_osal_free(test_buf);
             return -1;
         }
@@ -61,12 +61,12 @@ static int read_write_read(rtos_qspi_flash_t *ctx, unsigned addr, size_t test_le
     rtos_qspi_flash_write(ctx, test_buf, addr, test_len);
     memset(test_buf, 0, test_len);
     local_printf("Read");
-    rtos_qspi_flash_read(ctx, test_buf, addr, test_len);
+    rtos_qspi_flash_read_mode(ctx, test_buf, addr, test_len, qspi_fast_flash_read_transfer_nibble_swap);
 
     local_printf("Verify");
     for (int i=0; i<test_len; i++)
     {
-        if (test_buf[i] != (i%(sizeof(uint8_t))))
+        if ((((test_buf[i] & 0x0F) << 4) | ((test_buf[i] & 0xF0) >> 4)) != (i%(sizeof(uint8_t))))
         {
             local_printf("Failed. rx_buf[%d]: Expected %d got 0x%x", i, i%(sizeof(uint8_t)), test_buf[i]);
             rtos_osal_free(test_buf);
@@ -117,7 +117,7 @@ static int main_test(qspi_flash_test_ctx_t *ctx)
     return 0;
 }
 
-void register_read_write_read_test(qspi_flash_test_ctx_t *test_ctx)
+void register_rpc_read_write_read_mode_test(qspi_flash_test_ctx_t *test_ctx)
 {
     uint32_t this_test_num = test_ctx->test_cnt;
 
