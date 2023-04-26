@@ -65,6 +65,7 @@ struct rtos_qspi_flash_struct {
     rtos_osal_semaphore_t data_ready;
     rtos_osal_mutex_t mutex;
     volatile int spinlock;
+    volatile int ll_req_flag;
 };
 
 #include "rtos_qspi_flash_rpc.h"
@@ -231,6 +232,43 @@ int rtos_qspi_flash_fast_read_ll(
         size_t len);
 
 /**
+ * This is a lower level version of rtos_qspi_flash_read_mode() that is safe
+ * to call from within ISRs. If a task currently own the flash lock, or
+ * if another core is actively doing a read with this function, then the
+ * read will not be performed and an error returned. It is up to the
+ * application to determine what it should do in this situation and to
+ * avoid a potential deadlock.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ * 
+ * This function uses the lib_qspi_fast_read API to perform the read. It is up
+ * to the application to ensure that XCORE resources are properly configured.
+ * 
+ * \note It is not possible to call this from a task that currently owns
+ * the flash lock taken with rtos_qspi_flash_lock(). In general it is not
+ * advisable to call this from an RTOS task unless the small amount of
+ * overhead time that is introduced by rtos_qspi_flash_read_mode() is unacceptable.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ * \param data    Pointer to the buffer to save the read data to.
+ * \param address The byte address in the flash to begin reading at.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
+ * \param len     The number of bytes to read and save to \p data.
+ * \param mode    The transfer mode for this read operation \p data.
+ *
+ * \retval        0 if the flash was available and the read operation was performed.
+ * \retval       -1 if the flash was unavailable and the read could not be performed.
+ */
+int rtos_qspi_flash_fast_read_mode_ll(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len,
+        qspi_fast_flash_read_transfer_mode_t mode);
+
+/**
  * This is a lower level function that enables the user to setup the ports for
  * fast flash access.
  *
@@ -240,6 +278,18 @@ int rtos_qspi_flash_fast_read_ll(
  * \param ctx     A pointer to the QSPI flash driver instance to use.
  */
 void rtos_qspi_flash_fast_read_setup_ll(
+        rtos_qspi_flash_t *ctx);
+
+/**
+ * This is a lower level function that enables the user to shutdown low level
+ * usage to resume normal QSPI thread operation.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ */
+void rtos_qspi_flash_fast_read_shutdown_ll(
         rtos_qspi_flash_t *ctx);
 
 /**

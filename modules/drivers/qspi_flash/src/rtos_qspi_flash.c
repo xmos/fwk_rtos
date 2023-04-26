@@ -42,8 +42,17 @@ extern void fl_int_eraseSector(
 #define FLASH_OP_ERASE 3
 #define FLASH_OP_READ_FAST_RAW 4
 #define FLASH_OP_READ_FAST_NIBBLE_SWAP 5
+#define FLASH_OP_LL_SETUP 6
 
 extern unsigned __libc_hwlock;
+
+typedef struct {
+    int op;
+    uint8_t *data;
+    unsigned address;
+    size_t len;
+    unsigned priority;
+} qspi_flash_op_req_t;
 
 /*
  * Returns true if the spinlock is
@@ -190,11 +199,94 @@ int rtos_qspi_flash_fast_read_ll(
     return lock_acquired ? 0 : -1;
 }
 
+int rtos_qspi_flash_fast_read_mode_ll(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len,
+        qspi_fast_flash_read_transfer_mode_t mode)
+{
+    qspi_fast_flash_read_ctx_t *qspi_flash_fast_read_ctx = &ctx->ctx;
+    uint32_t irq_mask;
+    bool lock_acquired;
+
+    rtos_printf("Asked to ll fast read mode %d bytes at address 0x%08x\n", len, address);
+
+    irq_mask = rtos_interrupt_mask_all();
+    lock_acquired = spinlock_get(&ctx->spinlock);
+
+    while (lock_acquired && len > 0) {
+
+        size_t read_len = MIN(len, RTOS_QSPI_FLASH_READ_CHUNK_SIZE);
+
+        /*
+         * Cap the address at the size of the flash.
+         * This ensures the correction below will work if
+         * address is outside the flash's address space.
+         */
+        if (address >= ctx->flash_size) {
+            address = ctx->flash_size;
+        }
+
+        if (address + read_len > ctx->flash_size) {
+            int original_len = read_len;
+
+            /* Don't read past the end of the flash */
+            read_len = ctx->flash_size - address;
+
+            /* Return all 0xFF bytes for addresses beyond the end of the flash */
+            memset(&data[read_len], 0xFF, original_len - read_len);
+        }
+
+        rtos_printf("Read %d bytes from flash at address 0x%x in mode %d\n", read_len, address, mode);
+
+        qspi_flash_fast_read_mode_set(&ctx->ctx, mode);
+
+        interrupt_mask_all();
+        qspi_flash_fast_read(qspi_flash_fast_read_ctx, address, data, read_len);
+        interrupt_unmask_all();
+
+        len -= read_len;
+        data += read_len;
+        address += read_len;
+    }
+
+    if (lock_acquired) {
+        spinlock_release(&ctx->spinlock);
+    }
+    rtos_interrupt_mask_set(irq_mask);
+
+    return lock_acquired ? 0 : -1;
+}
+
 void rtos_qspi_flash_fast_read_setup_ll(
         rtos_qspi_flash_t *ctx)
 {
+    ctx->ll_req_flag = 1;
+
+    qspi_flash_op_req_t op = {
+            .op = FLASH_OP_LL_SETUP,
+            .data = 0,
+            .address = 0,
+            .len = 0
+    };
+    rtos_osal_queue_send(&ctx->op_queue, &op, RTOS_OSAL_WAIT_FOREVER);
+
+    /* wait til task handshake */
+    while(ctx->ll_req_flag != 0) {
+        vTaskDelay(1);
+    }
+
     qspi_flash_fast_read_setup_resources(&ctx->ctx);
     qspi_flash_fast_read_apply_calibration(&ctx->ctx);
+}
+
+void rtos_qspi_flash_fast_read_shutdown_ll(
+        rtos_qspi_flash_t *ctx)
+{
+    ctx->last_op = FLASH_OP_NONE;
+    qspi_flash_fast_read_shutdown(&ctx->ctx);
+    vTaskResume(ctx->op_task.thread);
 }
 
 static void read_op(
@@ -411,14 +503,6 @@ static void erase_op(
     rtos_printf("Erasing complete\n");
 }
 
-typedef struct {
-    int op;
-    uint8_t *data;
-    unsigned address;
-    size_t len;
-    unsigned priority;
-} qspi_flash_op_req_t;
-
 static void qspi_flash_op_thread(rtos_qspi_flash_t *ctx)
 {
     qspi_flash_op_req_t op;
@@ -426,77 +510,78 @@ static void qspi_flash_op_thread(rtos_qspi_flash_t *ctx)
     for (;;) {
         rtos_osal_queue_receive(&ctx->op_queue, &op, RTOS_OSAL_WAIT_FOREVER);
 
-        /*
-         * Inherit the priority of the task that requested this
-         * operation.
-         */
-        rtos_osal_thread_priority_set(&ctx->op_task, op.priority);
-        
-        rtos_printf("%d->%d\n", ctx->last_op, op.op);
-        switch (ctx->last_op) {
-        case FLASH_OP_NONE:
-            if ((op.op == FLASH_OP_READ_FAST_RAW)
-             || (op.op == FLASH_OP_READ_FAST_NIBBLE_SWAP)) {
-                qspi_flash_fast_read_setup_resources(&ctx->ctx);
-                qspi_flash_fast_read_apply_calibration(&ctx->ctx);
-            } else {
-                xassert(fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) == 0);
-            }
-            break;
-        case FLASH_OP_READ:
-        case FLASH_OP_WRITE:
-        case FLASH_OP_ERASE:
-            if ((op.op == FLASH_OP_READ_FAST_RAW)
-             || (op.op == FLASH_OP_READ_FAST_NIBBLE_SWAP)) {
-                fl_disconnect();
-                qspi_flash_fast_read_setup_resources(&ctx->ctx);
-                qspi_flash_fast_read_apply_calibration(&ctx->ctx);
-            }
-            break;
-        case FLASH_OP_READ_FAST_RAW:
-        case FLASH_OP_READ_FAST_NIBBLE_SWAP:
-            if ((op.op == FLASH_OP_READ)
-             || (op.op == FLASH_OP_WRITE)
-             || (op.op == FLASH_OP_ERASE)) {
-                qspi_flash_fast_read_shutdown(&ctx->ctx);
-                int ret = fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1);
-                if (ret != 0) {
-                    rtos_printf("*********libquadflash connect failed\n");
+        if (op.op == FLASH_OP_LL_SETUP) {
+            ctx->ll_req_flag = 0;
+            vTaskSuspend(NULL);
+        } else {
+            /*
+            * Inherit the priority of the task that requested this
+            * operation.
+            */
+            rtos_osal_thread_priority_set(&ctx->op_task, op.priority);
+            
+            switch (ctx->last_op) {
+            case FLASH_OP_NONE:
+                if ((op.op == FLASH_OP_READ_FAST_RAW)
+                || (op.op == FLASH_OP_READ_FAST_NIBBLE_SWAP)) {
+                    qspi_flash_fast_read_setup_resources(&ctx->ctx);
+                    qspi_flash_fast_read_apply_calibration(&ctx->ctx);
+                } else {
+                    xassert(fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) == 0);
                 }
+                break;
+            case FLASH_OP_READ:
+            case FLASH_OP_WRITE:
+            case FLASH_OP_ERASE:
+                if ((op.op == FLASH_OP_READ_FAST_RAW)
+                || (op.op == FLASH_OP_READ_FAST_NIBBLE_SWAP)) {
+                    fl_disconnect();
+                    qspi_flash_fast_read_setup_resources(&ctx->ctx);
+                    qspi_flash_fast_read_apply_calibration(&ctx->ctx);
+                }
+                break;
+            case FLASH_OP_READ_FAST_RAW:
+            case FLASH_OP_READ_FAST_NIBBLE_SWAP:
+                if ((op.op == FLASH_OP_READ)
+                || (op.op == FLASH_OP_WRITE)
+                || (op.op == FLASH_OP_ERASE)) {
+                    qspi_flash_fast_read_shutdown(&ctx->ctx);
+                    xassert(fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) == 0);
+                }
+                break;
             }
-            break;
+
+            switch (op.op) {
+            case FLASH_OP_READ:
+                read_op(ctx, op.data, op.address, op.len);
+                rtos_osal_semaphore_put(&ctx->data_ready);
+                break;
+            case FLASH_OP_WRITE:
+                write_op(ctx, op.data, op.address, op.len);
+                rtos_osal_free(op.data);
+                break;
+            case FLASH_OP_ERASE:
+                erase_op(ctx, op.address, op.len);
+                break;
+            case FLASH_OP_READ_FAST_RAW:
+                qspi_flash_fast_read_mode_set(&ctx->ctx, qspi_fast_flash_read_transfer_raw);
+                read_fast_op(ctx, op.data, op.address, op.len);
+                rtos_osal_semaphore_put(&ctx->data_ready);
+                break;
+            case FLASH_OP_READ_FAST_NIBBLE_SWAP:
+                qspi_flash_fast_read_mode_set(&ctx->ctx, qspi_fast_flash_read_transfer_nibble_swap);
+                read_fast_op(ctx, op.data, op.address, op.len);
+                rtos_osal_semaphore_put(&ctx->data_ready);
+                break;
+            }
+
+            ctx->last_op = op.op;
+
+            /*
+            * Reset back to the priority set by rtos_qspi_flash_start().
+            */
+            rtos_osal_thread_priority_set(&ctx->op_task, ctx->op_task_priority);
         }
-
-        switch (op.op) {
-        case FLASH_OP_READ:
-            read_op(ctx, op.data, op.address, op.len);
-            rtos_osal_semaphore_put(&ctx->data_ready);
-            break;
-        case FLASH_OP_WRITE:
-            write_op(ctx, op.data, op.address, op.len);
-            rtos_osal_free(op.data);
-            break;
-        case FLASH_OP_ERASE:
-            erase_op(ctx, op.address, op.len);
-            break;
-        case FLASH_OP_READ_FAST_RAW:
-            qspi_flash_fast_read_mode_set(&ctx->ctx, qspi_fast_flash_read_transfer_raw);
-            read_fast_op(ctx, op.data, op.address, op.len);
-            rtos_osal_semaphore_put(&ctx->data_ready);
-            break;
-        case FLASH_OP_READ_FAST_NIBBLE_SWAP:
-            qspi_flash_fast_read_mode_set(&ctx->ctx, qspi_fast_flash_read_transfer_nibble_swap);
-            read_fast_op(ctx, op.data, op.address, op.len);
-            rtos_osal_semaphore_put(&ctx->data_ready);
-            break;
-        }
-
-        ctx->last_op = op.op;
-
-        /*
-         * Reset back to the priority set by rtos_qspi_flash_start().
-         */
-        rtos_osal_thread_priority_set(&ctx->op_task, ctx->op_task_priority);
     }
 }
 

@@ -63,6 +63,8 @@ static void register_qspi_flash_tests(qspi_flash_test_ctx_t *test_ctx)
     register_read_write_read_test(test_ctx);
     register_read_write_read_mode_test(test_ctx);
 
+    register_lowlevel_api_test(test_ctx);
+
     register_rpc_read_write_read_test(test_ctx);
     register_rpc_read_write_read_mode_test(test_ctx);
 
