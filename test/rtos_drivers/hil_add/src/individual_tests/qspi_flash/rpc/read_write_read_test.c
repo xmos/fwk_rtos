@@ -14,7 +14,7 @@
 #include "app_conf.h"
 #include "individual_tests/qspi_flash/qspi_flash_test.h"
 
-static const char* test_name = "read_write_read_test";
+static const char* test_name = "rpc_read_write_read_test";
 
 #define local_printf( FMT, ... )    qspi_flash_printf("%s|" FMT, test_name, ##__VA_ARGS__)
 
