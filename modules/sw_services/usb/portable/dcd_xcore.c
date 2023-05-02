@@ -214,8 +214,8 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                     prepare_setup(true);
                     rtos_printf("xfer error - unhandled OUT packet on EP0 (bytes: %d)\n", xfer_len);
                     return;
-                } else { // dest_ctrl_buffer cannot be NULL here
-                    xassert(dest_ctrl_buffer != NULL);
+                } else {
+                    xassert(dest_ctrl_buffer != NULL); // dest_ctrl_buffer cannot be NULL for ep_addr 0
                     memcpy(dest_ctrl_buffer, intermediate_buffer, xfer_len);
                     dest_ctrl_buffer = NULL;
                 }
@@ -520,10 +520,7 @@ bool dcd_edpt_xfer(uint8_t rhport,
     } else {
         rtos_printf("xfer %d bytes on %02x\n", total_bytes, ep_addr);
     }
-    if(is_ep0_output)
-    {
-        dest_ctrl_buffer = (void *)buffer;
-    }
+
     dest_ctrl_buffer_len = total_bytes;
 
     /*
@@ -531,6 +528,7 @@ bool dcd_edpt_xfer(uint8_t rhport,
      * assume the CRC16 is to be written to its control buffer.
      */
     if (is_ep0_output) {
+        dest_ctrl_buffer = (void *)buffer;
         buffer = (uint8_t *)intermediate_buffer;
     }
 
