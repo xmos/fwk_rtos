@@ -1,6 +1,11 @@
 RTOS Framework change log
 =========================
 
+3.0.1
+-----
+  
+  * FIXED: Fix to stop dest_ctrl_buffer being overwritten when xfers on EPs other than EP0 are initiated
+
 3.0.0
 -----
   
