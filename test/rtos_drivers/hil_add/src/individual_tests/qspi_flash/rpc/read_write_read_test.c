@@ -14,7 +14,7 @@
 #include "app_conf.h"
 #include "individual_tests/qspi_flash/qspi_flash_test.h"
 
-static const char* test_name = "read_write_read_test";
+static const char* test_name = "rpc_read_write_read_test";
 
 #define local_printf( FMT, ... )    qspi_flash_printf("%s|" FMT, test_name, ##__VA_ARGS__)
 
@@ -88,7 +88,7 @@ static int main_test(qspi_flash_test_ctx_t *ctx)
     {
         size_t sector_size = rtos_qspi_flash_sector_size_get(ctx->qspi_flash_ctx);
 
-        for (unsigned addr=0; addr<0x100; addr+=0x20)
+        for (unsigned addr=0x1000; addr<0x1100; addr+=0x20)
         {
             if (read_write_read(ctx->qspi_flash_ctx, addr, sector_size) == -1)
             {

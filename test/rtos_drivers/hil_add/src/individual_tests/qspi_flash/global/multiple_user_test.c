@@ -43,7 +43,7 @@ static void test_thread(test_args_t *args)
     size_t test_len = rtos_qspi_flash_sector_size_get(ctx);
     uint8_t *test_buf = (uint8_t*)rtos_osal_malloc(test_len * sizeof(uint8_t));
 
-    uint32_t addr = 0x4 << args->id;
+    uint32_t addr = 0x1000 + (0x4 << args->id); // Add 0x1000 so we don't clobber the calibration 
 
     rtos_qspi_flash_lock(ctx);
     rtos_qspi_flash_erase(ctx, addr, test_len);

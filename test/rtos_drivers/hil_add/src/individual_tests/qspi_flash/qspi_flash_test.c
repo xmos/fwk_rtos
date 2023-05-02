@@ -46,6 +46,11 @@ static void start_qspi_flash_devices(qspi_flash_test_ctx_t *test_ctx)
 #if ON_TILE(0)
     qspi_flash_printf("Device start");
     rtos_qspi_flash_start(test_ctx->qspi_flash_ctx, configMAX_PRIORITIES-1);
+
+    if (rtos_qspi_flash_calibration_valid_get(test_ctx->qspi_flash_ctx) != 1) {
+        qspi_flash_printf("Flash calibration failed\n");
+        xassert(0);
+    }
 #endif
 
     qspi_flash_printf("Devices setup done");
@@ -56,8 +61,12 @@ static void register_qspi_flash_tests(qspi_flash_test_ctx_t *test_ctx)
     register_check_params_test(test_ctx);
 
     register_read_write_read_test(test_ctx);
+    register_read_write_read_mode_test(test_ctx);
+
+    register_lowlevel_api_test(test_ctx);
 
     register_rpc_read_write_read_test(test_ctx);
+    register_rpc_read_write_read_mode_test(test_ctx);
 
     register_multiple_user_test(test_ctx);
 }
