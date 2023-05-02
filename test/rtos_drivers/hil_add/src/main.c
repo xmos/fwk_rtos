@@ -14,6 +14,7 @@
 #include "rtos_spi_master.h"
 #include "rtos_uart_tx.h"
 #include "rtos_uart_rx.h"
+#include "rtos_qspi_flash.h"
 
 /* App headers */
 #include "app_conf.h"
@@ -27,6 +28,7 @@ static rtos_spi_master_device_t spi_master_device_ctx_s;
 static rtos_spi_slave_t spi_slave_ctx_s;
 static rtos_uart_rx_t rtos_uart_rx_ctx_s;
 static rtos_uart_tx_t rtos_uart_tx_ctx_s;
+static rtos_qspi_flash_t qspi_flash_ctx_s;
 
 static rtos_intertile_t *intertile_ctx = &intertile_ctx_s;
 static rtos_spi_master_t *spi_master_ctx = &spi_master_ctx_s;
@@ -34,6 +36,7 @@ static rtos_spi_master_device_t *test_spi_device_ctx = &spi_master_device_ctx_s;
 static rtos_spi_slave_t *spi_slave_ctx = &spi_slave_ctx_s;
 static rtos_uart_rx_t *rtos_uart_rx_ctx = &rtos_uart_rx_ctx_s;
 static rtos_uart_tx_t *rtos_uart_tx_ctx = &rtos_uart_tx_ctx_s;
+static rtos_qspi_flash_t *qspi_flash_ctx = &qspi_flash_ctx_s;
 
 chanend_t other_tile_c;
 
@@ -54,6 +57,17 @@ void vApplicationStackOverflowHook( TaskHandle_t pxTask, char* pcTaskName )
 void vApplicationDaemonTaskStartup(void *arg)
 {
     rtos_intertile_start(intertile_ctx);
+
+    if (RUN_QSPI_FLASH_FAST_READ_TESTS) {
+        if (qspi_flash_device_tests(qspi_flash_ctx, other_tile_c) != 0)
+        {
+            test_printf("FAIL QSPI_FLASH_FAST_READ");
+        } else {
+            test_printf("PASS QSPI_FLASH_FAST_READ");
+        }
+    } else {
+        test_printf("SKIP QSPI_FLASH_FAST_READ");
+    }
 
     if (RUN_UART_TESTS) {
         if (uart_device_tests(rtos_uart_tx_ctx, rtos_uart_rx_ctx, other_tile_c) != 0)
@@ -93,7 +107,8 @@ void main_tile0(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
                      intertile_ctx,
                      spi_master_ctx,
                      test_spi_device_ctx,
-                     rtos_uart_tx_ctx);
+                     rtos_uart_tx_ctx,
+                     qspi_flash_ctx);
     (void) c2;
     (void) c3;
 
@@ -122,7 +137,8 @@ void main_tile1(chanend_t c0, chanend_t c1, chanend_t c2, chanend_t c3)
                      spi_master_ctx,
                      test_spi_device_ctx,
                      spi_slave_ctx,
-                     rtos_uart_rx_ctx);
+                     rtos_uart_rx_ctx,
+                     qspi_flash_ctx);
     (void) c1;
     (void) c2;
     (void) c3;

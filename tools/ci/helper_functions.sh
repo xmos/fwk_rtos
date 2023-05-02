@@ -11,7 +11,7 @@ function log_errors {
     else
         echo "$log"
         return 1
-    fi    
+    fi
 }
 
 # Get the system timeout command
@@ -55,5 +55,29 @@ function check_tools_version {
                 return 1
             fi
         fi
+    fi
+}
+
+# If the environment has set the $CI_PREFERRED_CMAKE_GENERATOR variable, then
+# use this for the build configuration; otherwise default to one of the
+# configuration states below (based on other environment factors).
+# NOTE: $MSYSTEM is set by MSYS-based environments.
+function export_ci_build_vars {
+    if [ -n "$CI_PREFERRED_CMAKE_GENERATOR" ]; then
+        export CI_CMAKE_GENERATOR=$CI_PREFERRED_CMAKE_GENERATOR
+    elif [ -z "$MSYSTEM" ]; then
+        export CI_CMAKE_GENERATOR="Unix Makefiles"
+    elif [ -x "$(command -v ninja)" ]; then
+        export CI_CMAKE_GENERATOR="Ninja"
+    else
+        export CI_CMAKE_GENERATOR="MinGW Makefiles"
+    fi
+
+    if [ "$CI_CMAKE_GENERATOR" = "Ninja" ]; then
+        export CI_BUILD_TOOL="ninja"
+        export CI_BUILD_TOOL_ARGS=""
+    else
+        export CI_BUILD_TOOL="make"
+        export CI_BUILD_TOOL_ARGS="-j"
     fi
 }

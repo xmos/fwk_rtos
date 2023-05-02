@@ -147,6 +147,7 @@ function(create_flash_app_target)
         DEPENDS ${ARGV0}
         COMMENT
           "Flash application"
+        USES_TERMINAL
         VERBATIM
       )
   elseif(${ARGC} EQUAL 2)
@@ -155,6 +156,7 @@ function(create_flash_app_target)
         DEPENDS ${ARGV0}
         COMMENT
           "Flash application with empty data partition"
+        USES_TERMINAL
         VERBATIM
       )
   elseif(${ARGC} EQUAL 3)
@@ -163,6 +165,7 @@ function(create_flash_app_target)
         DEPENDS ${ARGV0}
         COMMENT
           "Flash application and data partition"
+        USES_TERMINAL
         VERBATIM
       )
   elseif(${ARGC} EQUAL 4)
@@ -171,6 +174,7 @@ function(create_flash_app_target)
         DEPENDS ${ARGV0} ${ARGV3}
         COMMENT
           "Flash application and data partition"
+        USES_TERMINAL
         VERBATIM
     )
   else()
@@ -196,6 +200,7 @@ macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME _FACTORY_MAJOR_VER _FACT
       DEPENDS ${_EXECUTABLE_TARGET_NAME}
       COMMENT
         "Create upgrade image for application"
+      USES_TERMINAL
       VERBATIM
     )
 endmacro()
@@ -208,6 +213,7 @@ macro(create_erase_all_target _APP_NAME _TARGET_FILEPATH)
       DEPENDS
       COMMENT
         "Erase target flash"
+      USES_TERMINAL
       VERBATIM
     )
 endmacro()

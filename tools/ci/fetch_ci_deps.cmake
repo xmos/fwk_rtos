@@ -8,7 +8,7 @@
         FetchContent_Declare(
             fwk_io
             GIT_REPOSITORY https://github.com/xmos/fwk_io.git
-            GIT_TAG        d5eff02d2d57330f4358c134cc9f29913a6f5ea3
+            GIT_TAG        479fa5d0ef6c26afb0019cb1417e10caf0c04a59
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/fwk_io
@@ -25,7 +25,7 @@
         FetchContent_Declare(
             fwk_core
             GIT_REPOSITORY https://github.com/xmos/fwk_core.git
-            GIT_TAG        4cf4766513dcdc23113acfe29f534372dec42494
+            GIT_TAG        9e4f6196386995e2d7786b376091404638055639
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/fwk_core
@@ -34,3 +34,20 @@
     endif()
 
     add_subdirectory(${CMAKE_BINARY_DIR}/dependencies/fwk_core)
+
+    IF(EXISTS ${CMAKE_BINARY_DIR}/dependencies/lib_qspi_fast_read)
+        message(STATUS "Skipped: dependencies/lib_qspi_fast_read")
+    else()
+        message(STATUS "Fetching: dependencies/lib_qspi_fast_read")
+        FetchContent_Declare(
+            lib_qspi_fast_read
+            GIT_REPOSITORY git@github.com:xmos/lib_qspi_fast_read.git
+            GIT_TAG        494e2c7bbc988408e60dd5945005f55f1aaf9c39
+            GIT_SHALLOW    FALSE
+            GIT_SUBMODULES_RECURSE TRUE
+            SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/lib_qspi_fast_read
+        )
+        FetchContent_Populate(lib_qspi_fast_read)
+    endif()
+
+    add_subdirectory(${CMAKE_BINARY_DIR}/dependencies/lib_qspi_fast_read)
