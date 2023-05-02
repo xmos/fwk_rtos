@@ -175,6 +175,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
             // _usbd_ctrl_buf is defined as static uint8_t _usbd_ctrl_buf[CFG_TUD_ENDPOINT0_SIZE];
             // in usbd_control.c. How do we access it here without changing a tinyusb source file
             //chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)_usbd_ctrl_buf, xfer_len);
+            
             chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)ep0_out_last_data_xfer_address, xfer_len);
         }
     }
@@ -213,7 +214,8 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                     prepare_setup(true);
                     rtos_printf("xfer error - unhandled OUT packet on EP0 (bytes: %d)\n", xfer_len);
                     return;
-                } else if (dest_ctrl_buffer != NULL) {
+                } else { // dest_ctrl_buffer cannot be NULL here
+                    xassert(dest_ctrl_buffer != NULL);
                     memcpy(dest_ctrl_buffer, intermediate_buffer, xfer_len);
                     dest_ctrl_buffer = NULL;
                 }
@@ -518,8 +520,10 @@ bool dcd_edpt_xfer(uint8_t rhport,
     } else {
         rtos_printf("xfer %d bytes on %02x\n", total_bytes, ep_addr);
     }
-
-    dest_ctrl_buffer = (is_ep0_output) ? (void *)buffer : NULL;
+    if(is_ep0_output)
+    {
+        dest_ctrl_buffer = (void *)buffer;
+    }
     dest_ctrl_buffer_len = total_bytes;
 
     /*

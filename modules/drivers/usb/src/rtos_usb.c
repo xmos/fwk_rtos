@@ -493,7 +493,6 @@ XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
     }
     
     ctx->ep_xfer_info[ep_num][dir].len = len;
-
     chan_out_byte(ctx->c_ep_proxy[ep_num], e_usb_endpoint_transfer_start);
     chan_out_byte(ctx->c_ep_proxy[ep_num], endpoint_addr);
     chan_out_byte(ctx->c_ep_proxy[ep_num], len);
