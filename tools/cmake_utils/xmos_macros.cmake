@@ -205,6 +205,18 @@ macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME _FACTORY_MAJOR_VER _FACT
     )
 endmacro()
 
+## Creates a loader obj target for a provided binary
+## Full filepath must be specified for loader source file
+macro(create_loader_target _EXECUTABLE_TARGET_NAME _LOADER_SOURCE_FILE)
+    add_custom_target(create_loader_object_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xcc -march=xs3a -c ${_LOADER_SOURCE_FILE} -o ${_EXECUTABLE_TARGET_NAME}_loader.o
+      DEPENDS
+      COMMENT
+        "Create loader object file for application"
+      VERBATIM
+    )
+endmacro()
+
 ## Creates an xflash erase all target for a provided target XN file
 ## Full filepath must be specified for XN file
 macro(create_erase_all_target _APP_NAME _TARGET_FILEPATH)
