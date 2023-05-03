@@ -121,6 +121,11 @@ int rtos_qspi_flash_read_ll(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
+
+            /* If user attempted to read chunk size past flash make sure we stop */
+            if (read_len == 0) {
+                break;
+            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -178,6 +183,11 @@ int rtos_qspi_flash_fast_read_ll(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
+
+            /* If user attempted to read chunk size past flash make sure we stop */
+            if (read_len == 0) {
+                break;
+            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -236,6 +246,11 @@ int rtos_qspi_flash_fast_read_mode_ll(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
+
+            /* If user attempted to read chunk size past flash make sure we stop */
+            if (read_len == 0) {
+                break;
+            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x in mode %d\n", read_len, address, mode);
@@ -318,6 +333,11 @@ static void read_op(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
+
+            /* If user attempted to read chunk size past flash make sure we stop */
+            if (read_len == 0) {
+                break;
+            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -363,6 +383,11 @@ static void read_fast_op(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
+
+            /* If user attempted to read chunk size past flash make sure we stop */
+            if (read_len == 0) {
+                break;
+            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
