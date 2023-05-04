@@ -12,7 +12,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     )
     target_link_libraries(framework_rtos_drivers_l2_cache
         INTERFACE
-            core::l2_cache
+            lib_l2_cache
             rtos::osal
     )
 

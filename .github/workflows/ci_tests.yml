@@ -1,0 +1,73 @@
+# YAML schema for GitHub Actions:
+# https://help.github.com/en/actions/automating-your-workflow-with-github-actions/workflow-syntax-for-github-actions
+#
+# Helpful YAML parser to clarify YAML syntax:
+# https://yaml-online-parser.appspot.com/
+#
+# This workflow uses actions that are not certified by GitHub. They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support documentation.
+#
+# This file contains the workflows that are run prior to merging a pull request.
+
+name: CI - Tests
+
+on:
+  push:
+    branches:
+      - 'develop'
+  pull_request:
+    branches:
+      - 'develop'
+
+  # Allow manually triggering of the workflow.
+  workflow_dispatch:
+    inputs:
+      run_rtos_tests:
+        description: 'Force RTOS Testing?'
+        type: boolean
+        default: false
+
+env:
+  XCORE_BUILDER_IMAGE: 'ghcr.io/xmos/xcore_builder:latest'
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    name: Change detection
+    # Set job outputs to values from filter step
+    outputs:
+      rtos_tests: ${{ github.event.inputs.run_rtos_tests || steps.filter.outputs.rtos_tests }}
+    steps:
+      - name: Checkout
+        if: ${{ github.event.inputs.run_rtos_tests == false }}
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Paths filter
+        if: ${{ github.event.inputs.run_rtos_tests == false }}
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            rtos_tests:
+              - 'modules/**'
+              - 'tools/ci/fetch_ci_deps.cmake'
+
+  build_rtos_tests:
+    needs: changes
+    name: Build RTOS tests
+    if: ${{ needs.changes.outputs.rtos_tests }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Pull Docker builder
+        run: |
+          docker pull ${XCORE_BUILDER_IMAGE}
+
+      - name: Build
+        run: |
+          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_rtos_tests.sh all

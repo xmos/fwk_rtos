@@ -128,10 +128,13 @@ control_ret_t control_cleanup_usb(void);
  *  \param clock_divider        The amount to divide the Raspberry Pi's clock by, e.g.
  *                              BCM2835_SPI_CLOCK_DIVIDER_1024 gives a clock of ~122kHz
  *                              on the RPI 2.
+ *  \param intertransaction_delay Delay in nanoseconds that will be applied between each
+ *                                spi transaction. This is implemented with nanosleep() from
+ *                                time.h.
  *
  *  \returns                    Whether the initialization was successful or not
  */
-control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider);
+control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long intertransation_delay_ns);
 #else
 /** Initialize the SPI host (master) interface
  *

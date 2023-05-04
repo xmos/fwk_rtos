@@ -1,13 +1,13 @@
 ---
 name: Feature request
-about: Suggest a new feature for the SDK
+about: Suggest a new feature for fwk_rtos
 title: ''
 labels: type:enhancement
 assignees: keithm-xmos
 
 ---
 
-Thank you for submitting an SDK feature request. Please provide as much information you can.
+Thank you for submitting a fwk_rtos feature request. Please provide as much information you can.
 
 **Describe the feature**
 

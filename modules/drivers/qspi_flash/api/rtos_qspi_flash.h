@@ -1,4 +1,4 @@
-// Copyright 2020-2021 XMOS LIMITED.
+// Copyright 2020-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #ifndef RTOS_QSPI_FLASH_H_
@@ -11,7 +11,10 @@
  * @{
  */
 
-#include "qspi_flash.h"
+#include <quadflash.h>
+#include <quadflashlib.h>
+
+#include "qspi_flash_fast_read.h"
 
 #include "rtos_osal.h"
 #include "rtos_driver_rpc.h"
@@ -34,6 +37,9 @@ struct rtos_qspi_flash_struct {
     __attribute__((fptrgroup("rtos_qspi_flash_read_fptr_grp")))
     void (*read)(rtos_qspi_flash_t *, uint8_t *, unsigned, size_t);
 
+    __attribute__((fptrgroup("rtos_qspi_flash_read_mode_fptr_grp")))
+    void (*read_mode)(rtos_qspi_flash_t *, uint8_t *, unsigned, size_t, qspi_fast_flash_read_transfer_mode_t);
+
     __attribute__((fptrgroup("rtos_qspi_flash_write_fptr_grp")))
     void (*write)(rtos_qspi_flash_t *, const uint8_t *, unsigned, size_t);
 
@@ -46,8 +52,12 @@ struct rtos_qspi_flash_struct {
     __attribute__((fptrgroup("rtos_qspi_flash_unlock_fptr_grp")))
     void (*unlock)(rtos_qspi_flash_t *);
 
-    qspi_flash_ctx_t ctx;
+    fl_QSPIPorts qspi_ports;
+    fl_QuadDeviceSpec qspi_spec;
+    qspi_fast_flash_read_ctx_t ctx;
     size_t flash_size;
+    unsigned calibration_valid;
+    unsigned last_op;
 
     unsigned op_task_priority;
     rtos_osal_thread_t op_task;
@@ -55,6 +65,7 @@ struct rtos_qspi_flash_struct {
     rtos_osal_semaphore_t data_ready;
     rtos_osal_mutex_t mutex;
     volatile int spinlock;
+    volatile int ll_req_flag;
 };
 
 #include "rtos_qspi_flash_rpc.h"
@@ -109,11 +120,8 @@ inline void rtos_qspi_flash_unlock(
  * \param ctx     A pointer to the QSPI flash driver instance to use.
  * \param data    Pointer to the buffer to save the read data to.
  * \param address The byte address in the flash to begin reading at.
- *                Only bits 23:0 contain the address. Bits 31:24 are actually
- *                transmitted to the flash during the first two dummy cycles
- *                following the three address bytes. Some flashes read the SIO
- *                lines during these first two dummy cycles to enable certain
- *                features, so this might be useful for some applications.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
  * \param len     The number of bytes to read and save to \p data.
  */
 inline void rtos_qspi_flash_read(
@@ -126,12 +134,46 @@ inline void rtos_qspi_flash_read(
 }
 
 /**
+ * This reads data from the flash in quad I/O mode. All four lines are
+ * used to send the address and to read the data.
+ *
+ * Note: This only works with fast flash read and successful calibration.
+ * See rtos_qspi_flash_fast_read_init() versus rtos_qspi_flash_init()
+ * 
+ * If used with non fast flash read setups, this function will behave exactly
+ * the same as rtos_qspi_flash_read(), regardless of the value of \p mode.
+ * 
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ * \param data    Pointer to the buffer to save the read data to.
+ * \param address The byte address in the flash to begin reading at.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
+ * \param len     The number of bytes to read and save to \p data.
+ * \param mode    The transfer mode for this read operation \p data.
+ */
+inline void rtos_qspi_flash_read_mode(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len,
+        qspi_fast_flash_read_transfer_mode_t mode)
+{
+    ctx->read_mode(ctx, data, address, len, mode);
+}
+
+/**
  * This is a lower level version of rtos_qspi_flash_read() that is safe
  * to call from within ISRs. If a task currently own the flash lock, or
  * if another core is actively doing a read with this function, then the
  * read will not be performed and an error returned. It is up to the
  * application to determine what it should do in this situation and to
  * avoid a potential deadlock.
+ * 
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ * 
+ * This function uses the lib_quadflash API to perform the read. It is up
+ * to the application to ensure that XCORE resources are properly configured.
  *
  * \note It is not possible to call this from a task that currently owns
  * the flash lock taken with rtos_qspi_flash_lock(). In general it is not
@@ -141,11 +183,8 @@ inline void rtos_qspi_flash_read(
  * \param ctx     A pointer to the QSPI flash driver instance to use.
  * \param data    Pointer to the buffer to save the read data to.
  * \param address The byte address in the flash to begin reading at.
- *                Only bits 23:0 contain the address. Bits 31:24 are actually
- *                transmitted to the flash during the first two dummy cycles
- *                following the three address bytes. Some flashes read the SIO
- *                lines during these first two dummy cycles to enable certain
- *                features, so this might be useful for some applications.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
  * \param len     The number of bytes to read and save to \p data.
  *
  * \retval        0 if the flash was available and the read operation was performed.
@@ -158,12 +197,104 @@ int rtos_qspi_flash_read_ll(
         size_t len);
 
 /**
- * This writes data to the QSPI flash. If the data spans multiple pages then
- * multiple page program commands will be issued. If ctx->quad_page_program_enable
- * is true, then the command in ctx->quad_page_program_cmd is sent and all
- * four SIO lines are used to send the address and data. Otherwise, the standard
- * page program command is sent and only SIO0 (MOSI) is used to send the address
- * and data.
+ * This is a lower level version of rtos_qspi_flash_read() that is safe
+ * to call from within ISRs. If a task currently own the flash lock, or
+ * if another core is actively doing a read with this function, then the
+ * read will not be performed and an error returned. It is up to the
+ * application to determine what it should do in this situation and to
+ * avoid a potential deadlock.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ * 
+ * This function uses the lib_qspi_fast_read API to perform the read. It is up
+ * to the application to ensure that XCORE resources are properly configured.
+ * 
+ * \note It is not possible to call this from a task that currently owns
+ * the flash lock taken with rtos_qspi_flash_lock(). In general it is not
+ * advisable to call this from an RTOS task unless the small amount of
+ * overhead time that is introduced by rtos_qspi_flash_read() is unacceptable.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ * \param data    Pointer to the buffer to save the read data to.
+ * \param address The byte address in the flash to begin reading at.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
+ * \param len     The number of bytes to read and save to \p data.
+ *
+ * \retval        0 if the flash was available and the read operation was performed.
+ * \retval       -1 if the flash was unavailable and the read could not be performed.
+ */
+int rtos_qspi_flash_fast_read_ll(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len);
+
+/**
+ * This is a lower level version of rtos_qspi_flash_read_mode() that is safe
+ * to call from within ISRs. If a task currently own the flash lock, or
+ * if another core is actively doing a read with this function, then the
+ * read will not be performed and an error returned. It is up to the
+ * application to determine what it should do in this situation and to
+ * avoid a potential deadlock.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ * 
+ * This function uses the lib_qspi_fast_read API to perform the read. It is up
+ * to the application to ensure that XCORE resources are properly configured.
+ * 
+ * \note It is not possible to call this from a task that currently owns
+ * the flash lock taken with rtos_qspi_flash_lock(). In general it is not
+ * advisable to call this from an RTOS task unless the small amount of
+ * overhead time that is introduced by rtos_qspi_flash_read_mode() is unacceptable.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ * \param data    Pointer to the buffer to save the read data to.
+ * \param address The byte address in the flash to begin reading at.
+ *                Only bits 23:0 contain the address. Bits 31:24 are 
+ *                ignored.
+ * \param len     The number of bytes to read and save to \p data.
+ * \param mode    The transfer mode for this read operation \p data.
+ *
+ * \retval        0 if the flash was available and the read operation was performed.
+ * \retval       -1 if the flash was unavailable and the read could not be performed.
+ */
+int rtos_qspi_flash_fast_read_mode_ll(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len,
+        qspi_fast_flash_read_transfer_mode_t mode);
+
+/**
+ * This is a lower level function that enables the user to setup the ports for
+ * fast flash access.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ */
+void rtos_qspi_flash_fast_read_setup_ll(
+        rtos_qspi_flash_t *ctx);
+
+/**
+ * This is a lower level function that enables the user to shutdown low level
+ * usage to resume normal QSPI thread operation.
+ *
+ * This function may only be called on the same tile as the underlying
+ * peripheral.
+ *
+ * \param ctx     A pointer to the QSPI flash driver instance to use.
+ */
+void rtos_qspi_flash_fast_read_shutdown_ll(
+        rtos_qspi_flash_t *ctx);
+
+/**
+ * This writes data to the QSPI flash. The standard page program command
+ * is sent and only SIO0 (MOSI) is used to send the address and data.
  *
  * The driver handles sending the write enable command, as well as waiting for
  * the write to complete.
@@ -245,7 +376,7 @@ inline size_t rtos_qspi_flash_size_get(
 inline size_t rtos_qspi_flash_page_size_get(
         rtos_qspi_flash_t *qspi_flash_ctx)
 {
-    return qspi_flash_ctx->ctx.page_size_bytes;
+    return qspi_flash_ctx->qspi_spec.pageSize;
 }
 
 /**
@@ -258,7 +389,7 @@ inline size_t rtos_qspi_flash_page_size_get(
 inline size_t rtos_qspi_flash_page_count_get(
         rtos_qspi_flash_t *qspi_flash_ctx)
 {
-    return qspi_flash_ctx->ctx.page_count;
+    return qspi_flash_ctx->qspi_spec.numPages;
 }
 
 /**
@@ -271,7 +402,21 @@ inline size_t rtos_qspi_flash_page_count_get(
 inline size_t rtos_qspi_flash_sector_size_get(
         rtos_qspi_flash_t *qspi_flash_ctx)
 {
-    return qspi_flash_erase_type_size(&qspi_flash_ctx->ctx, qspi_flash_erase_1);
+    return qspi_flash_ctx->qspi_spec.sectorEraseSize;
+}
+
+/**
+ * Gets the value of the calibration valid.
+ *
+ * \param A pointer to the QSPI flash driver instance to query.
+ *
+ * \returns 1 if calibration was successful
+ *          0 otherwise
+ */
+inline unsigned rtos_qspi_flash_calibration_valid_get(
+        rtos_qspi_flash_t *qspi_flash_ctx)
+{
+    return qspi_flash_ctx->calibration_valid;
 }
 
 /**@}*/
@@ -284,13 +429,34 @@ inline size_t rtos_qspi_flash_sector_size_get(
  *
  * rtos_qspi_flash_init() must be called on this QSPI flash driver instance prior to calling this.
  *
- * \param ctx       A pointer to the QSPI flash driver instance to start.
- * \param priority  The priority of the task that gets created by the driver to
- *                  handle the QSPI flash interface.
+ * \param ctx           A pointer to the QSPI flash driver instance to start.
+ * \param priority      The priority of the task that gets created by the driver to
+ *                      handle the QSPI flash interface.
  */
 void rtos_qspi_flash_start(
         rtos_qspi_flash_t *ctx,
         unsigned priority);
+
+/**
+ * Sets the core affinity for a RTOS QSPI flash driver instance.
+ * This must only be called by the tile that owns the driver instance.
+ * It may be called either before or after starting the RTOS, and should
+ * be called before any of the core QSPI flash driver functions are
+ * called with this instance.
+ *
+ * Since interrupts are disabled during the QSPI transaction on the op thread, a
+ * core mask is provided to allow users to avoid collisions with application ISRs.
+ *
+ * rtos_qspi_flash_start() must be called on this QSPI flash driver instance prior to calling this.
+ *
+ * \param ctx           A pointer to the QSPI flash driver instance to start.
+ * \param op_core_mask  A bitmask representing the cores on which the QSPI I/O thread
+ *                      created by the driver is allowed to run. Bit 0 is core 0, bit 1 is core 1,
+ *                      etc.
+ */
+void rtos_qspi_flash_op_core_affinity_set(
+        rtos_qspi_flash_t *ctx,
+        uint32_t op_core_mask);
 
 /**
  * Initializes an RTOS QSPI flash driver instance.
@@ -298,50 +464,16 @@ void rtos_qspi_flash_start(
  * called either before or after starting the RTOS, but must be called before calling
  * rtos_qspi_flash_start() or any of the core QSPI flash driver functions with this instance.
  *
- * \param ctx                            A pointer to the QSPI flash driver instance to initialize.
- * \param clock_block                    The clock block to use for the qspi_io interface.
- * \param cs_port                        The chip select port. MUST be a 1-bit port.
- * \param sclk_port                      The SCLK port. MUST be a 1-bit port.
- * \param sio_port                       The SIO port. MUST be a 4-bit port.
- * \param source_clock                   The source clock to use for the QSPI I/O interface. Must be
- *                                       either qspi_io_source_clock_ref or qspi_io_source_clock_xcore.
- * \param full_speed_clk_divisor         The divisor to use for QSPI reads and writes as well as SPI writes.
- *                                       The frequency of SCLK will be set to:
- *                                       (F_src) / (2 * full_speed_clk_divisor)
- *                                       Where F_src is the frequency of the source clock specified
- *                                       by \p source_clock.
- * \param full_speed_sclk_sample_delay   Number of SCLK cycles to delay the sampling of SIO on input
- *                                       during a full speed transaction.
- *                                       Usually either 0 or 1 depending on the SCLK frequency.
- * \param full_speed_sclk_sample_edge    The SCLK edge to sample the SIO input on during a full speed
- *                                       transaction. May be either qspi_io_sample_edge_rising or
- *                                       qspi_io_sample_edge_falling.
- * \param full_speed_sio_pad_delay       Number of core clock cycles to delay sampling the SIO pads during
- *                                       a full speed transaction. This allows for more fine grained adjustment
- *                                       of sampling time. The value may be between 0 and 5.
- * \param spi_read_clk_divisor           The divisor to use for the clock when performing a SPI read. This
- *                                       may need to be slower than the clock used for writes and QSPI reads.
- *                                       This is because a small handful of instructions must execute to turn
- *                                       the SIO port around from output to input and they must execute within
- *                                       a single SCLK period during a SPI read. QSPI reads have dummy cycles
- *                                       where these instructions may execute which allows for a higher clock
- *                                       frequency.
- *                                       The frequency of SCLK will be set to:
- *                                       (F_src) / (2 * spi_read_clk_divisor)
- *                                       Where F_src is the frequency of the source clock specified
- *                                       by \p source_clock.
- * \param spi_read_sclk_sample_delay     Number of SCLK cycles to delay the sampling of SIO on input
- *                                       during a SPI read transaction.
- *                                       Usually either 0 or 1 depending on the SCLK frequency.
- * \param spi_read_sclk_sample_edge      The SCLK edge to sample the SIO input on during a SPI read
- *                                       transaction. May be either qspi_io_sample_edge_rising or
- *                                       qspi_io_sample_edge_falling.
- * \param spi_read_sio_pad_delay         Number of core clock cycles to delay sampling the SIO pads during
- *                                       a SPI read transaction. This allows for more fine grained adjustment
- *                                       of sampling time. The value may be between 0 and 5.
- * \param quad_page_program_cmd          The command that will be sent when rtos_qspi_flash_write() is called if
- *                                       quad_page_program_enable is true. This should be a value returned by
- *                                       the QSPI_IO_BYTE_TO_MOSI() macro.
+ * This function will initialize a flash driver using lib_quadflash for
+ * all operations.
+ * 
+ * \param ctx           A pointer to the QSPI flash driver instance to initialize.
+ * \param clock_block   The clock block to use for the qspi_io interface.
+ * \param cs_port       The chip select port. MUST be a 1-bit port.
+ * \param sclk_port     The SCLK port. MUST be a 1-bit port.
+ * \param sio_port      The SIO port. MUST be a 4-bit port.
+ * \param spec          A pointer to the flash part specification.
+ *                      This may be set to NULL to use the XTC default
  */
 void rtos_qspi_flash_init(
         rtos_qspi_flash_t *ctx,
@@ -349,16 +481,46 @@ void rtos_qspi_flash_init(
         port_t cs_port,
         port_t sclk_port,
         port_t sio_port,
-        qspi_io_source_clock_t source_clock,
-        int full_speed_clk_divisor,
-        uint32_t full_speed_sclk_sample_delay,
-        qspi_io_sample_edge_t full_speed_sclk_sample_edge,
-        uint32_t full_speed_sio_pad_delay,
-        int spi_read_clk_divisor,
-        uint32_t spi_read_sclk_sample_delay,
-        qspi_io_sample_edge_t spi_read_sclk_sample_edge,
-        uint32_t spi_read_sio_pad_delay,
-        qspi_flash_page_program_cmd_t quad_page_program_cmd);
+        fl_QuadDeviceSpec *spec);
+
+/**
+ * Initializes an RTOS QSPI flash driver instance.
+ * This must only be called by the tile that owns the driver instance. It may be
+ * called either before or after starting the RTOS, but must be called before calling
+ * rtos_qspi_flash_start() or any of the core QSPI flash driver functions with this instance.
+ *
+ * This function will initialize a flash driver using lib_quadflash for
+ * erase and writes, and lib_qspi_fast_read for reads. If calibration
+ * fails the driver will enable lib_quadflash for reads and allow the
+ * application to decide what to do about the failed calibration. The
+ * status of the calibration can be checked at runtime by calling
+ * rtos_qspi_flash_calibration_valid_get().
+ * 
+ * \param ctx                           A pointer to the QSPI flash driver instance to initialize.
+ * \param clock_block                   The clock block to use for the qspi_io interface.
+ * \param cs_port                       The chip select port. MUST be a 1-bit port.
+ * \param sclk_port                     The SCLK port. MUST be a 1-bit port.
+ * \param sio_port                      The SIO port. MUST be a 4-bit port.
+ * \param spec                          A pointer to the flash part specification.
+ *                                      This may be set to NULL to use the XTC default
+ * \param read_mode                     The transfer mode to use for port reads.
+ *                                      Invalid values will default to qspi_fast_flash_read_transfer_raw
+ * \param read_divide                   The divisor to use for QSPI SCLK.
+ * \param calibration_pattern_addr      The address of the default calibration pattern.
+ *                                      This driver requires the default calibration pattern
+ *                                      supplied with lib_qspi_fast_read and does not support
+ *                                      custom patterns.
+ */
+void rtos_qspi_flash_fast_read_init(
+        rtos_qspi_flash_t *ctx,
+        xclock_t clock_block,
+        port_t cs_port,
+        port_t sclk_port,
+        port_t sio_port,
+        fl_QuadDeviceSpec *spec,
+        qspi_fast_flash_read_transfer_mode_t read_mode,
+        uint8_t read_divide,
+        uint32_t calibration_pattern_addr);
 
 /**@}*/
 

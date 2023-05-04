@@ -1,4 +1,4 @@
-// Copyright 2020-2021 XMOS LIMITED.
+// Copyright 2020-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include <string.h>
@@ -13,6 +13,7 @@ enum {
     fcode_lock,
     fcode_unlock,
     fcode_read,
+    fcode_read_mode,
     fcode_write,
     fcode_erase,
 };
@@ -87,6 +88,45 @@ static void qspi_flash_remote_read(
         rpc_client_call_generic(
                 host_address->intertile_ctx, host_address->port, fcode_read, rpc_param_desc,
                 &host_ctx_ptr, data, &address, &read_len);
+
+        len -= read_len;
+        data += read_len;
+        address += read_len;
+    } while (len > 0);
+
+    rtos_osal_mutex_put(&ctx->mutex);
+}
+
+__attribute__((fptrgroup("rtos_qspi_flash_read_mode_fptr_grp")))
+static void qspi_flash_remote_read_mode(
+        rtos_qspi_flash_t *ctx,
+        uint8_t *data,
+        unsigned address,
+        size_t len,
+        qspi_fast_flash_read_transfer_mode_t mode)
+{
+    rtos_intertile_address_t *host_address = &ctx->rpc_config->host_address;
+    rtos_qspi_flash_t *host_ctx_ptr = ctx->rpc_config->host_ctx_ptr;
+
+    xassert(host_address->port >= 0);
+
+    rtos_osal_mutex_get(&ctx->mutex, RTOS_OSAL_WAIT_FOREVER);
+
+    do {
+        size_t read_len = MIN(len, RTOS_QSPI_FLASH_READ_CHUNK_SIZE);
+
+        const rpc_param_desc_t rpc_param_desc[] = {
+                RPC_PARAM_TYPE(ctx),
+                RPC_PARAM_OUT_BUFFER(data, read_len),
+                RPC_PARAM_TYPE(address),
+                RPC_PARAM_TYPE(read_len),
+                RPC_PARAM_TYPE(mode),
+                RPC_PARAM_LIST_END
+        };
+
+        rpc_client_call_generic(
+                host_address->intertile_ctx, host_address->port, fcode_read_mode, rpc_param_desc,
+                &host_ctx_ptr, data, &address, &read_len, &mode);
 
         len -= read_len;
         data += read_len;
@@ -222,6 +262,39 @@ static int qspi_flash_read_rpc_host(rpc_msg_t *rpc_msg, uint8_t **resp_msg)
     return msg_length;
 }
 
+static int qspi_flash_read_mode_rpc_host(rpc_msg_t *rpc_msg, uint8_t **resp_msg)
+{
+    int msg_length;
+
+    rtos_qspi_flash_t *ctx;
+    uint8_t *data;
+    unsigned address;
+    size_t len;
+    qspi_fast_flash_read_transfer_mode_t mode;
+
+    rpc_request_unmarshall(
+            rpc_msg,
+            &ctx, &data, &address, &len, &mode);
+
+    if (len > 0) {
+        data = rtos_osal_malloc(len);
+    } else {
+        data = NULL;
+    }
+
+    rtos_qspi_flash_read_mode(ctx, data, address, len, mode);
+
+    msg_length = rpc_response_marshall(
+            resp_msg, rpc_msg,
+            ctx, data, address, len, mode);
+
+    if (len > 0) {
+        rtos_osal_free(data);
+    }
+
+    return msg_length;
+}
+
 static int qspi_flash_write_rpc_host(rpc_msg_t *rpc_msg, uint8_t **resp_msg)
 {
     int msg_length;
@@ -289,6 +362,9 @@ static void qspi_flash_rpc_thread(rtos_intertile_address_t *client_address)
             break;
         case fcode_read:
             msg_length = qspi_flash_read_rpc_host(&rpc_msg, &resp_msg);
+            break;
+        case fcode_read_mode:
+            msg_length = qspi_flash_read_mode_rpc_host(&rpc_msg, &resp_msg);
             break;
         case fcode_write:
             msg_length = qspi_flash_write_rpc_host(&rpc_msg, &resp_msg);
@@ -358,6 +434,7 @@ void rtos_qspi_flash_rpc_client_init(
     qspi_flash_ctx->lock = qspi_flash_remote_lock;
     qspi_flash_ctx->unlock = qspi_flash_remote_unlock;
     qspi_flash_ctx->read = qspi_flash_remote_read;
+    qspi_flash_ctx->read_mode = qspi_flash_remote_read_mode;
     qspi_flash_ctx->write = qspi_flash_remote_write;
     qspi_flash_ctx->erase = qspi_flash_remote_erase;
     rpc_config->rpc_host_start = NULL;
@@ -370,9 +447,10 @@ void rtos_qspi_flash_rpc_client_init(
     rpc_config->host_address.intertile_ctx = host_intertile_ctx;
     rpc_config->host_ctx_ptr = (void *) s_chan_in_word(host_intertile_ctx->c);
     qspi_flash_ctx->flash_size = s_chan_in_word(host_intertile_ctx->c);
-    qspi_flash_ctx->ctx.page_size_bytes = s_chan_in_word(host_intertile_ctx->c);
-    qspi_flash_ctx->ctx.page_count = s_chan_in_word(host_intertile_ctx->c);
-    qspi_flash_ctx->ctx.erase_info[0].size_log2 = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->qspi_spec.pageSize = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->qspi_spec.numPages = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->qspi_spec.sectorEraseSize = s_chan_in_word(host_intertile_ctx->c);
+    qspi_flash_ctx->calibration_valid = s_chan_in_word(host_intertile_ctx->c);
 }
 
 void rtos_qspi_flash_rpc_host_init(
@@ -392,9 +470,10 @@ void rtos_qspi_flash_rpc_host_init(
         rpc_config->client_address[i].intertile_ctx = client_intertile_ctx[i];
         s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx);
         s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->flash_size);
-        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->ctx.page_size_bytes);
-        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->ctx.page_count);
-        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->ctx.erase_info[0].size_log2);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->qspi_spec.pageSize);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->qspi_spec.numPages);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->qspi_spec.sectorEraseSize);
+        s_chan_out_word(client_intertile_ctx[i]->c, (uint32_t) qspi_flash_ctx->calibration_valid);
 
         /* This must be configured later with rtos_qspi_flash_rpc_config() */
         rpc_config->client_address[i].port = -1;

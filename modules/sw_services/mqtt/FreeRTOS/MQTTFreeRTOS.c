@@ -27,9 +27,12 @@
 #include "mbedtls/pk.h"
 #include "mbedtls_support.h"
 
-
-#define MQTT_TASK_STACK_SIZE	( configSTACK_DEPTH_TYPE )( 420 )
-
+/* Allow application override 
+ * This stack requirement will vary based on network port, tls configuration, etc.
+ */
+#ifndef MQTT_TASK_STACK_SIZE
+#define MQTT_TASK_STACK_SIZE	( configSTACK_DEPTH_TYPE )( 480 )
+#endif
 
 int ThreadStart( Thread* thread, void (*fn)(void*), void* arg )
 {
