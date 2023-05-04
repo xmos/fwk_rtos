@@ -53,11 +53,11 @@ static void usb_xud_thread(rtos_usb_t *ctx)
     vTaskDelete(NULL);
 }
 
-static XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
-                                         const int ep_num,
-                                         const int dir,
-                                         size_t *len,
-                                         int *is_setup)
+XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
+                                    const int ep_num,
+                                    const int dir,
+                                    size_t *len,
+                                    int *is_setup)
 {
     XUD_Result_t res = XUD_RES_ERR;
 

@@ -49,7 +49,7 @@ void usb_manager_init(chanend_t c_ep0_proxy, chanend_t c_ep_hid_proxy, chanend_t
 {
     tusb_init();
     usb_ctx.c_ep_proxy[0] = c_ep0_proxy;
-    usb_ctx.c_ep_proxy[1] = c_ep0_proxy;
+    usb_ctx.c_ep_proxy[1] = c_ep0_proxy; // This has to exist as there are functions that call this channel expecting it to exist, but we filter commands to it later on.
     usb_ctx.c_ep_proxy[2] = c_ep_hid_proxy; // TODO Hardcoded, assuming endpoint 2 is HID
     usb_ctx.c_ep0_proxy_xfer_complete = c_ep0_proxy_xfer_complete;
 }
