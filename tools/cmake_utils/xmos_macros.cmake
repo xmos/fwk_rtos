@@ -2,21 +2,43 @@ include_guard(DIRECTORY)
 
 ## merge_binaries combines multiple xcore applications into one by extracting
 ## a tile elf and recombining it into another binary.
-## This macro takes an output target name, a base target, a target
-## containing a tile to merge, and the tile number to merge.
-## The resulting output will be a target named _OUTPUT_TARGET_NAME, which
-## contains the _BASE_TARGET application with tile _TILE_TO_MERGE replaced with
-## the respective tile from _OTHER_TARGET.
-macro(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _TILE_NUM_TO_MERGE)
+##
+## This macro can be called in two ways. The 4 argument version is for when the
+## application has only 1 node and therefore only the core needs to be specified.
+##
+##    # create target OUT by replacing tile number 0 in BASE with tile 0 in OTHER
+##    merge_binaries(${OUT} ${BASE} ${OTHER} 0)
+##
+## The 5 argument version is for multi-node applications. IMPORTANT: node number 
+## is not the "Node Id" from the xn file, rather the index of the node in the 
+## JTAGChain which is defined in the xn file.
+##
+##    # create target OUT by replacing tile 1 on node 0 in BASE with tile 1 on 
+##    # node 0 in OTHER
+##    merge_binaries(${OUT} ${BASE} ${OTHER} 0 1)
+##
+function(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _NODE_OR_TILE_TO_MERGE)
+    if(ARGC GREATER 4)
+      set(_NODE_NUM_TO_MERGE ${_NODE_OR_TILE_TO_MERGE})
+      set(_TILE_NUM_TO_MERGE ${ARGV4})
+    else()
+      set(_NODE_NUM_TO_MERGE 0)
+      set(_TILE_NUM_TO_MERGE ${_NODE_OR_TILE_TO_MERGE})
+    endif()
+
     get_target_property(BASE_TILE_DIR     ${_BASE_TARGET}  BINARY_DIR)
     get_target_property(BASE_TILE_NAME    ${_BASE_TARGET}  NAME)
     get_target_property(OTHER_TILE_NAME   ${_OTHER_TARGET} NAME)
 
+    set(INPUT_ELF ${OTHER_TILE_NAME}_split/image_n${_NODE_NUM_TO_MERGE}c${_TILE_NUM_TO_MERGE}_2.elf)
     add_custom_target(${_OUTPUT_TARGET_NAME} ALL
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OTHER_TILE_NAME}_split
         COMMAND xobjdump --split --split-dir ${OTHER_TILE_NAME}_split ${OTHER_TILE_NAME}.xe > ${OTHER_TILE_NAME}_split/output.log
-        COMMAND xobjdump ${BASE_TILE_NAME}.xe -r 0,${_TILE_NUM_TO_MERGE},${OTHER_TILE_NAME}_split/image_n0c${_TILE_NUM_TO_MERGE}_2.elf >> ${OTHER_TILE_NAME}_split/output.log
+        # next line fails if file does not exist, there is probably a cheaper way to do this. xobjdump -r silently continues if 
+        # the file does not exist
+        COMMAND ${CMAKE_COMMAND} -E compare_files ${INPUT_ELF} ${INPUT_ELF}
         COMMAND ${CMAKE_COMMAND} -E copy ${BASE_TILE_NAME}.xe ${_OUTPUT_TARGET_NAME}.xe
+        COMMAND xobjdump ${_OUTPUT_TARGET_NAME}.xe -r ${_NODE_NUM_TO_MERGE},${_TILE_NUM_TO_MERGE},${INPUT_ELF} >> ${OTHER_TILE_NAME}_split/output.log
         DEPENDS
             ${_BASE_TARGET}
             ${_OTHER_TARGET}
@@ -25,14 +47,14 @@ macro(merge_binaries _OUTPUT_TARGET_NAME _BASE_TARGET _OTHER_TARGET _TILE_NUM_TO
         WORKING_DIRECTORY
             ${BASE_TILE_DIR}
         COMMENT
-            "Merge tile ${_TILE_NUM_TO_MERGE} of ${_OTHER_TARGET}.xe into ${_BASE_TARGET}.xe to create ${_OUTPUT_TARGET_NAME}.xe"
+            "Merge tile ${_NODE_NUM_TO_MERGE},${_TILE_NUM_TO_MERGE} of ${_OTHER_TARGET}.xe into ${_BASE_TARGET}.xe to create ${_OUTPUT_TARGET_NAME}.xe"
         VERBATIM
     )
     set_target_properties(${_OUTPUT_TARGET_NAME} PROPERTIES
       BINARY_DIR ${BASE_TILE_DIR}
       ADDITIONAL_CLEAN_FILES "${OTHER_TILE_NAME}_split"
     )
-endmacro()
+endfunction()
 
 ## Creates a run target for a provided binary
 macro(create_run_target _EXECUTABLE_TARGET_NAME)
@@ -201,6 +223,18 @@ macro(create_upgrade_img_target _EXECUTABLE_TARGET_NAME _FACTORY_MAJOR_VER _FACT
       COMMENT
         "Create upgrade image for application"
       USES_TERMINAL
+      VERBATIM
+    )
+endmacro()
+
+## Creates a loader obj target for a provided binary
+## Full filepath must be specified for loader source file
+macro(create_loader_target _EXECUTABLE_TARGET_NAME _LOADER_SOURCE_FILE)
+    add_custom_target(create_loader_object_${_EXECUTABLE_TARGET_NAME}
+      COMMAND xcc -march=xs3a -c ${_LOADER_SOURCE_FILE} -o ${_EXECUTABLE_TARGET_NAME}_loader.o
+      DEPENDS
+      COMMENT
+        "Create loader object file for application"
       VERBATIM
     )
 endmacro()
