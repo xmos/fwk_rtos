@@ -49,7 +49,6 @@ typedef enum {
     rtos_usb_sof_packet
 } rtos_usb_packet_type_t;
 
-
 /**
  * Typedef to the RTOS USB driver instance struct.
  */
