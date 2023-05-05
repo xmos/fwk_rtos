@@ -119,7 +119,7 @@ struct rtos_usb_struct {
     RTOS_USB_ISR_CALLBACK_ATTR rtos_usb_isr_cb_t isr_cb;
     void *isr_app_data;
     rtos_usb_ep_xfer_info_t ep_xfer_info[RTOS_USB_ENDPOINT_COUNT_MAX][2];
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
     chanend_t c_ep_proxy[RTOS_USB_ENDPOINT_COUNT_MAX]; // We'll try to make it work with one channel per endpoint that gets handled via the proxy
     chanend_t c_ep0_proxy_xfer_complete;
 #endif
@@ -135,7 +135,7 @@ static inline int endpoint_dir(uint32_t endpoint_addr)
     return (endpoint_addr >> 7) & 1;
 }
 
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
 typedef enum {
     e_reset_ep=36,
     e_prepare_setup,
@@ -246,7 +246,7 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
     //printf("ep_addr: %d\n", endpoint_addr);
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
     chan_out_byte(ctx->c_ep_proxy[0], e_reset_ep_by_address);
     chan_out_byte(ctx->c_ep_proxy[0], (uint8_t)endpoint_addr);
     int res = chan_in_byte(ctx->c_ep_proxy[0]);
@@ -255,7 +255,7 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
 #else
     (void) ctx;
     XUD_ResetEpStateByAddr(endpoint_addr);
-#endif    
+#endif
 }
 
 /**
@@ -269,7 +269,7 @@ static inline void rtos_usb_endpoint_state_reset(rtos_usb_t *ctx,
 static inline void rtos_usb_endpoint_stall_set(rtos_usb_t *ctx,
                                                uint32_t endpoint_addr)
 {
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
     printf("rtos_usb_endpoint_stall_set() called on the wrong tile!!\n");
     xassert(0);
 #endif
@@ -286,7 +286,7 @@ static inline void rtos_usb_endpoint_stall_set(rtos_usb_t *ctx,
 static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
     printf("rtos_usb_endpoint_stall_clear() called on the wrong tile!!\n");
     xassert(0);
 #endif
@@ -423,7 +423,7 @@ void rtos_usb_simple_init(
 
 /**@}*/
 
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
 
 XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
                                               uint32_t endpoint_addr,

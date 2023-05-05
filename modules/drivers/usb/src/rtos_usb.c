@@ -100,7 +100,7 @@ XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
     return res;
 }
 
-#if (!RUN_EP0_VIA_PROXY)
+#if (!USE_EP_PROXY)
 DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 {
     rtos_usb_ep_xfer_info_t *ep_xfer_info = arg;
@@ -127,11 +127,11 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
         //rtos_printf("EP %d %d initialized\n", ep_num, dir);
     }
 }
-#else /* RUN_EP0_VIA_PROXY */
+#else /* USE_EP_PROXY */
 DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 {
     rtos_usb_t *ctx = (rtos_usb_t*)arg;
-    uint8_t ep_num = chan_in_byte(ctx->c_ep0_proxy_xfer_complete); 
+    uint8_t ep_num = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
     uint8_t dir = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
     uint8_t is_setup = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
     uint32_t xfer_len = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
@@ -143,7 +143,6 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
     }
 
     if (ctx->isr_cb != NULL) {
-        //printintln(9878);
         ctx->isr_cb(ctx, ctx->isr_app_data, ctx->ep_xfer_info[ep_num][dir].ep_address, xfer_len, is_setup ? rtos_usb_setup_packet : rtos_usb_data_packet, res);
     }
 }
@@ -261,7 +260,7 @@ static void ep_cfg(rtos_usb_t *ctx,
                    int ep_num,
                    int direction)
 {
-#if (!RUN_EP0_VIA_PROXY)
+#if (!USE_EP_PROXY)
     channel_t tmp_chan = chan_alloc();
 
     xassert(tmp_chan.end_a != 0);
@@ -277,7 +276,7 @@ static void ep_cfg(rtos_usb_t *ctx,
     ctx->ep_xfer_info[ep_num][direction].ep_num = ep_num;
     ctx->ep_xfer_info[ep_num][direction].ep_address = (direction << 7) | ep_num;
     ctx->ep_xfer_info[ep_num][direction].usb_ctx = ctx;
-#if (!RUN_EP0_VIA_PROXY)
+#if (!USE_EP_PROXY)
     triggerable_setup_interrupt_callback(ctx->c_ep[ep_num][direction], &ctx->ep_xfer_info[ep_num][direction], RTOS_INTERRUPT_CALLBACK(usb_isr));
     triggerable_enable_trigger(ctx->c_ep[ep_num][direction]);
 #endif
@@ -331,7 +330,7 @@ void rtos_usb_start(
             ep_cfg(ctx, i, RTOS_USB_IN_EP);
         }
     }
-#if (RUN_EP0_VIA_PROXY)
+#if (USE_EP_PROXY)
     triggerable_setup_interrupt_callback(ctx->c_ep0_proxy_xfer_complete, ctx, RTOS_INTERRUPT_CALLBACK(usb_isr));
 
     // At this point we should be signalling EP0 proxy with all this information, indicating that it is safe to start XUD
@@ -363,7 +362,7 @@ void rtos_usb_init(
     ctx->isr_cb = isr_cb;
     ctx->isr_app_data = isr_app_data;
 
-#if (!RUN_EP0_VIA_PROXY)
+#if (!USE_EP_PROXY)
     channel_t tmp_chan;
     tmp_chan = chan_alloc();
     xassert(tmp_chan.end_a != 0);
@@ -468,7 +467,7 @@ void rtos_usb_simple_init(
             &event_group);
 }
 
-#if RUN_EP0_VIA_PROXY
+#if USE_EP_PROXY
 uint8_t offtile_rtos_usb_endpoint_reset(chanend_t c_ep_proxy, uint8_t ep_addr)
 {
     chan_out_byte(c_ep_proxy, e_reset_ep);
@@ -491,14 +490,14 @@ XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
     if (!ctx->reset_received) {
         return XUD_RES_ERR;
     }
-    
+
     ctx->ep_xfer_info[ep_num][dir].len = len;
     chan_out_byte(ctx->c_ep_proxy[ep_num], e_usb_endpoint_transfer_start);
     chan_out_byte(ctx->c_ep_proxy[ep_num], endpoint_addr);
     chan_out_byte(ctx->c_ep_proxy[ep_num], len);
 
     if (dir == RTOS_USB_IN_EP) {
-        //res = xud_data_set_start(ctx->ep[ep_num][dir], buffer, len);        
+        //res = xud_data_set_start(ctx->ep[ep_num][dir], buffer, len);
         if(len > 0)
         {
             chan_out_buf_byte(ctx->c_ep_proxy[ep_num], buffer, len);
