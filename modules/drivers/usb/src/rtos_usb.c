@@ -131,11 +131,11 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 {
     rtos_usb_t *ctx = (rtos_usb_t*)arg;
-    uint8_t ep_num = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
-    uint8_t dir = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
-    uint8_t is_setup = chan_in_byte(ctx->c_ep0_proxy_xfer_complete);
-    uint32_t xfer_len = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
-    XUD_Result_t res = chan_in_word(ctx->c_ep0_proxy_xfer_complete);
+    uint8_t ep_num = chan_in_byte(ctx->c_ep_proxy_xfer_complete);
+    uint8_t dir = chan_in_byte(ctx->c_ep_proxy_xfer_complete);
+    uint8_t is_setup = chan_in_byte(ctx->c_ep_proxy_xfer_complete);
+    uint32_t xfer_len = chan_in_word(ctx->c_ep_proxy_xfer_complete);
+    XUD_Result_t res = chan_in_word(ctx->c_ep_proxy_xfer_complete);
 
     //printf("In usb_isr(). ep_num = %d, dir %d, xfer_len %d, res %d\n", ep_num, dir, xfer_len, res);
     if (res == XUD_RES_RST) {
@@ -331,7 +331,7 @@ void rtos_usb_start(
         }
     }
 #if (USE_EP_PROXY)
-    triggerable_setup_interrupt_callback(ctx->c_ep0_proxy_xfer_complete, ctx, RTOS_INTERRUPT_CALLBACK(usb_isr));
+    triggerable_setup_interrupt_callback(ctx->c_ep_proxy_xfer_complete, ctx, RTOS_INTERRUPT_CALLBACK(usb_isr));
 
     // At this point we should be signalling EP0 proxy with all this information, indicating that it is safe to start XUD
     chan_out_word(ctx->c_ep_proxy[0], endpoint_count);
@@ -340,7 +340,7 @@ void rtos_usb_start(
     chan_out_word(ctx->c_ep_proxy[0], endpoint_count);
     chan_out_buf_byte(ctx->c_ep_proxy[0], (uint8_t*)&ctx->endpoint_in_type[0], endpoint_count*sizeof(ctx->endpoint_in_type[0]));
 
-    triggerable_enable_trigger(ctx->c_ep0_proxy_xfer_complete);
+    triggerable_enable_trigger(ctx->c_ep_proxy_xfer_complete);
 #else
     /* Tells the I/O thread to enter XUD_Main() */
     s_chan_out_byte(ctx->c_sof, 0);

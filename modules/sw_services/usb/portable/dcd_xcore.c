@@ -166,7 +166,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
     {
         if(packet_type == rtos_usb_setup_packet)
         {
-            chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)&setup_packet, xfer_len);
+            chan_in_buf_byte(ctx->c_ep_proxy_xfer_complete, (uint8_t*)&setup_packet, xfer_len);
         }
         else if(xfer_len > 0)
         {
@@ -174,9 +174,9 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
             // This is the H2D completed data xfer. It needs to be read in the correct buffer
             // _usbd_ctrl_buf is defined as static uint8_t _usbd_ctrl_buf[CFG_TUD_ENDPOINT0_SIZE];
             // in usbd_control.c. How do we access it here without changing a tinyusb source file
-            //chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)_usbd_ctrl_buf, xfer_len);
+            //chan_in_buf_byte(ctx->c_ep_proxy_xfer_complete, (uint8_t*)_usbd_ctrl_buf, xfer_len);
 
-            chan_in_buf_byte(ctx->c_ep0_proxy_xfer_complete, (uint8_t*)ep0_out_last_data_xfer_address, xfer_len);
+            chan_in_buf_byte(ctx->c_ep_proxy_xfer_complete, (uint8_t*)ep0_out_last_data_xfer_address, xfer_len);
         }
     }
 #endif
