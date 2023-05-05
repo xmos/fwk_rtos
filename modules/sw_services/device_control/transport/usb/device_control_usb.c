@@ -43,7 +43,7 @@ static uint16_t device_control_usb_open(uint8_t rhport, tusb_desc_interface_t co
 
     uint16_t const drv_len = sizeof(tusb_desc_interface_t);
     TU_VERIFY(max_len >= drv_len);
-#if USE_EP_PROXY // set_interface times out when registering the 7 XVF3800 servicers so moving the device_control_resources_register() outside of driver open.
+#if (!USE_EP_PROXY) // set_interface times out when registering the 7 XVF3800 servicers so moving the device_control_resources_register() outside of driver open.
     control_ret_t dc_ret;
 
     dc_ret = device_control_resources_register(device_control_ctx,
