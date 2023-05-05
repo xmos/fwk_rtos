@@ -238,7 +238,6 @@ XUD_BusSpeed_t rtos_usb_endpoint_reset(rtos_usb_t *ctx,
     XUD_ep one = ctx->ep[ep_num][dir];
     XUD_ep *two = NULL;
 
-
     xassert(ctx->reset_received);
 
     dir = dir ? 0 : 1;
@@ -497,7 +496,6 @@ XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
     chan_out_byte(ctx->c_ep_proxy[ep_num], len);
 
     if (dir == RTOS_USB_IN_EP) {
-        //res = xud_data_set_start(ctx->ep[ep_num][dir], buffer, len);
         if(len > 0)
         {
             chan_out_buf_byte(ctx->c_ep_proxy[ep_num], buffer, len);
@@ -505,7 +503,6 @@ XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
 
     } else {
         // No point passing buffer here, since buffer in which data is read will be different on EP0. At data_get_finish we need to copy the data to this 'buffer'
-        //res = xud_data_get_start(ctx->ep[ep_num][dir], buffer);
     }
     res = chan_in_byte(ctx->c_ep_proxy[ep_num]);
     return res;
