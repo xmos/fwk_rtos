@@ -44,6 +44,14 @@ rm -f ${REPORT}
 # discern repository root
 REPO_ROOT=`git rev-parse --show-toplevel`
 
+echo "*********"
+echo "* Flash *"
+echo "*********"
+cd build_XCORE-AI-EXPLORER
+make flash_calibration_test_rtos_driver_hil_add
+xflash --write-all ${REPO_ROOT}/build_XCORE-AI-EXPLORER/dependencies/lib_qspi_fast_read/lib_qspi_fast_read/calibration_pattern.bin --target-file=${REPO_ROOT}/test/rtos_drivers/hil_add/XCORE-AI-EXPLORER.xn
+cd ..
+
 echo "*************"
 echo "* Run Tests *"
 echo "*************"
