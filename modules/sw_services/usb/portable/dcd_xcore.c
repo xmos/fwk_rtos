@@ -47,7 +47,11 @@ TU_ATTR_WEAK bool tud_xcore_data_cb(uint32_t cur_time, uint32_t ep_num, uint32_t
 
 #include "rtos_usb.h"
 
+#if USE_EP_PROXY
+rtos_usb_t usb_ctx;
+#else
 static rtos_usb_t usb_ctx;
+#endif
 
 /*
  * lib_xud uses the provided data buffer to not only store the received data but
@@ -72,6 +76,9 @@ static union setup_packet_struct {
     uint8_t pad[CFG_TUD_ENDPOINT0_SIZE]; /* In case an OUT data packet comes in instead of a SETUP packet */
 } setup_packet;
 
+#if USE_EP_PROXY
+static uint8_t* ep0_out_last_data_xfer_address;
+#endif
 static bool waiting_for_setup = false;
 
 static void prepare_setup(bool in_isr)
@@ -81,11 +88,16 @@ static void prepare_setup(bool in_isr)
     bool is_setup = true;
 
     waiting_for_setup = is_setup;
+#if USE_EP_PROXY
+    chan_out_byte(usb_ctx.c_ep_proxy[0], e_prepare_setup);
+    res = chan_in_byte(usb_ctx.c_ep_proxy[0]);
+#else
     res = rtos_usb_endpoint_transfer_start(&usb_ctx,
                                            ep0_out_addr,
                                            (uint8_t *)&setup_packet,
                                            sizeof(setup_packet),
                                            is_setup);
+#endif
 
     xassert(res == XUD_RES_OKAY);
 
@@ -117,11 +129,15 @@ static void reset_ep(uint8_t ep_addr, bool in_isr)
     XUD_BusSpeed_t xud_speed;
     tusb_speed_t tu_speed;
 
+#if USE_EP_PROXY
+    xud_speed = offtile_rtos_usb_endpoint_reset(usb_ctx.c_ep_proxy[0], ep_addr); // Proxy calls prepare_setup automatically after resetting the EP.
+    waiting_for_setup = true;
+#else
     xud_speed = rtos_usb_endpoint_reset(&usb_ctx, ep_addr);
-    tu_speed = xud_to_tu_speed(xud_speed);
-
     prepare_setup(in_isr);
+#endif
 
+    tu_speed = xud_to_tu_speed(xud_speed);
     dcd_event_bus_reset(0, tu_speed, in_isr);
 }
 
@@ -141,6 +157,26 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         reset_ep(ep_address, true);
         return;
     }
+
+    // xud_data_get_check() ensures that if res is XUD_RES_RST, xfer_len and is_setup are both set to 0.
+    // So its safe to assume, that if there was a reset, the proxy would not send any data.
+#if USE_EP_PROXY // Setup packet needs to be fetched from the EP0 proxy tile
+    if(endpoint_dir(ep_address) == RTOS_USB_OUT_EP)
+    {
+        if(packet_type == rtos_usb_setup_packet)
+        {
+            chan_in_buf_byte(ctx->c_ep_proxy_xfer_complete, (uint8_t*)&setup_packet, xfer_len);
+        }
+        else if(xfer_len > 0)
+        {
+            // This is the H2D completed data xfer. It needs to be read in the correct buffer
+            // _usbd_ctrl_buf is defined as static uint8_t _usbd_ctrl_buf[CFG_TUD_ENDPOINT0_SIZE];
+            // in usbd_control.c. How do we access it here without changing a tinyusb source file
+
+            chan_in_buf_byte(ctx->c_ep_proxy_xfer_complete, (uint8_t*)ep0_out_last_data_xfer_address, xfer_len);
+        }
+    }
+#endif
 
     // rtos_printf("packet rx'd, timestamp %d\n", cur_time);
 
@@ -421,7 +457,11 @@ void dcd_edpt0_status_complete(uint8_t rhport,
 
         const unsigned dev_addr = request->wValue;
         rtos_printf("Setting device address to %d now\n", dev_addr);
+#if (!USE_EP_PROXY)
         rtos_usb_device_address_set(&usb_ctx, dev_addr);
+#else
+        offtile_rtos_usb_device_address_set(&usb_ctx, dev_addr);
+#endif
     }
 }
 
@@ -430,7 +470,6 @@ bool dcd_edpt_open(uint8_t rhport,
                    tusb_desc_endpoint_t const *ep_desc)
 {
     (void) rhport;
-
     rtos_usb_endpoint_state_reset(&usb_ctx, ep_desc->bEndpointAddress);
 
     return true;
@@ -486,7 +525,7 @@ bool dcd_edpt_xfer(uint8_t rhport,
      * assume the CRC16 is to be written to its control buffer.
      */
     if (is_ep0_output) {
-        dest_ctrl_buffer = buffer;
+        dest_ctrl_buffer = (void *)buffer;
         buffer = (uint8_t *)intermediate_buffer;
     }
 
@@ -512,8 +551,16 @@ bool dcd_edpt_xfer(uint8_t rhport,
             prepare_setup(false);
         }
     }
-
+#if (!USE_EP_PROXY)
     res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes, is_setup);
+#else
+    if((tu_edpt_number(ep_addr) == 0) && (tu_edpt_dir(ep_addr) == TUSB_DIR_OUT) && (total_bytes > 0))
+    {
+        // Save the buffer address, since when we get the H2D data back from the host it would be expected in this buffer by the tusb layer.
+        ep0_out_last_data_xfer_address = buffer; // buffer is _usbd_ctrl_buf but we can't access it from this file since it's static in usbd_control.c
+    }
+    res = offtile_rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
+#endif
     if (res == XUD_RES_OKAY) {
         return true;
     }
@@ -521,7 +568,6 @@ bool dcd_edpt_xfer(uint8_t rhport,
     if (res == XUD_RES_RST) {
         reset_ep(ep_addr, false);
     }
-
     return false;
 }
 

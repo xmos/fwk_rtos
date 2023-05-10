@@ -53,11 +53,11 @@ static void usb_xud_thread(rtos_usb_t *ctx)
     vTaskDelete(NULL);
 }
 
-static XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
-                                         const int ep_num,
-                                         const int dir,
-                                         size_t *len,
-                                         int *is_setup)
+XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
+                                    const int ep_num,
+                                    const int dir,
+                                    size_t *len,
+                                    int *is_setup)
 {
     XUD_Result_t res = XUD_RES_ERR;
 
@@ -100,6 +100,7 @@ static XUD_Result_t ep_transfer_complete(rtos_usb_t *ctx,
     return res;
 }
 
+#if (!USE_EP_PROXY)
 DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
 {
     rtos_usb_ep_xfer_info_t *ep_xfer_info = arg;
@@ -126,6 +127,27 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
         rtos_printf("EP %d %d initialized\n", ep_num, dir);
     }
 }
+#else /* USE_EP_PROXY */
+DEFINE_RTOS_INTERRUPT_CALLBACK(usb_isr, arg)
+{
+    rtos_usb_t *ctx = (rtos_usb_t*)arg;
+    uint8_t ep_num = chan_in_byte(ctx->c_ep_proxy_xfer_complete);
+    uint8_t dir = chan_in_byte(ctx->c_ep_proxy_xfer_complete);
+    uint8_t is_setup = chan_in_byte(ctx->c_ep_proxy_xfer_complete);
+    uint32_t xfer_len = chan_in_word(ctx->c_ep_proxy_xfer_complete);
+    XUD_Result_t res = chan_in_word(ctx->c_ep_proxy_xfer_complete);
+
+    //printf("In usb_isr(). ep_num = %d, dir %d, xfer_len %d, res %d\n", ep_num, dir, xfer_len, res);
+    if (res == XUD_RES_RST) {
+        ctx->reset_received = 1;
+    }
+
+    if (ctx->isr_cb != NULL) {
+        ctx->isr_cb(ctx, ctx->isr_app_data, ctx->ep_xfer_info[ep_num][dir].ep_address, xfer_len, is_setup ? rtos_usb_setup_packet : rtos_usb_data_packet, res);
+    }
+}
+#endif
+
 
 DEFINE_RTOS_INTERRUPT_CALLBACK(usb_sof_isr, arg)
 {
@@ -136,16 +158,6 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(usb_sof_isr, arg)
     if (ctx->isr_cb != NULL) {
         ctx->isr_cb(ctx, ctx->isr_app_data, 0, 0, rtos_usb_sof_packet, XUD_RES_OKAY);
     }
-}
-
-static inline int endpoint_num(uint32_t endpoint_addr)
-{
-    return endpoint_addr & 0xF;
-}
-
-static inline int endpoint_dir(uint32_t endpoint_addr)
-{
-    return (endpoint_addr >> 7) & 1;
 }
 
 XUD_Result_t rtos_usb_endpoint_ready(rtos_usb_t *ctx,
@@ -247,6 +259,7 @@ static void ep_cfg(rtos_usb_t *ctx,
                    int ep_num,
                    int direction)
 {
+#if (!USE_EP_PROXY)
     channel_t tmp_chan = chan_alloc();
 
     xassert(tmp_chan.end_a != 0);
@@ -256,13 +269,16 @@ static void ep_cfg(rtos_usb_t *ctx,
         ctx->c_ep_in_xud[ep_num] = tmp_chan.end_a;
     }
     ctx->c_ep[ep_num][direction] = tmp_chan.end_b;
+#endif
 
     ctx->ep_xfer_info[ep_num][direction].dir = direction;
     ctx->ep_xfer_info[ep_num][direction].ep_num = ep_num;
     ctx->ep_xfer_info[ep_num][direction].ep_address = (direction << 7) | ep_num;
     ctx->ep_xfer_info[ep_num][direction].usb_ctx = ctx;
+#if (!USE_EP_PROXY)
     triggerable_setup_interrupt_callback(ctx->c_ep[ep_num][direction], &ctx->ep_xfer_info[ep_num][direction], RTOS_INTERRUPT_CALLBACK(usb_isr));
     triggerable_enable_trigger(ctx->c_ep[ep_num][direction]);
+#endif
 }
 
 void rtos_usb_start(
@@ -276,7 +292,6 @@ void rtos_usb_start(
         int sof_interrupt_core_id)
 {
     int i;
-    uint32_t core_exclude_map;
 
     ctx->power_source = power_source;
     ctx->speed = speed;
@@ -284,17 +299,23 @@ void rtos_usb_start(
     xassert(endpoint_count > 0 && endpoint_count <= RTOS_USB_ENDPOINT_COUNT_MAX);
     ctx->endpoint_count = endpoint_count;
 
+#if (appconfNUM_FREE_RTOS_CORES > 1)
+    uint32_t core_exclude_map;
     /* Ensure that all USB interrupts are enabled on the requested core */
     rtos_osal_thread_core_exclusion_get(NULL, &core_exclude_map);
+#endif
 
-    if (sof_interrupt_core_id >= 0) {
+    if ((ctx->c_sof) && (sof_interrupt_core_id >= 0)) {
         ctx->sof_interrupt_enabled = 1;
+#if (appconfNUM_FREE_RTOS_CORES > 1)
         rtos_osal_thread_core_exclusion_set(NULL, ~(1 << sof_interrupt_core_id));
+#endif
         triggerable_setup_interrupt_callback(ctx->c_sof, ctx, RTOS_INTERRUPT_CALLBACK(usb_sof_isr));
         triggerable_enable_trigger(ctx->c_sof);
     }
-
+#if (appconfNUM_FREE_RTOS_CORES > 1)
     rtos_osal_thread_core_exclusion_set(NULL, ~(1 << interrupt_core_id));
+#endif
 
     for (i = 0; i < endpoint_count; i++) {
 
@@ -308,12 +329,25 @@ void rtos_usb_start(
             ep_cfg(ctx, i, RTOS_USB_IN_EP);
         }
     }
+#if (USE_EP_PROXY)
+    triggerable_setup_interrupt_callback(ctx->c_ep_proxy_xfer_complete, ctx, RTOS_INTERRUPT_CALLBACK(usb_isr));
 
+    // At this point we should be signalling EP0 proxy with all this information, indicating that it is safe to start XUD
+    chan_out_word(ctx->c_ep_proxy[0], endpoint_count);
+    chan_out_buf_byte(ctx->c_ep_proxy[0], (uint8_t*)&ctx->endpoint_out_type[0], endpoint_count*sizeof(ctx->endpoint_out_type[0]));
+
+    chan_out_word(ctx->c_ep_proxy[0], endpoint_count);
+    chan_out_buf_byte(ctx->c_ep_proxy[0], (uint8_t*)&ctx->endpoint_in_type[0], endpoint_count*sizeof(ctx->endpoint_in_type[0]));
+
+    triggerable_enable_trigger(ctx->c_ep_proxy_xfer_complete);
+#else
     /* Tells the I/O thread to enter XUD_Main() */
     s_chan_out_byte(ctx->c_sof, 0);
-
+#endif
+#if (appconfNUM_FREE_RTOS_CORES > 1)
     /* Restore the core exclusion map for the calling thread */
     rtos_osal_thread_core_exclusion_set(NULL, core_exclude_map);
+#endif
 }
 
 void rtos_usb_init(
@@ -322,13 +356,13 @@ void rtos_usb_init(
         rtos_usb_isr_cb_t isr_cb,
         void *isr_app_data)
 {
-    channel_t tmp_chan;
-
     memset(ctx, 0, sizeof(rtos_usb_t));
 
     ctx->isr_cb = isr_cb;
     ctx->isr_app_data = isr_app_data;
 
+#if (!USE_EP_PROXY)
+    channel_t tmp_chan;
     tmp_chan = chan_alloc();
     xassert(tmp_chan.end_a != 0);
     ctx->c_sof_xud = tmp_chan.end_a;
@@ -346,10 +380,8 @@ void rtos_usb_init(
     rtos_osal_thread_preemption_disable(&ctx->hil_thread);
     /* And ensure it only runs on one of the specified cores */
     rtos_osal_thread_core_exclusion_set(&ctx->hil_thread, ~io_core_mask);
+#endif
 }
-
-
-
 
 
 static inline unsigned ep_event_flag(const int ep_num,
@@ -433,3 +465,46 @@ void rtos_usb_simple_init(
             usb_simple_isr_cb,
             &event_group);
 }
+
+#if USE_EP_PROXY
+uint8_t offtile_rtos_usb_endpoint_reset(chanend_t c_ep_proxy, uint8_t ep_addr)
+{
+    chan_out_byte(c_ep_proxy, e_reset_ep);
+    chan_out_byte(c_ep_proxy, ep_addr);
+    uint8_t usb_bus_speed = chan_in_byte(c_ep_proxy);
+    return usb_bus_speed;
+}
+
+XUD_Result_t offtile_rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
+                                              uint32_t endpoint_addr,
+                                              uint8_t *buffer,
+                                              size_t len)
+{
+    XUD_Result_t res;
+    const int ep_num = endpoint_num(endpoint_addr);
+    const int dir = endpoint_dir(endpoint_addr);
+
+    xassert(ep_num < RTOS_USB_ENDPOINT_COUNT_MAX);
+
+    if (!ctx->reset_received) {
+        return XUD_RES_ERR;
+    }
+
+    ctx->ep_xfer_info[ep_num][dir].len = len;
+    chan_out_byte(ctx->c_ep_proxy[ep_num], e_usb_endpoint_transfer_start);
+    chan_out_byte(ctx->c_ep_proxy[ep_num], endpoint_addr);
+    chan_out_byte(ctx->c_ep_proxy[ep_num], len);
+
+    if (dir == RTOS_USB_IN_EP) {
+        if(len > 0)
+        {
+            chan_out_buf_byte(ctx->c_ep_proxy[ep_num], buffer, len);
+        }
+
+    } else {
+        // No point passing buffer here, since buffer in which data is read will be different on EP0. At data_get_finish we need to copy the data to this 'buffer'
+    }
+    res = chan_in_byte(ctx->c_ep_proxy[ep_num]);
+    return res;
+}
+#endif
