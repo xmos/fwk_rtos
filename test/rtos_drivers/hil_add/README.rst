@@ -12,7 +12,6 @@ Description
 The RTOS driver tests are designed to regression test RTOS driver behavior for the following drivers:
 
 - spi
-- uart
 - qspi_fast_read
 
 These tests assume that the associated RTOS and HILs used have been verified by their own localized separate testing.
