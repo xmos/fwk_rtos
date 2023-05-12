@@ -163,7 +163,6 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                 rtos_printf("xfer ZLP on 80 complete\n");
             }
             else if (ep_address == 0x00) {
-            if (ep_address == 0x00) {
                 if (xfer_len == 0) {
                     /*
                      * A ZLP has presumably been received on the output endpoint 0.
