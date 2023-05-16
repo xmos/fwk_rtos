@@ -36,18 +36,18 @@ fi
 # Get unix name for determining OS
 UNAME=$(uname)
 
-# clean slate
-rm -rf testing
-mkdir testing
-rm -f ${REPORT}
-
 # discern repository root
 REPO_ROOT=`git rev-parse --show-toplevel`
+
+# clean slate
+rm -rf ${REPO_ROOT}/testing
+mkdir ${REPO_ROOT}/testing
+rm -f ${REPO_ROOT}/${REPORT}
 
 echo "*********"
 echo "* Flash *"
 echo "*********"
-cd build_XCORE-AI-EXPLORER
+cd ${REPO_ROOT}/build_XCORE-AI-EXPLORER
 xflash --write-all ${REPO_ROOT}/build_XCORE-AI-EXPLORER/dependencies/lib_qspi_fast_read/lib_qspi_fast_read/calibration_pattern.bin --target-file=${REPO_ROOT}/test/rtos_drivers/hil_add/XCORE-AI-EXPLORER.xn
 cd ..
 
@@ -55,12 +55,12 @@ echo "*************"
 echo "* Run Tests *"
 echo "*************"
 if [ "$UNAME" == "Linux" ] || [ -n "$MSYSTEM" ]; then
-    timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPO_ROOT}/${REPORT}
 elif [ "$UNAME" == "Darwin" ] ; then
-    gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPO_ROOT}/${REPORT}
 fi
 
 echo "****************"
 echo "* Parse Result *"
 echo "****************"
-python ${REPO_ROOT}/test/rtos_drivers/python/parse_test_output.py testing/test.rpt -outfile="testing/test_results" --print_test_results --verbose
+python ${REPO_ROOT}/test/rtos_drivers/python/parse_test_output.py ${REPO_ROOT}/testing/test.rpt -outfile="${REPO_ROOT}/testing/test_results" --print_test_results --verbose
