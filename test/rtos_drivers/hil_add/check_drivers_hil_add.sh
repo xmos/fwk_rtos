@@ -3,6 +3,7 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 set -e # exit on first error
+set -x
 
 # help text
 help()
@@ -26,8 +27,8 @@ done
 
 # assign vars
 REPORT=testing/test.rpt
-FIRMWARE=test_rtos_driver_hil_add.xe
-TIMEOUT_S=120
+FIRMWARE=dist/test_rtos_driver_hil_add.xe
+TIMEOUT_S=300
 if [ ! -z "${@:$OPTIND:1}" ]
 then
     ADAPTER_ID="--adapter-id ${@:$OPTIND:1}"
@@ -47,17 +48,18 @@ REPO_ROOT=`git rev-parse --show-toplevel`
 echo "*********"
 echo "* Flash *"
 echo "*********"
-cd build_XCORE-AI-EXPLORER
-xflash --write-all ${REPO_ROOT}/build_XCORE-AI-EXPLORER/dependencies/lib_qspi_fast_read/lib_qspi_fast_read/calibration_pattern.bin ${ADAPTER_ID} --target-file=${REPO_ROOT}/test/rtos_drivers/hil_add/XCORE-AI-EXPLORER.xn
-cd ..
+RETURN_DIR=$PWD
+cd ${REPO_ROOT}/build_XCORE-AI-EXPLORER
+xflash --write-all ${REPO_ROOT}/build_XCORE-AI-EXPLORER/dependencies/lib_qspi_fast_read/lib_qspi_fast_read/calibration_pattern.bin --target-file=${REPO_ROOT}/test/rtos_drivers/hil_add/XCORE-AI-EXPLORER.xn
+cd ${RETURN_DIR}
 
 echo "*************"
 echo "* Run Tests *"
 echo "*************"
 if [ "$UNAME" == "Linux" ] || [ -n "$MSYSTEM" ]; then
-    timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 elif [ "$UNAME" == "Darwin" ] ; then
-    gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+    gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 fi
 
 echo "****************"
