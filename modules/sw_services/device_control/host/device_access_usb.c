@@ -143,7 +143,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
 #ifdef _WIN32
   ret = usb_control_msg(devh,
     USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-    0, wvalue, windex, (char*)payload, wlength, sync_timeout_ms);
+    0, wvalue, windex, (char*)&status, wlength, sync_timeout_ms);
 #else
   ret = libusb_control_transfer(devh,
     LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
