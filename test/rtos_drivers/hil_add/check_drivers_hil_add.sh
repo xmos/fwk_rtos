@@ -48,7 +48,7 @@ echo "*********"
 echo "* Flash *"
 echo "*********"
 cd build_XCORE-AI-EXPLORER
-xflash --write-all ${ADAPTER_ID} ${REPO_ROOT}/build_XCORE-AI-EXPLORER/dependencies/lib_qspi_fast_read/lib_qspi_fast_read/calibration_pattern.bin --target-file=${REPO_ROOT}/test/rtos_drivers/hil_add/XCORE-AI-EXPLORER.xn
+xflash --write-all ${REPO_ROOT}/build_XCORE-AI-EXPLORER/dependencies/lib_qspi_fast_read/lib_qspi_fast_read/calibration_pattern.bin ${ADAPTER_ID} --target-file=${REPO_ROOT}/test/rtos_drivers/hil_add/XCORE-AI-EXPLORER.xn
 cd ..
 
 echo "*************"
