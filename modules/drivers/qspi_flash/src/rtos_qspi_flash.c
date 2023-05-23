@@ -12,6 +12,14 @@
 
 #include "rtos_qspi_flash.h"
 
+#ifndef QSPI_FL_RETRY_DELAY_TICKS
+#define QSPI_FL_RETRY_DELAY_TICKS 1000
+#endif
+
+#ifndef QSPI_FL_RETRY_ATTEMPT_CNT
+#define QSPI_FL_RETRY_ATTEMPT_CNT 5
+#endif
+
 /* TODO, these will be removed once moved to the public API */
 #define ERASE_CHIP 0xC7
 
@@ -86,6 +94,22 @@ static void spinlock_release(volatile int *lock)
     *lock = 0;
 }
 
+static void rtos_qspi_flash_fl_connect_with_retry(
+        rtos_qspi_flash_t *ctx)
+{
+    if (fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) == 0) {
+        return;
+    } else {
+        int cnt = 0;
+        while (fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) != 0) {
+            delay_ticks(QSPI_FL_RETRY_DELAY_TICKS);
+            if (cnt++ >= QSPI_FL_RETRY_ATTEMPT_CNT) {
+                xassert(0); /* fl_connectToDevice failed too many times */
+            }
+        }
+    }
+}
+
 int rtos_qspi_flash_read_ll(
         rtos_qspi_flash_t *ctx,
         uint8_t *data,
@@ -121,11 +145,6 @@ int rtos_qspi_flash_read_ll(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
-
-            /* If user attempted to read chunk size past flash make sure we stop */
-            if (read_len == 0) {
-                break;
-            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -183,11 +202,6 @@ int rtos_qspi_flash_fast_read_ll(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
-
-            /* If user attempted to read chunk size past flash make sure we stop */
-            if (read_len == 0) {
-                break;
-            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -246,11 +260,6 @@ int rtos_qspi_flash_fast_read_mode_ll(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
-
-            /* If user attempted to read chunk size past flash make sure we stop */
-            if (read_len == 0) {
-                break;
-            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x in mode %d\n", read_len, address, mode);
@@ -333,11 +342,6 @@ static void read_op(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
-
-            /* If user attempted to read chunk size past flash make sure we stop */
-            if (read_len == 0) {
-                break;
-            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -383,11 +387,6 @@ static void read_fast_op(
 
             /* Return all 0xFF bytes for addresses beyond the end of the flash */
             memset(&data[read_len], 0xFF, original_len - read_len);
-
-            /* If user attempted to read chunk size past flash make sure we stop */
-            if (read_len == 0) {
-                break;
-            }
         }
 
         rtos_printf("Read %d bytes from flash at address 0x%x\n", read_len, address);
@@ -552,7 +551,7 @@ static void qspi_flash_op_thread(rtos_qspi_flash_t *ctx)
                     qspi_flash_fast_read_setup_resources(&ctx->ctx);
                     qspi_flash_fast_read_apply_calibration(&ctx->ctx);
                 } else {
-                    xassert(fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) == 0);
+                    rtos_qspi_flash_fl_connect_with_retry(ctx);
                 }
                 break;
             case FLASH_OP_READ:
@@ -571,7 +570,7 @@ static void qspi_flash_op_thread(rtos_qspi_flash_t *ctx)
                 || (op.op == FLASH_OP_WRITE)
                 || (op.op == FLASH_OP_ERASE)) {
                     qspi_flash_fast_read_shutdown(&ctx->ctx);
-                    xassert(fl_connectToDevice(&ctx->qspi_ports, &ctx->qspi_spec, 1) == 0);
+                    rtos_qspi_flash_fl_connect_with_retry(ctx);
                 }
                 break;
             }
