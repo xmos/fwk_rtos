@@ -1,6 +1,12 @@
 RTOS Framework change log
 =========================
 
+3.0.2
+-----
+  
+  * ADDED: Retry connect behavior to lib_quadflash portion of RTOS flash driver
+  * FIXED: Fixed device control host for Windows.
+
 3.0.1
 -----
   
