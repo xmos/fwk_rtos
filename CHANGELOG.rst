@@ -4,6 +4,8 @@ RTOS Framework change log
 3.0.2
 -----
   
+  * UPDATED: To test again fwk_io v3.0.1
+  * UPDATED: To test again lib_qspi_fast_read v1.0.1
   * ADDED: Retry connect behavior to lib_quadflash portion of RTOS flash driver
   * FIXED: Fixed device control host for Windows.
 
