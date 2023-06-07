@@ -19,7 +19,7 @@ $MKFS_VFAT_PATH/mkfs.vfat -v -F12 -s1 -S4096 -n xcore_fs fat.fs
 
 mkdir -p fat_mnt
 
-WF200_FW=$REPO_ROOT/modules/rtos/drivers/wifi/sl_wf200/thirdparty/wfx-firmware/wfm_wf200_C0.sec
+WF200_FW=$REPO_ROOT/modules/drivers/wifi/sl_wf200/thirdparty/wfx-firmware/wfm_wf200_C0.sec
 # Mount the filesystem
 if [ "$UNAME" == "Linux" ] ; then
     sudo mount -o loop fat.fs fat_mnt
