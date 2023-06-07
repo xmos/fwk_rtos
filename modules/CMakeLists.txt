@@ -1,10 +1,12 @@
 
-add_subdirectory(bsp_config)
-add_subdirectory(drivers)
-add_subdirectory(FreeRTOS)
-add_subdirectory(osal)
-add_subdirectory(rtos_support)
-add_subdirectory(sw_services)
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
+    add_subdirectory(bsp_config)
+    add_subdirectory(drivers)
+    add_subdirectory(FreeRTOS)
+    add_subdirectory(osal)
+    add_subdirectory(rtos_support)
+    add_subdirectory(sw_services)
+endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## Create an aggregate of rtos drivers
