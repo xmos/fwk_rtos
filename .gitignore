@@ -23,6 +23,7 @@
 *.xmt
 **/_build/
 **/build_*/
+**/dist_*/
 !doc/build_system_guide/
 **/run_*.log
 **/_doxygen/*
@@ -31,8 +32,6 @@
 **/html/*
 **/.settings/*
 .metadata
-**/test_results.csv
-**/test_results.xml
 **/.venv/**
 .metadata
 *.gtkw
@@ -44,11 +43,6 @@
 **/.pytest_cache/*
 **/*_junit.xml
 **/testing/*
-
-# waf build cruft
-.lock-waf_*
-.waf-*/
-build/
 
 # filesystem cruft
 **/fat.fs
@@ -65,8 +59,3 @@ build/
 
 # macOS cruft
 .DS_Store
-
-# ai_tools
-tools/ai/ai_tools
-*xcore_sdk_venv/*
-**/*.swp

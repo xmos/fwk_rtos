@@ -13,6 +13,7 @@ mkdir -p ${DIST_DIR}
 # row format is: "target     copy_path"
 applications=(
     "datapartition_mkimage   tools/datapartition_mkimage"
+    "fatfs_mkimage   tools/fatfs_mkimage"
 )
 
 # perform builds
