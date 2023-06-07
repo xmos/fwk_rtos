@@ -54,7 +54,7 @@ jobs:
               - 'tools/ci/fetch_ci_deps.cmake'
 
   build_host_apps:
-    name: Build RTOS hot applications
+    name: Build RTOS host applications
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
