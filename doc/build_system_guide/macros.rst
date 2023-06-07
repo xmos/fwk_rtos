@@ -20,13 +20,24 @@ merge_binaries
 
 merge_binaries combines multiple xcore applications into one by extracting a tile elf and recombining it into another binary. This is used in multitile RTOS applications to enable building unique instances of the FreeRTOS kernel and task sets on a per tile basis.
 This macro takes an output target name, a base target, a target containing a tile to merge, and the tile number to merge.
-The resulting output will be a target named ``<OUTPUT_TARGET_NAME>``, which contains the ``<BASE_TARGET>`` application with tile ``<TILE_NUM_TO_MERGE>`` replaced with
-the respective tile from ``<OTHER_TARGET>``.
+
+This macro can be called in two ways. The 4 argument version is for when the
+application has only 1 node and therefore only the core needs to be specified.
 
 .. code-block:: cmake
 
-  merge_binaries(<OUTPUT_TARGET_NAME> <BASE_TARGET> <OTHER_TARGET> <TILE_NUM_TO_MERGE>)
+   # create target OUT by replacing tile number 0 in BASE with tile 0 in OTHER
+   merge_binaries(${OUT} ${BASE} ${OTHER} 0)
 
+The 5 argument version is for multi-node applications. IMPORTANT: node number 
+is not the "Node Id" from the xn file, rather the index of the node in the 
+JTAGChain which is defined in the xn file.
+
+.. code-block:: cmake
+
+   # create target OUT by replacing tile 1 on node 0 in BASE with tile 1 on 
+   # node 0 in OTHER
+   merge_binaries(${OUT} ${BASE} ${OTHER} 0 1)
 
 create_run_target
 -----------------
