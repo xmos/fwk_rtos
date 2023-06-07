@@ -141,7 +141,9 @@ typedef enum {
     e_usb_endpoint_transfer_start,
     e_xud_data_get_start,
     e_usb_device_address_set,
-    e_reset_ep_by_address
+    e_reset_ep_by_address,
+    e_usb_endpoint_stall_set,
+    e_usb_endpoint_stall_clear
 }ep0_proxy_cmds_t;
 
 #endif
@@ -269,11 +271,14 @@ static inline void rtos_usb_endpoint_stall_set(rtos_usb_t *ctx,
                                                uint32_t endpoint_addr)
 {
 #if USE_EP_PROXY
-    printf("rtos_usb_endpoint_stall_set() called on the wrong tile!!\n");
-    xassert(0);
-#endif
+    chan_out_byte(ctx->c_ep_proxy[0], e_usb_endpoint_stall_set);
+    chan_out_byte(ctx->c_ep_proxy[0], (uint8_t)endpoint_addr);
+    int res = chan_in_byte(ctx->c_ep_proxy[0]);
+    (void) res;
+#else
     (void) ctx;
     XUD_SetStallByAddr(endpoint_addr);
+#endif
 }
 
 /**
@@ -286,8 +291,10 @@ static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
                                                  uint32_t endpoint_addr)
 {
 #if USE_EP_PROXY
-    printf("rtos_usb_endpoint_stall_clear() called on the wrong tile!!\n");
-    xassert(0);
+    chan_out_byte(ctx->c_ep_proxy[0], e_usb_endpoint_stall_clear);
+    chan_out_byte(ctx->c_ep_proxy[0], (uint8_t)endpoint_addr);
+    int res = chan_in_byte(ctx->c_ep_proxy[0]);
+    (void) res;
 #endif
     (void) ctx;
     XUD_ClearStallByAddr(endpoint_addr);
