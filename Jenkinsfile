@@ -26,6 +26,9 @@ pipeline {
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
         RTOS_TEST_RIG_TARGET = "xcore_sdk_test_rig"
+        LOCAL_WIFI_SSID = credentials('hampton-office-network-ssid')
+        LOCAL_WIFI_PASS = credentials('hampton-office-network-wifi-password')
+        LOCAL_WIFI_SECURITY = credentials('hampton-office-network-wifi-security')
     }    
     stages {
         stage('Setup') {
@@ -83,29 +86,43 @@ pipeline {
                 label 'xcore.ai-explorer-us'
             }
             stages{
-                stage('Run RTOS Drivers HIL test') {
+                // stage('Run RTOS Drivers HIL test') {
+                //     steps {
+                //         withTools(params.TOOLS_VERSION) {
+                //             withVenv {
+                //                 script {
+                //                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                //                         sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
+                //                     }
+                //                     sh "pytest test/rtos_drivers/hil"
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
+                // stage('Run RTOS Drivers HIL_Add test') {
+                //     steps {
+                //         withTools(params.TOOLS_VERSION) {
+                //             withVenv {
+                //                 script {
+                //                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                //                         sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
+                //                     }
+                //                     sh "pytest test/rtos_drivers/hil_add"
+                //                 }
+                //             }
+                //         }
+                //     }
+                // }
+                stage('Run RTOS Drivers WiFi test') {
                     steps {
                         withTools(params.TOOLS_VERSION) {
                             withVenv {
                                 script {
                                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                        sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
+                                        sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
                                     }
-                                    sh "pytest test/rtos_drivers/hil"
-                                }
-                            }
-                        }
-                    }
-                }
-                stage('Run RTOS Drivers HIL_Add test') {
-                    steps {
-                        withTools(params.TOOLS_VERSION) {
-                            withVenv {
-                                script {
-                                    withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                        sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
-                                    }
-                                    sh "pytest test/rtos_drivers/hil_add"
+                                    sh "pytest test/rtos_drivers/wifi"
                                 }
                             }
                         }
