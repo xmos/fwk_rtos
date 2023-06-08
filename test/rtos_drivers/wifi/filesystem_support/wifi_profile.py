@@ -44,12 +44,9 @@ if not (args.password):
 else:
     password = args.password
 
+# WiFi security defaults to WPA. Acceptable values are 0=open, 1=WEP, 2=WPA
 if not (args.security):
-    if not (os.environ.get('LOCAL_WIFI_SECURITY')):
-        security = input("Enter the security (0=open, 1=WEP, 2=WPA): ")
-        os.environ["LOCAL_WIFI_SECURITY"] = security
-    else:
-        security = os.environ['LOCAL_WIFI_SECURITY']
+    security = "2"
 else:
     security = eval(args.security)
 

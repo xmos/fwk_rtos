@@ -30,7 +30,6 @@ pipeline {
         RTOS_TEST_RIG_TARGET = "xcore_sdk_test_rig"
         LOCAL_WIFI_SSID = credentials('hampton-office-network-ssid')
         LOCAL_WIFI_PASS = credentials('hampton-office-network-wifi-password')
-        LOCAL_WIFI_SECURITY = credentials('hampton-office-network-wifi-security')
     }    
     stages {
         stage('Checkout') {
