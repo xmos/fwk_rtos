@@ -38,6 +38,13 @@ pipeline {
                 sh 'git submodule update --init --recursive --depth 1 --jobs \$(nproc)'
             }
         }
+        stage('Build host apps') {
+            steps {
+                sh "bash tools/ci/build_host_apps.sh"
+            }
+            // List built files for log
+            sh "ls -la dist_host/"
+        }
         stage('Build tests') {
             steps {
                 script {
