@@ -1,8 +1,9 @@
 #!/bin/bash
-# Copyright (c) 2023, XMOS Ltd, All rights reserved
+# Copyright (c) 2021-2023, XMOS Ltd, All rights reserved
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 set -e # exit on first error
+set -x
 
 # help text
 help()
