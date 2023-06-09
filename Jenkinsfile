@@ -28,6 +28,8 @@ pipeline {
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
         RTOS_TEST_RIG_TARGET = "xcore_sdk_test_rig"
+        LOCAL_WIFI_SSID = credentials('hampton-office-network-ssid')
+        LOCAL_WIFI_PASS = credentials('hampton-office-network-wifi-password')
     }    
     stages {
         stage('Checkout') {
@@ -36,7 +38,7 @@ pipeline {
                 sh 'git submodule update --init --recursive --depth 1 --jobs \$(nproc)'
             }
         }
-        stage('Build tests') {
+        stage('Build tests and host apps') {
             steps {
                 script {
                     uid = sh(returnStdout: true, script: 'id -u').trim()
@@ -44,9 +46,11 @@ pipeline {
                 }
                 withTools(params.TOOLS_VERSION) {
                     sh "bash tools/ci/build_rtos_tests.sh"
+                    sh "bash tools/ci/build_host_apps.sh"
                 }
                 // List built files for log
                 sh "ls -la dist/"
+                sh "ls -la dist_host/"
             }
         }
         stage('Create virtual environment') {
@@ -95,6 +99,20 @@ pipeline {
                                 sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
                             }
                             sh "pytest test/rtos_drivers/hil_add"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Run RTOS Drivers WiFi test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
+                            }
+                            sh "pytest test/rtos_drivers/wifi"
                         }
                     }
                 }
