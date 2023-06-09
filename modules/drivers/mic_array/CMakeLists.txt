@@ -1,12 +1,12 @@
+if(DEFINED FRAMEWORK_IO_ROOT_PATH)
+    set(LIB_MIC_ARRAY_PATH ${FRAMEWORK_IO_ROOT_PATH}/modules/mic_array)
+else()
+    message(FATAL_ERROR "FRAMEWORK_IO_ROOT_PATH was not defined")
+endif()
+
 # Note, the inclusion of the vanilla API stuff below is a temporary hack until
 # a more RTOS-friendly API is available for the mic array
 if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS2A))
-    if(DEFINED FRAMEWORK_IO_ROOT_PATH)
-        set(LIB_MIC_ARRAY_PATH ${FRAMEWORK_IO_ROOT_PATH}/modules/mic_array)
-    else()
-        message(FATAL_ERROR "FRAMEWORK_IO_ROOT_PATH was not defined")
-    endif()
-
     ## Create library target
     add_library(framework_rtos_drivers_mic_array INTERFACE)
     target_sources(framework_rtos_drivers_mic_array
