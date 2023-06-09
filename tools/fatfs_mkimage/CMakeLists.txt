@@ -10,10 +10,6 @@ set(FATFS_HOST_PATH "${FRAMEWORK_RTOS_ROOT_PATH}/modules/sw_services/fatfs")
 message(STATUS ${CMAKE_CURRENT_LIST_DIR})
 message(STATUS ${FATFS_HOST_PATH})
 
-file(READ ${FRAMEWORK_RTOS_ROOT_PATH}/settings.json JSON_STRING)
-# Get the "version" value from the JSON element
-string(JSON VERSION_VAL GET ${JSON_STRING} ${IDX} version)
-
 # Determine OS, set up output dirs
 if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
     set(FATFS_INSTALL_DIR "/opt/xmos/bin")
