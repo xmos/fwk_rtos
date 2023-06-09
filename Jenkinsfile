@@ -38,14 +38,7 @@ pipeline {
                 sh 'git submodule update --init --recursive --depth 1 --jobs \$(nproc)'
             }
         }
-        stage('Build host apps') {
-            steps {
-                sh "bash tools/ci/build_host_apps.sh"
-            }
-            // List built files for log
-            sh "ls -la dist_host/"
-        }
-        stage('Build tests') {
+        stage('Build tests and host apps') {
             steps {
                 script {
                     uid = sh(returnStdout: true, script: 'id -u').trim()
@@ -53,9 +46,11 @@ pipeline {
                 }
                 withTools(params.TOOLS_VERSION) {
                     sh "bash tools/ci/build_rtos_tests.sh"
+                    sh "bash tools/ci/build_host_apps.sh"
                 }
                 // List built files for log
                 sh "ls -la dist/"
+                sh "ls -la dist_host/"
             }
         }
         stage('Create virtual environment') {
