@@ -53,6 +53,24 @@ jobs:
               - 'modules/**'
               - 'tools/ci/fetch_ci_deps.cmake'
 
+  build_rtos host_apps:
+    needs: changes
+    name: Build RTOS host apps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Pull Docker builder
+        run: |
+          docker pull ${XCORE_BUILDER_IMAGE}
+
+      - name: Build
+        run: |
+          docker run --rm -w /fwk_rtos -v ${{github.workspace}}:/fwk_rtos ${XCORE_BUILDER_IMAGE} bash -l tools/ci/build_host_apps.sh
+
   build_rtos_tests:
     needs: changes
     name: Build RTOS tests

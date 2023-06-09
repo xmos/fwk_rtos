@@ -12,6 +12,7 @@ mkdir -p ${DIST_DIR}
 
 # row format is: "target     copy_path"
 applications=(
+    "fatfs_mkimage   tools/fatfs_mkimage"
     "datapartition_mkimage   tools/datapartition_mkimage"
 )
 
