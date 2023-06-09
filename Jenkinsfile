@@ -76,34 +76,34 @@ pipeline {
                 sh "rm -f ~/.xtag/status.lock ~/.xtag/acquired"
             }
         }
-        // stage('Run RTOS Drivers HIL test') {
-        //     steps {
-        //         withTools(params.TOOLS_VERSION) {
-        //             withVenv {
-        //                 script {
-        //                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-        //                         sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
-        //                     }
-        //                     sh "pytest test/rtos_drivers/hil"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        // stage('Run RTOS Drivers HIL_Add test') {
-        //     steps {
-        //         withTools(params.TOOLS_VERSION) {
-        //             withVenv {
-        //                 script {
-        //                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-        //                         sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
-        //                     }
-        //                     sh "pytest test/rtos_drivers/hil_add"
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Run RTOS Drivers HIL test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
+                            }
+                            sh "pytest test/rtos_drivers/hil"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Run RTOS Drivers HIL_Add test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
+                            }
+                            sh "pytest test/rtos_drivers/hil_add"
+                        }
+                    }
+                }
+            }
+        }
         stage('Run RTOS Drivers WiFi test') {
             steps {
                 withTools(params.TOOLS_VERSION) {
