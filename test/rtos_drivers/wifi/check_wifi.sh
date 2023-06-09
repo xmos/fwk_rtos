@@ -3,6 +3,7 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 set -e # exit on first error
+set -x
 
 # help text
 help()

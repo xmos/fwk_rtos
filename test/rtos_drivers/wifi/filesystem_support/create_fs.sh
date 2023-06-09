@@ -1,3 +1,5 @@
+set -x
+
 # discern repository root
 REPO_ROOT=`git rev-parse --show-toplevel`
 
