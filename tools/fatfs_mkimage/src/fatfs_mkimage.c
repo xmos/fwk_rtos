@@ -7,7 +7,7 @@
 #include "fatfs_ops.h"
 #include "directory_add.h"
 
-#define VERSION "1.0-RC1"
+#define VERSION "1.0.0"
 
 #define IMAGE_SIZE_DEFAULT          1024*1024
 #define SECTOR_SIZE_DEFAULT         4096
