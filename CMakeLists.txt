@@ -21,7 +21,10 @@ set(FRAMEWORK_RTOS_ROOT_PATH ${PROJECT_SOURCE_DIR} CACHE STRING "Root folder of 
 if(FRAMEWORK_RTOS_TESTS)
     ## Import some helpful macros
     include(tools/cmake_utils/xmos_macros.cmake)
+endif()
 
+## These must be included before adding the modules subdirectory
+if(FRAMEWORK_RTOS_TESTS OR PROJECT_IS_TOP_LEVEL)
     ## Fetch dependencies if top level
     include(tools/ci/fetch_ci_deps.cmake)
 endif()
