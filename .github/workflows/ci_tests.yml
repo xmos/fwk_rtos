@@ -53,7 +53,7 @@ jobs:
               - 'modules/**'
               - 'tools/ci/fetch_ci_deps.cmake'
 
-  build_rtos host_apps:
+  build_rtos_host_apps:
     needs: changes
     name: Build RTOS host apps
     runs-on: ubuntu-latest
