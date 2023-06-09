@@ -1,5 +1,4 @@
-#!/bin/bash
-
+# discern repository root
 REPO_ROOT=`git rev-parse --show-toplevel`
 
 # Copy files into filesystem
