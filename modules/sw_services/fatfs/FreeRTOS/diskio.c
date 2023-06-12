@@ -20,7 +20,7 @@
 #define QSPI_FLASH_SECTOR_SIZE 4096
 #endif
 
-static DSTATUS drive_status[FF_VOLUMES] = {
+DSTATUS drive_status[FF_VOLUMES] = {
 #if FF_VOLUMES >= 10
         STA_NOINIT,
 #endif
