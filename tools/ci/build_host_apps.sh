@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+if [ -f /.dockerenv ]; then
+    # Docker workaround for: "fatal: detected dubious ownership in repository"
+    git config --global --add safe.directory /fwk_rtos
+fi
+
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
 source ${REPO_ROOT}/tools/ci/helper_functions.sh
@@ -12,6 +17,7 @@ mkdir -p ${DIST_DIR}
 
 # row format is: "target     copy_path"
 applications=(
+    "fatfs_mkimage   tools/fatfs_mkimage"
     "datapartition_mkimage   tools/datapartition_mkimage"
 )
 

@@ -1,6 +1,11 @@
 RTOS Framework change log
 =========================
 
+3.0.3
+-----
+  
+  * FIXED: Now fully supports overriding implementations for FatFS IO functions.
+
 3.0.2
 -----
   

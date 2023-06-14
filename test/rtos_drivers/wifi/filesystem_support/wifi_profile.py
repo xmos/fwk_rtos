@@ -27,17 +27,26 @@ parser.add_argument(
 args = parser.parse_args()
 
 if not (args.ssid):
-    ssid = input("Enter the WiFi network SSID: ")
+    if not (os.environ.get('LOCAL_WIFI_SSID')):
+        ssid = input("Enter the WiFi network SSID: ")
+        os.environ["LOCAL_WIFI_SSID"] = ssid
+    else:
+        ssid = os.environ['LOCAL_WIFI_SSID']
 else:
     ssid = args.ssid
 
 if not (args.password):
-    password = getpass.getpass("Enter the WiFi network password: ")
+    if not (os.environ.get('LOCAL_WIFI_PASS')):
+        password = getpass.getpass("Enter the WiFi network password: ")
+        os.environ["LOCAL_WIFI_PASS"] = password
+    else:
+        password = os.environ['LOCAL_WIFI_PASS']
 else:
     password = args.password
 
+# WiFi security defaults to WPA. Acceptable values are 0=open, 1=WEP, 2=WPA
 if not (args.security):
-    security = eval(input("Enter the security (0=open, 1=WEP, 2=WPA): "))
+    security = "2"
 else:
     security = eval(args.security)
 
@@ -50,7 +59,7 @@ s += struct.pack(
     bssid,
     bytearray(password, "ascii"),
     min(len(password), 32),
-    security,
+    eval(security),
 )
 
 file = open(f"{os.path.realpath(os.path.dirname(__file__))}/networks.dat", "wb")
