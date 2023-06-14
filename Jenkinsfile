@@ -44,6 +44,8 @@ pipeline {
                     uid = sh(returnStdout: true, script: 'id -u').trim()
                     gid = sh(returnStdout: true, script: 'id -g').trim()
                 }
+                // pull docker
+                sh "docker pull ghcr.io/xmos/xcore_voice_tester:develop"
                 withTools(params.TOOLS_VERSION) {
                     sh "bash tools/ci/build_rtos_tests.sh"
                     sh "bash tools/ci/build_host_apps.sh"
@@ -123,8 +125,10 @@ pipeline {
                 withTools(params.TOOLS_VERSION) {
                     withVenv {
                         script {
+                            uid = sh(returnStdout: true, script: 'id -u').trim()
+                            gid = sh(returnStdout: true, script: 'id -g').trim()
                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                sh "test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
+                                sh "docker run --rm -u $uid:$gid --privileged -v /dev/bus/usb:/dev/bus/usb -w /sln_voice -v $WORKSPACE:/sln_voice ghcr.io/xmos/xcore_voice_tester:develop bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
                             }
                             sh "pytest test/rtos_drivers/usb"
                         }
