@@ -124,6 +124,8 @@ static tusb_speed_t xud_to_tu_speed(XUD_BusSpeed_t xud_speed)
     }
 }
 
+extern void configure_descs_for_full_speed();
+
 static void reset_ep(uint8_t ep_addr, bool in_isr)
 {
     XUD_BusSpeed_t xud_speed;
@@ -136,6 +138,12 @@ static void reset_ep(uint8_t ep_addr, bool in_isr)
     xud_speed = rtos_usb_endpoint_reset(&usb_ctx, ep_addr);
     prepare_setup(in_isr);
 #endif
+
+    // If XUD speed is FS, then change _maxEPsize and _interval in ISO audio EP descriptor
+    if(xud_speed == XUD_SPEED_FS)
+    {
+        configure_descs_for_full_speed();
+    }
 
     tu_speed = xud_to_tu_speed(xud_speed);
     dcd_event_bus_reset(0, tu_speed, in_isr);
