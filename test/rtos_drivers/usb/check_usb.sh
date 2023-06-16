@@ -2,6 +2,8 @@
 # Copyright 2021-2023 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+set -x
+
 # help text
 help()
 {
@@ -269,21 +271,25 @@ fi
 
 if [ $exit_code -eq 0 ]; then
     run_cdc_tests
+    sleep 5
     exit_code=$?
 fi
 
 if [ $exit_code -eq 0 ]; then
     verify_cdc_files
+    sleep 5
     exit_code=$?
 fi
 
 if [ $exit_code -eq 0 ]; then
     run_dfu_tests
+    sleep 5
     exit_code=$?
 fi
 
 if [ $exit_code -eq 0 ]; then
     verify_dfu_files
+    sleep 5
     exit_code=$?
 fi
 
