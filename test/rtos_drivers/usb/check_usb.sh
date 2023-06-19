@@ -219,6 +219,9 @@ function run_dfu_tests {
         return 1
     fi
 
+    # reset board
+    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
+
     sleep $APP_SHUTDOWN_TIME_S
 }
 
