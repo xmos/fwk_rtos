@@ -54,7 +54,7 @@ DFU_MODE_VID_PID="20b1:4000"
 DFU_DOWNLOAD_BYTES=1024
 DFU_ALT=1
 DFU_VERBOSITY="-e" # Set to "-v -v -v" libusb debug prints.
-APP_STARTUP_TIME_S=15
+APP_STARTUP_TIME_S=30
 APP_SHUTDOWN_TIME_S=10
 PY_TIMEOUT_S=50
 if [ ! -z "${@:$OPTIND:1}" ]
@@ -271,25 +271,21 @@ fi
 
 if [ $exit_code -eq 0 ]; then
     run_cdc_tests
-    sleep 5
     exit_code=$?
 fi
 
 if [ $exit_code -eq 0 ]; then
     verify_cdc_files
-    sleep 5
     exit_code=$?
 fi
 
 if [ $exit_code -eq 0 ]; then
     run_dfu_tests
-    sleep 5
     exit_code=$?
 fi
 
 if [ $exit_code -eq 0 ]; then
     verify_dfu_files
-    sleep 5
     exit_code=$?
 fi
 
