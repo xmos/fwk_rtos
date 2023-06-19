@@ -153,6 +153,7 @@ function wait_for_lsusb_entry {
 
 function run_cdc_tests {
     print_and_log_test_step "Writing CDC test data on both interfaces."
+    sleep 10
     ($TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1) >> "$HOST_REPORT"
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
