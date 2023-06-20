@@ -34,11 +34,11 @@ def main(if0, if1, of0, of1):
     all_ports = serial.tools.list_ports.comports()
     test_ports = []
 
-    for port in all_ports:
-        while (port.vid is None or port.pid is None):
-            time.sleep(1)
-        if port.vid == vid and port.pid == pid:
-            test_ports.append(port)
+    while len(test_ports) != 2:
+        for port in all_ports:
+            if port.vid == vid and port.pid == pid:
+                test_ports.append(port)
+        time.sleep(1)
 
     required_ports = 2
     if len(test_ports) != required_ports:
