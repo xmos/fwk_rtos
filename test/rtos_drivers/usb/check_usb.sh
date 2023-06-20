@@ -2,6 +2,8 @@
 # Copyright 2021-2023 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+set -x
+
 # help text
 help()
 {
@@ -240,6 +242,9 @@ function verify_dfu_files {
         return 1
     fi
 }
+
+# reset board
+xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
 
 trap cleanup EXIT
 
