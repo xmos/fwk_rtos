@@ -149,7 +149,7 @@ function wait_for_lsusb_entry {
             return 1
         fi
     done
-    sleep 10
+    sleep 1
 }
 
 function run_cdc_tests {
