@@ -55,8 +55,8 @@ DFU_DOWNLOAD_BYTES=1024
 DFU_ALT=1
 DFU_VERBOSITY="-e" # Set to "-v -v -v" libusb debug prints.
 APP_STARTUP_TIME_S=30
-APP_SHUTDOWN_TIME_S=10
-PY_TIMEOUT_S=50
+APP_SHUTDOWN_TIME_S=5
+PY_TIMEOUT_S=30
 if [ ! -z "${@:$OPTIND:1}" ]
 then
     ADAPTER_ID="--adapter-id ${@:$OPTIND:1}"
@@ -142,7 +142,7 @@ function wait_for_usb_mount {
 function wait_for_lsusb_entry {
     print_and_log_test_step "Waiting for lsusb entry."
     while [ -z "$(lsusb -d $DFU_MODE_VID_PID)" ]; do
-        sleep 1
+        sleep 5
         (( post_usb_mount_delay_s -= 1 ))
         if [ $post_usb_mount_delay_s -le 0 ]; then
             print_and_log_failure "Timeout while waiting for lsusb entry."
@@ -153,7 +153,6 @@ function wait_for_lsusb_entry {
 
 function run_cdc_tests {
     print_and_log_test_step "Writing CDC test data on both interfaces."
-    sleep 10
     ($TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1) >> "$HOST_REPORT"
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
@@ -166,9 +165,6 @@ function verify_cdc_files {
     # Verify that the SHA for the pre-test and download files are different;
     # and then verify that the download and post-test files are the same.
     print_and_log_test_step "Verifying CDC SHA512s."
-
-    # reset board
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
 
     SERIAL_TX0_FILE_SHA512=$(sha512sum "$SERIAL_TX0_FILE" | awk '{print $1}')
     SERIAL_TX1_FILE_SHA512=$(sha512sum "$SERIAL_TX1_FILE" | awk '{print $1}')
@@ -191,9 +187,6 @@ function run_dfu_tests {
     # the test image, and then read it back a final time to verify that it changed.
     # Finally issue a DFU detach, to allow the device to terminate its application.
 
-    # reset board
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-
     print_and_log_test_step "Reading DFU initial state of device's test partition."
     dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT -U "$FILE_PRE_DOWNLOAD" >> "$HOST_REPORT" 2>&1
     exit_code=$?
@@ -201,8 +194,6 @@ function run_dfu_tests {
         print_and_log_failure "An error occurred during upload of pre-test image (exit code = $exit_code)."
         return 1
     fi
-
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
 
     print_and_log_test_step "Writing DFU test image to target's test partition."
     dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT -D "$FILE_TO_DOWNLOAD" >> "$HOST_REPORT" 2>&1
@@ -212,8 +203,6 @@ function run_dfu_tests {
         return 1
     fi
 
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-
     print_and_log_test_step "Reading back DFU test image from the device's test partition."
     dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT -U "$FILE_POST_DOWNLOAD" >> "$HOST_REPORT" 2>&1
     exit_code=$?
@@ -222,8 +211,6 @@ function run_dfu_tests {
         return 1
     fi
 
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-
     print_and_log_test_step "Issuing DFU detach request."
     dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT >> "$HOST_REPORT" 2>&1
     exit_code=$?
@@ -231,8 +218,6 @@ function run_dfu_tests {
         print_and_log_failure "An error occurred during DFU detach request (exit code = $exit_code)."
         return 1
     fi
-
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
 
     sleep $APP_SHUTDOWN_TIME_S
 }
