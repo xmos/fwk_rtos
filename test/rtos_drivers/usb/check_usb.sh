@@ -142,7 +142,7 @@ function wait_for_usb_mount {
 function wait_for_lsusb_entry {
     print_and_log_test_step "Waiting for lsusb entry."
     while [ -z "$(lsusb -d $DFU_MODE_VID_PID)" ]; do
-        sleep 5
+        sleep 1
         (( post_usb_mount_delay_s -= 1 ))
         if [ $post_usb_mount_delay_s -le 0 ]; then
             print_and_log_failure "Timeout while waiting for lsusb entry."
