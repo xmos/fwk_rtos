@@ -40,6 +40,7 @@ def main(if0, if1, of0, of1):
         for port in all_ports:
             if port.vid == vid and port.pid == pid:
                 test_ports.append(port)
+            print("test_ports length: " + str(len(test_ports)))
         print("waiting for serial ports(" + str(wait_counter) + ")")
         wait_counter = wait_counter + 1
         time.sleep(1)
