@@ -245,6 +245,7 @@ function verify_dfu_files {
 
 # reset board
 xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
+sleep 5
 
 trap cleanup EXIT
 
