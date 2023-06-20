@@ -38,9 +38,12 @@ def main(if0, if1, of0, of1):
             test_ports.append(port)
 
     required_ports = 2
-    if len(test_ports) != required_ports:
+    while len(test_ports) != required_ports:
         print(f'Error: Expected {required_ports} serial ports, found { len(test_ports) }.')
-        sys.exit(1)
+
+    # if len(test_ports) != required_ports:
+    #     print(f'Error: Expected {required_ports} serial ports, found { len(test_ports) }.')
+    #     sys.exit(1)
 
     port0 = None
     port1 = None
