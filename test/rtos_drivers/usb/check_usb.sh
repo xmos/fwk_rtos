@@ -243,6 +243,9 @@ function verify_dfu_files {
     fi
 }
 
+# xflash erase
+xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
+
 # reset board
 xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
 sleep 5
