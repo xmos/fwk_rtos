@@ -6,6 +6,7 @@ import sys
 import serial
 import serial.tools.list_ports
 import argparse
+import time
 
 # USB VID:PID for test application
 vid=0x20B1
@@ -34,16 +35,15 @@ def main(if0, if1, of0, of1):
     test_ports = []
 
     for port in all_ports:
+        while (port.vid is None or port.pid is None):
+            time.sleep(1)
         if port.vid == vid and port.pid == pid:
             test_ports.append(port)
 
     required_ports = 2
-    while len(test_ports) != required_ports:
+    if len(test_ports) != required_ports:
         print(f'Error: Expected {required_ports} serial ports, found { len(test_ports) }.')
-
-    # if len(test_ports) != required_ports:
-    #     print(f'Error: Expected {required_ports} serial ports, found { len(test_ports) }.')
-    #     sys.exit(1)
+        sys.exit(1)
 
     port0 = None
     port1 = None
