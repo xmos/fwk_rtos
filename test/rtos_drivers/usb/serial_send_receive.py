@@ -44,6 +44,7 @@ def main(if0, if1, of0, of1):
         print("waiting for serial ports(" + str(wait_counter) + ")")
         wait_counter = wait_counter + 1
         time.sleep(1)
+        all_ports = serial.tools.list_ports.comports()
     
     if len(test_ports) != required_ports:
         print(f'Error: Expected {required_ports} serial ports, found { len(test_ports) }.')
