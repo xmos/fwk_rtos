@@ -126,6 +126,13 @@ function run_target {
     dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT >> "$HOST_REPORT" 2>&1
     sleep $APP_SHUTDOWN_TIME_S
 
+    # xflash erase
+    xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
+
+    # reset board
+    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
+    sleep 5
+
     echo "----------"
     echo "Target Log"
     echo "----------"
@@ -251,13 +258,6 @@ function verify_dfu_files {
         return 1
     fi
 }
-
-# xflash erase
-xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
-
-# reset board
-xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-sleep 5
 
 trap cleanup EXIT
 
