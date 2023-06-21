@@ -142,14 +142,13 @@ function wait_for_usb_mount {
 function wait_for_lsusb_entry {
     print_and_log_test_step "Waiting for lsusb entry."
     while [ -z "$(lsusb -d $DFU_MODE_VID_PID)" ]; do
-        sleep .1
+        sleep 1
         (( post_usb_mount_delay_s -= 1 ))
         if [ $post_usb_mount_delay_s -le 0 ]; then
             print_and_log_failure "Timeout while waiting for lsusb entry."
             return 1
         fi
     done
-    # sleep 1
 }
 
 function run_cdc_tests {
@@ -244,12 +243,12 @@ function verify_dfu_files {
     fi
 }
 
-# # xflash erase
-# xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
+# xflash erase
+xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
 
-# # reset board
-# xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-# sleep 5
+# reset board
+xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
+sleep 5
 
 trap cleanup EXIT
 
