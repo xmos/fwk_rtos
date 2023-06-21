@@ -117,21 +117,21 @@ function generate_test_file {
 }
 
 function run_target {
-    #debug
-    # initialize board
-    (xrun --xscope ${ADAPTER_ID} "$REPO_ROOT/dist/test_rtos_driver_usb.xe" 2>&1 & echo $! > $TMP_FIFO) | tee -a "$TARGET_REPORT" &
-    child_process_pid=$(<$TMP_FIFO)
-    sleep $APP_STARTUP_TIME_S
-    print_and_log_test_step "Issuing DFU detach request."
-    dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT >> "$HOST_REPORT" 2>&1
-    sleep $APP_SHUTDOWN_TIME_S
+    # #debug
+    # # initialize board
+    # (xrun --xscope ${ADAPTER_ID} "$REPO_ROOT/dist/test_rtos_driver_usb.xe" 2>&1 & echo $! > $TMP_FIFO) | tee -a "$TARGET_REPORT" &
+    # child_process_pid=$(<$TMP_FIFO)
+    # sleep $APP_STARTUP_TIME_S
+    # print_and_log_test_step "Issuing DFU detach request."
+    # dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT >> "$HOST_REPORT" 2>&1
+    # sleep $APP_SHUTDOWN_TIME_S
 
-    # xflash erase
-    xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
+    # # xflash erase
+    # xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
 
-    # reset board
-    xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-    sleep 5
+    # # reset board
+    # xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
+    # sleep 5
 
     echo "----------"
     echo "Target Log"
