@@ -36,7 +36,7 @@ def main(if0, if1, of0, of1):
     required_ports = 2
     wait_counter = 0
 
-    while len(test_ports) != required_ports:
+    while len(test_ports) != required_ports and wait_counter <= 30:
         for port in all_ports:
             if port.vid == vid and port.pid == pid:
                 test_ports.append(port)
