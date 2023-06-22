@@ -1,6 +1,12 @@
 RTOS Framework change log
 =========================
 
+3.0.4
+-----
+
+  * FIXED: Issue seen with EP0 becoming unresponsive when lots of volume control and EP0 vendor specific
+    control commands are issued at the same time.
+
 3.0.3
 -----
   
