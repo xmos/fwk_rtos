@@ -107,35 +107,53 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Run RTOS Drivers HIL test') {
-            steps {
-                withTools(params.TOOLS_VERSION) {
-                    withVenv {
-                        script {
-                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
-                            }
-                            sh "pytest test/rtos_drivers/hil"
-                        }
-                    }
-                }
-            }
-        }
-        // stage('Run RTOS Drivers HIL_Add test') {
+        // stage('Run RTOS Drivers HIL test') {
         //     steps {
         //         withTools(params.TOOLS_VERSION) {
         //             withVenv {
         //                 script {
         //                     withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-        //                         sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
+        //                         sh "test/rtos_drivers/hil/check_drivers_hil.sh " + adapterIDs[0]
         //                     }
-        //                     sh "pytest test/rtos_drivers/hil_add"
+        //                     sh "pytest test/rtos_drivers/hil"
         //                 }
         //             }
         //         }
         //     }
         // }
+        stage('Run RTOS Drivers HIL_Add test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
+                            }
+                            sh "pytest test/rtos_drivers/hil_add"
+                        }
+                    }
+                }
+            }
+        }
         stage('Run RTOS Drivers USB test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            uid = sh(returnStdout: true, script: 'id -u').trim()
+                            gid = sh(returnStdout: true, script: 'id -g').trim()
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "docker run --rm -u $uid:$gid --privileged -v /dev/bus/usb:/dev/bus/usb -w /fwk_rtos -v $WORKSPACE:/fwk_rtos ghcr.io/xmos/xcore_voice_tester:develop bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
+                            }
+                            // debug
+                            // disabled for troubleshooting
+                            // sh "pytest test/rtos_drivers/usb"
+                        }
+                    }
+                }
+            }
+        }
+        stage('Reset for USB test') {
             steps {
                 withTools(params.TOOLS_VERSION) {
                     withVenv {
@@ -151,7 +169,6 @@ pipeline {
                 }
             }
         }
-    }
 //     post {
 //         cleanup {
 //             // cleanWs removes all output and artifacts of the Jenkins pipeline
