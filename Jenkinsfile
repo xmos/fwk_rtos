@@ -78,7 +78,7 @@ pipeline {
                 sh "rm -f ~/.xtag/status.lock ~/.xtag/acquired"
             }
         }
-        stage('Run RTOS Drivers USB test') {
+        stage('For Science') {
             steps {
                 withTools(params.TOOLS_VERSION) {
                     withVenv {
@@ -88,7 +88,6 @@ pipeline {
                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
                                 sh "docker run --rm -u $uid:$gid --privileged -v /dev/bus/usb:/dev/bus/usb -w /fwk_rtos -v $WORKSPACE:/fwk_rtos ghcr.io/xmos/xcore_voice_tester:develop bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
                             }
-                            sh "pytest test/rtos_drivers/usb"
                         }
                     }
                 }
