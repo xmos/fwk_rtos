@@ -94,6 +94,20 @@ pipeline {
                 }
             }
         }
+        stage('Run RTOS Drivers WiFi test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
+                            }
+                            sh "pytest test/rtos_drivers/wifi"
+                        }
+                    }
+                }
+            }
+        }
         stage('Run RTOS Drivers HIL test') {
             steps {
                 withTools(params.TOOLS_VERSION) {
@@ -117,20 +131,6 @@ pipeline {
                                 sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
                             }
                             sh "pytest test/rtos_drivers/hil_add"
-                        }
-                    }
-                }
-            }
-        }
-        stage('Run RTOS Drivers WiFi test') {
-            steps {
-                withTools(params.TOOLS_VERSION) {
-                    withVenv {
-                        script {
-                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
-                            }
-                            sh "pytest test/rtos_drivers/wifi"
                         }
                     }
                 }
