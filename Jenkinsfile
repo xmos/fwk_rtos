@@ -93,7 +93,7 @@ pipeline {
                     }
                 }
             }
-        }        
+        }
         stage('Run RTOS Drivers HIL test') {
             steps {
                 withTools(params.TOOLS_VERSION) {
