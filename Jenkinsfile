@@ -44,6 +44,8 @@ pipeline {
                     uid = sh(returnStdout: true, script: 'id -u').trim()
                     gid = sh(returnStdout: true, script: 'id -g').trim()
                 }
+                // pull docker
+                sh "docker pull ghcr.io/xmos/xcore_voice_tester:develop"
                 withTools(params.TOOLS_VERSION) {
                     sh "bash tools/ci/build_rtos_tests.sh"
                     sh "bash tools/ci/build_host_apps.sh"
@@ -76,6 +78,20 @@ pipeline {
                 sh "rm -f ~/.xtag/status.lock ~/.xtag/acquired"
             }
         }
+        stage('Run RTOS Drivers WiFi test') {
+            steps {
+                withTools(params.TOOLS_VERSION) {
+                    withVenv {
+                        script {
+                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
+                            }
+                            sh "pytest test/rtos_drivers/wifi"
+                        }
+                    }
+                }
+            }
+        }
         stage('Run RTOS Drivers HIL test') {
             steps {
                 withTools(params.TOOLS_VERSION) {
@@ -104,15 +120,17 @@ pipeline {
                 }
             }
         }
-        stage('Run RTOS Drivers WiFi test') {
+        stage('Run RTOS Drivers USB test') {
             steps {
                 withTools(params.TOOLS_VERSION) {
                     withVenv {
                         script {
+                            uid = sh(returnStdout: true, script: 'id -u').trim()
+                            gid = sh(returnStdout: true, script: 'id -g').trim()
                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
+                                sh "docker run --rm -u $uid:$gid --privileged -v /dev:/dev -w /fwk_rtos -v $WORKSPACE:/fwk_rtos ghcr.io/xmos/xcore_voice_tester:develop bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
                             }
-                            sh "pytest test/rtos_drivers/wifi"
+                            sh "pytest test/rtos_drivers/usb"
                         }
                     }
                 }

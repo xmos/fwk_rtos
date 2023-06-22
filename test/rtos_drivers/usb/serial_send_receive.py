@@ -6,6 +6,7 @@ import sys
 import serial
 import serial.tools.list_ports
 import argparse
+import time
 
 # USB VID:PID for test application
 vid=0x20B1
@@ -29,15 +30,15 @@ def parse_arguments():
     return args
 
 def main(if0, if1, of0, of1):
-
+           
     all_ports = serial.tools.list_ports.comports()
     test_ports = []
+    required_ports = 2
 
     for port in all_ports:
         if port.vid == vid and port.pid == pid:
             test_ports.append(port)
 
-    required_ports = 2
     if len(test_ports) != required_ports:
         print(f'Error: Expected {required_ports} serial ports, found { len(test_ports) }.')
         sys.exit(1)

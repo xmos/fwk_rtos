@@ -2,6 +2,13 @@
 RTOS Driver USB Tests
 #####################
 
+*******
+Purpose
+*******
+
+Description
+===========
+
 This test is designed to perform basic regression tests of the RTOS USB driver.
 
 This test assumes that the associated RTOS and HILs used have been verified by
@@ -54,9 +61,16 @@ following command from the root of this repository:
 
 .. code-block:: console
 
-    $ ./test/rtos_drivers/usb/run_tests.sh
+    $ ./test/rtos_drivers/usb/check_usb.sh
 
 The target's test application outputs directly to the console along with the
 various test steps being performed. On error/failure, the host's logged results
 will also be emitted to the console. Logs of the target's test application
 output and host's test output are stored separately in the ``./testing`` folder.
+
+
+The output file can be verified via python:
+
+.. code-block:: console
+
+    pytest test/rtos_drivers/usb
