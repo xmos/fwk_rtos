@@ -117,22 +117,6 @@ function generate_test_file {
 }
 
 function run_target {
-    # #debug
-    # # initialize board
-    # (xrun --xscope ${ADAPTER_ID} "$REPO_ROOT/dist/test_rtos_driver_usb.xe" 2>&1 & echo $! > $TMP_FIFO) | tee -a "$TARGET_REPORT" &
-    # child_process_pid=$(<$TMP_FIFO)
-    # sleep $APP_STARTUP_TIME_S
-    # print_and_log_test_step "Issuing DFU detach request."
-    # dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT >> "$HOST_REPORT" 2>&1
-    # sleep $APP_SHUTDOWN_TIME_S
-
-    # # xflash erase
-    # xflash ${ADAPTER_ID} --erase-all --force --target-file "${REPO_ROOT}"/test/rtos_drivers/usb/XCORE-AI-EXPLORER.xn
-
-    # # reset board
-    # xgdb -batch -ex "connect ${ADAPTER_ID} --reset-to-mode-pins" -ex detach
-    # sleep 5
-
     echo "----------"
     echo "Target Log"
     echo "----------"
@@ -169,8 +153,7 @@ function wait_for_lsusb_entry {
 
 function run_cdc_tests {
     print_and_log_test_step "Writing CDC test data on both interfaces."
-    python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1 >> "$HOST_REPORT"
-    # $TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1 >> "$HOST_REPORT"
+    $TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1 >> "$HOST_REPORT"
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during CDC test (exit code = $exit_code)."
