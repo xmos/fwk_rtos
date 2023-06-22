@@ -2,8 +2,6 @@
 # Copyright 2021-2023 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
-set -x
-
 # help text
 help()
 {
@@ -74,7 +72,7 @@ function cleanup {
         child_process_running=$(ps -p $child_process_pid | grep $child_process_pid)
         if [ -n "$child_process_running" ]; then
             print_and_log_test_step "Stopping child process."
-            kill $child_process_pid
+            kill -INT $child_process_pid
         fi
     fi
 }
@@ -153,7 +151,7 @@ function wait_for_lsusb_entry {
 
 function run_cdc_tests {
     print_and_log_test_step "Writing CDC test data on both interfaces."
-    $TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1 >> "$HOST_REPORT"
+    ($TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1) >> "$HOST_REPORT"
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during CDC test (exit code = $exit_code)."
