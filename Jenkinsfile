@@ -27,7 +27,7 @@ pipeline {
         PYTHON_VERSION = "3.8.11"
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
-        RTOS_TEST_RIG_TARGET = "xcore_sdk_test_rig"
+        RTOS_TEST_RIG_TARGET = "XCORE-AI-EXPLORER"
         LOCAL_WIFI_SSID = credentials('hampton-office-network-ssid')
         LOCAL_WIFI_PASS = credentials('hampton-office-network-wifi-password')
     }    
