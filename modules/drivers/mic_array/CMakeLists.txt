@@ -24,6 +24,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
         INTERFACE
             lib_mic_array
             rtos::osal
+            lib_delta_sigma
     )
     target_compile_definitions(framework_rtos_drivers_mic_array
         INTERFACE
