@@ -4,7 +4,7 @@ getApproval()
 
 pipeline {
     agent {
-        label 'linux&&xcore.ai-explorer'
+        label 'xcore.ai-explorer'
     }
     options {
         disableConcurrentBuilds()
@@ -35,7 +35,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'git submodule update --init --recursive --depth 1 --jobs \$(nproc)'
+                sh 'git submodule update --init --recursive --depth 1 --jobs 8'
             }
         }
         stage('Build tests and host apps') {
