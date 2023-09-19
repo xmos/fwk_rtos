@@ -38,8 +38,9 @@ static void timeout_cb(TimerHandle_t xTimer)
     sof_timeout = true;
 }
 
-bool tud_xcore_sof_cb(uint8_t rhport)
+bool tud_xcore_sof_cb(uint8_t rhport, uint32_t cur_time)
 {
+    (void)cur_time;
     if (!received_sof_event) {
         received_sof_event = true;
         LOCAL_PRINTF("tud_xcore_sof_cb");
