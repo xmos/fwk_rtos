@@ -1,6 +1,5 @@
 .. _fwk_rtos_copyright:
 
-.. include:: ../_templates/disclaimer.rst
 
 Licenses
 ========

@@ -27,7 +27,7 @@ Note: Windows users must run the x86 native tools command prompt from Visual Stu
 
 .. tab:: Windows
 
-    .. code-block:: x86 native tools command prompt
+    .. code-block:: doscon
     
         $ cmake -G "NMake Makefiles" -B build
         $ cd build
