@@ -50,6 +50,7 @@ static int main_test(i2c_test_ctx_t *ctx)
             size_t sent = 0;
             local_printf("MASTER write multiple iteration %d", i);
 
+            // Do a 1 byte transfer
             ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i],
@@ -64,7 +65,7 @@ static int main_test(i2c_test_ctx_t *ctx)
             }
             local_printf("MASTER sent %d", sent);
 
-            // Write with num_bytes_sent ptr = NULL
+            // Do another 1 byte transfer but with num_bytes_sent ptr = NULL
             ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i][1],
@@ -79,6 +80,7 @@ static int main_test(i2c_test_ctx_t *ctx)
             }
             local_printf("MASTER sent %d", sent);
 
+            // Transfer the remaining I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE - 2 bytes
             ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i][2],
