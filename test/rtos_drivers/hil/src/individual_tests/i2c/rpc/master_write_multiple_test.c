@@ -78,7 +78,7 @@ static int main_test(i2c_test_ctx_t *ctx)
                 local_printf("MASTER write failed to send 1");
                 return -1;
             }
-            local_printf("MASTER sent %d", sent);
+            local_printf("MASTER sent 1");
 
             // Transfer the remaining I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE - 2 bytes
             ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
