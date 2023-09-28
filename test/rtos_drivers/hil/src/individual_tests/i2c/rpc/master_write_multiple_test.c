@@ -54,10 +54,24 @@ static int main_test(i2c_test_ctx_t *ctx)
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i],
                                         1,
-                                        NULL,
+                                        &sent,
                                         0);
 
             if ((ret != I2C_ACK) || (sent != 1))
+            {
+                local_printf("MASTER write failed to send 1");
+                return -1;
+            }
+            local_printf("MASTER sent %d", sent);
+
+            ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
+                                        I2C_SLAVE_ADDR,
+                                        (unsigned char*)&test_vector[i],
+                                        1,
+                                        NULL,
+                                        0);
+
+            if (ret != I2C_ACK)
             {
                 local_printf("MASTER write failed to send 1");
                 return -1;
