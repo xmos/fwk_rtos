@@ -54,7 +54,7 @@ static int main_test(i2c_test_ctx_t *ctx)
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i],
                                         1,
-                                        &sent,
+                                        NULL,
                                         0);
 
             if ((ret != I2C_ACK) || (sent != 1))
