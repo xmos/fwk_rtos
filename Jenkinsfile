@@ -4,7 +4,7 @@ getApproval()
 
 pipeline {
     agent {
-        label 'xcore.ai-explorer'
+        label 'xcore.ai-explorer && docker'
     }
     options {
         disableConcurrentBuilds()
