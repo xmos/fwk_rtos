@@ -28,8 +28,8 @@ pipeline {
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
         RTOS_TEST_RIG_TARGET = "XCORE-AI-EXPLORER"
-        LOCAL_WIFI_SSID = credentials('hampton-office-network-ssid')
-        LOCAL_WIFI_PASS = credentials('hampton-office-network-wifi-password')
+        LOCAL_WIFI_SSID = credentials('bristol-office-network-ssid')
+        LOCAL_WIFI_PASS = credentials('bristol-office-network-wifi-password')
     }    
     stages {
         stage('Checkout') {
