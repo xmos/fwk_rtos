@@ -4,7 +4,7 @@ getApproval()
 
 pipeline {
     agent {
-        label 'xcore.ai-explorer && docker'
+        label 'xcore.ai-explorer && !usb_audio'
     }
     options {
         disableConcurrentBuilds()
