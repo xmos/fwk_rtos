@@ -1,4 +1,3 @@
-.. include:: ../../../../substitutions.rst
 
 *******************************
 |I2S| Master Initialization API
