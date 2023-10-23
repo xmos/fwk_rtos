@@ -224,6 +224,7 @@ static size_t i2s_local_rx(rtos_i2s_t *ctx,
     size_t words_remaining = frame_count * (2 * ctx->num_in);
     int32_t *sample_buf_ptr = (int32_t *) i2s_sample_buf;
 
+    xassert(THIS_XCORE_TILE == ctx->i2s_tile_no);
     xassert(words_remaining <= ctx->recv_buffer.buf_size);
     if (words_remaining > ctx->recv_buffer.buf_size) {
         return frames_recvd;
@@ -276,6 +277,7 @@ static size_t i2s_local_tx(rtos_i2s_t *ctx,
     size_t frames_sent = 0;
     size_t words_remaining = frame_count * (2 * ctx->num_out);
 
+    xassert(THIS_XCORE_TILE == ctx->i2s_tile_no);
     xassert(words_remaining <= ctx->send_buffer.buf_size);
     if (words_remaining > ctx->send_buffer.buf_size) {
         return frames_sent;
@@ -327,6 +329,7 @@ void rtos_i2s_start(
         size_t send_buffer_size,
         unsigned interrupt_core_id)
 {
+    xassert(THIS_XCORE_TILE == ctx->i2s_tile_no);
     uint32_t core_exclude_map;
 
     i2s_ctx->mclk_bclk_ratio = mclk_bclk_ratio;
@@ -397,6 +400,7 @@ static void rtos_i2s_init(
     ctx->rpc_config = NULL;
     ctx->rx = i2s_local_rx;
     ctx->tx = i2s_local_tx;
+    ctx->i2s_tile_no = THIS_XCORE_TILE;
 
     triggerable_setup_interrupt_callback(ctx->c_i2s_isr.end_b, ctx, RTOS_INTERRUPT_CALLBACK(rtos_i2s_isr));
 
