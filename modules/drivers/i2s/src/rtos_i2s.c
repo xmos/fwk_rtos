@@ -329,7 +329,7 @@ void rtos_i2s_start(
         size_t send_buffer_size,
         unsigned interrupt_core_id)
 {
-    xassert(THIS_XCORE_TILE == ctx->i2s_tile_no);
+    xassert(THIS_XCORE_TILE == i2s_ctx->i2s_tile_no);
     uint32_t core_exclude_map;
 
     i2s_ctx->mclk_bclk_ratio = mclk_bclk_ratio;
