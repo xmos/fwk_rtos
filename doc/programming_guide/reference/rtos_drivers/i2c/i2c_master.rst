@@ -1,4 +1,3 @@
-.. include:: ../../../../substitutions.rst
 
 ########################
 |I2C| Master RTOS Driver

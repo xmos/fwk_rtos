@@ -27,4 +27,4 @@ The `Programming Guide <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/ht
 XTC Tools
 *********
 
-The xcore processors are accompanied by the `XTC Tools <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/html/tools-guide/index.html#tools-guide>`_. As well as providing a powerful toolchain for application development, the toolkit assists with application deployment and upgrade.
+The xcore processors are accompanied by the `XTC Tools <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/html/tools-guide/index.html#tools-guide>`__. As well as providing a powerful toolchain for application development, the toolkit assists with application deployment and upgrade.
