@@ -1,4 +1,4 @@
-// Copyright 2021-2022 XMOS LIMITED.
+// Copyright 2021-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 /**
@@ -6,6 +6,23 @@
  */
 
 #include "rtos_osal.h"
+
+// The fuctions below are declared in the third-party file:
+// ./modules/fwk_xvf/modules/rtos/modules/FreeRTOS/FreeRTOS-SMP-Kernel/include/task.h
+#if ( configUSE_CORE_AFFINITY == 1 ) && ( configNUM_CORES == 1 )
+
+    void vTaskCoreAffinitySet( const TaskHandle_t xTask,
+                               UBaseType_t uxCoreAffinityMask )
+    {
+        (void) (xTask);
+        (void) (uxCoreAffinityMask);
+    }
+    UBaseType_t vTaskCoreAffinityGet( const TaskHandle_t xTask )
+    {
+        (void) xTask;
+        return 0;
+    }
+#endif /* configUSE_CORE_AFFINITY and configNUM_CORES */
 
 int rtos_osal_critical_enter(void)
 {

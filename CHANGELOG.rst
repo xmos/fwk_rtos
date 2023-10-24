@@ -1,6 +1,12 @@
 RTOS Framework change log
 =========================
 
+3.0.5
+-----
+
+  * FIXED: Added dummy definitions of vTaskCoreAffinitySet() and vTaskCoreAffinitySet() functions to
+    avoid warnings when configNUM_CORES is set to 1.
+
 3.0.4
 -----
 
