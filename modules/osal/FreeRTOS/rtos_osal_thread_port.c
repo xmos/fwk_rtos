@@ -7,7 +7,7 @@
 
 #include "rtos_osal.h"
 
-// The fuctions below are declared in the third-party file:
+// The functions below are declared in the third-party file:
 // ./modules/fwk_xvf/modules/rtos/modules/FreeRTOS/FreeRTOS-SMP-Kernel/include/task.h
 #if ( configUSE_CORE_AFFINITY == 1 ) && ( configNUM_CORES == 1 )
 
