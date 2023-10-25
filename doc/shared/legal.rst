@@ -1,6 +1,6 @@
 .. _fwk_rtos_copyright:
 
-..only:: html
+.. only:: html
 
     Copyright & Disclaimer
     ======================
