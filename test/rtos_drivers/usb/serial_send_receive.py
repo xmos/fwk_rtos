@@ -30,7 +30,7 @@ def parse_arguments():
     return args
 
 def main(if0, if1, of0, of1):
-           
+
     all_ports = serial.tools.list_ports.comports()
     test_ports = []
     required_ports = 2

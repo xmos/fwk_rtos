@@ -32,7 +32,7 @@ Supported RTOS stacks and software services include:
 - TinyUSB
 - Generic processing pipeline
 - Inferencing
-- Device control 
+- Device control
 - FatFS
 - HTTP
 - TLS
@@ -55,15 +55,17 @@ Some dependent components are included as git submodules. These can be obtained 
 
 ## Testing
 
-Several tests for the RTOS framework modules exist in the [test folder](https://github.com/xmos/fwk_rtos/tree/develop/test).  
+Several tests for the RTOS framework modules exist in the [test folder](https://github.com/xmos/fwk_rtos/tree/develop/test).
 
 ## Documentation
 
-Information on building the documentation can be found in the docs [README](https://github.com/xmos/fwk_rtos/blob/develop/doc/README.rst).
+This folder contains source files for the documentation and is intended for XMOS users. Pre-built documentation is published on https://www.xmos.com.
+
+The sources do not render well in GitHub or an RST viewer.
 
 ## License
 
 This Software is subject to the terms of the [XMOS Public Licence: Version 1](https://github.com/xmos/fwk_rtos/blob/develop/LICENSE.rst)
 
-Third party copyrighted code is specified in the fwk_rtos [Copyrights and Licenses](https://github.com/xmos/fwk_rtos/blob/develop/doc/copyright.rst).  
+Third party copyrighted code is specified in the fwk_rtos [Copyrights and Licenses](https://github.com/xmos/fwk_rtos/blob/develop/doc/copyright.rst).
 
