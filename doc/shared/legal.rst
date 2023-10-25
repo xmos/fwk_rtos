@@ -1,13 +1,15 @@
 .. _fwk_rtos_copyright:
 
-Copyright & Disclaimer
-======================
+..only:: html
 
-|XMOS copyright|
-
-|XMOS disclaimer|
-
-|XMOS trademarks|
+    Copyright & Disclaimer
+    ======================
+    
+    |XMOS copyright|
+    
+    |XMOS disclaimer|
+    
+    |XMOS trademarks|
 
 
 Licenses
