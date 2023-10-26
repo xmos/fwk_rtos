@@ -6,9 +6,8 @@ RTOS Framework change log
 
   * FIXED: Added dummy definitions of vTaskCoreAffinitySet() and vTaskCoreAffinitySet() functions to
     avoid warnings when configNUM_CORES is set to 1.
-  * UPDATED: To fwk_io v3.3.0 from v3.0.1 for CI run
-  * UPDATED: To fwk_core v1.0.2 from v1.0.0 for CI run
-  * UPDATED: Use tagged release v1.0.1 of lib_qspi_fast_read instead of 85fe541 hash
+  * UPDATED: Tested against fwk_io v3.3.0 updated from v3.0.1
+  * UPDATED: Tested against fwk_core v1.0.2 updated from v1.0.0
 
 3.0.4
 -----
