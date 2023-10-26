@@ -8,6 +8,7 @@ RTOS Framework change log
     avoid warnings when configNUM_CORES is set to 1.
   * UPDATED: To fwk_io v3.3.0 from v3.0.1 for CI run
   * UPDATED: To fwk_core v1.0.2 from v1.0.0 for CI run
+  * UPDATED: Use tagged release v1.0.1 of lib_qspi_fast_read instead of 85fe541 hash
 
 3.0.4
 -----
