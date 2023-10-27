@@ -105,7 +105,7 @@ by the Tracealyzer graphical tool either as a post processing step or live.
     `Recording Settings`.
 
 For general usage of Tracealyzer please refer to the Percepio's documentation here:
-`Manual <https://percepio.com/docs/FreeRTOS/manual/index.html#Introduction___Welcome_to_Tracealyzer>`_
+`Manual <https://percepio.com/getstarted/latest/html/freertos.html>`_
 
 **********
 ASCII Mode
