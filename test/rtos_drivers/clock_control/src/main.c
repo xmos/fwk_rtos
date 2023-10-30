@@ -2,6 +2,7 @@
 // XMOS Public License: Version 1
 
 /* System headers */
+#include <stdlib.h>
 #include <platform.h>
 #include <xs1.h>
 

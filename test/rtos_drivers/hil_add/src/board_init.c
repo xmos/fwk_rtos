@@ -10,13 +10,15 @@
 #include "board_init.h"
 
 static rtos_driver_rpc_t spi_master_rpc_config;
+static rtos_driver_rpc_t qspi_flash_rpc_config;
 
 void board_tile0_init(
         chanend_t tile1,
         rtos_intertile_t *intertile_ctx,
         rtos_spi_master_t *spi_master_ctx,
         rtos_spi_master_device_t *test_device_ctx,
-        rtos_uart_tx_t *rtos_uart_tx_ctx
+        rtos_uart_tx_t *rtos_uart_tx_ctx,
+        rtos_qspi_flash_t *qspi_flash_ctx
     )
 {
     rtos_intertile_init(intertile_ctx, tile1);
@@ -63,6 +65,23 @@ void board_tile0_init(
             UART_PARITY_ODD,
             1,
             tmr_tx);
+            
+    rtos_qspi_flash_fast_read_init(
+            qspi_flash_ctx,
+            XS1_CLKBLK_2,
+            PORT_SQI_CS,
+            PORT_SQI_SCLK,
+            PORT_SQI_SIO,
+            NULL,
+            qspi_fast_flash_read_transfer_raw,
+            4,
+            0);
+
+    rtos_qspi_flash_rpc_host_init(
+            qspi_flash_ctx,
+            &qspi_flash_rpc_config,
+            client_intertile_ctx,
+            1);
 
 }
 
@@ -72,7 +91,8 @@ void board_tile1_init(
         rtos_spi_master_t *spi_master_ctx,
         rtos_spi_master_device_t *test_device_ctx,
         rtos_spi_slave_t *spi_slave_ctx,
-        rtos_uart_rx_t *rtos_uart_rx_ctx
+        rtos_uart_rx_t *rtos_uart_rx_ctx,
+        rtos_qspi_flash_t *qspi_flash_ctx
     )
 {
     rtos_intertile_init(intertile_ctx, tile0);
@@ -108,4 +128,9 @@ void board_tile1_init(
             UART_PARITY_ODD,
             1,
             tmr_rx);
+
+    rtos_qspi_flash_rpc_client_init(
+            qspi_flash_ctx,
+            &qspi_flash_rpc_config,
+            intertile_ctx);
 }

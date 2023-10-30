@@ -23,6 +23,7 @@
 *.xmt
 **/_build/
 **/build_*/
+**/dist_*/
 !doc/build_system_guide/
 **/run_*.log
 **/_doxygen/*
@@ -45,11 +46,6 @@
 **/*_junit.xml
 **/testing/*
 
-# waf build cruft
-.lock-waf_*
-.waf-*/
-build/
-
 # filesystem cruft
 **/fat.fs
 **/flash_bin_node0
@@ -65,6 +61,3 @@ build/
 
 # macOS cruft
 .DS_Store
-
-# ai_tools
-tools/ai/ai_tools

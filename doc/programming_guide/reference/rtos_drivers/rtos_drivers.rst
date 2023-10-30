@@ -19,6 +19,7 @@ I/O
    spi/spi
    uart/uart
    usb
+   trace
 
 *****
 XCORE

@@ -51,7 +51,7 @@ for ((i = 0; i < ${#applications[@]}; i += 1)); do
     echo '* Running' ${application} 'for' ${board}
     echo '******************************************************'
     echo 'Not Implemented'
-    # if [ "$UNAME" == "Linux" ] ; then
+    # if [ "$UNAME" == "Linux" ] || [ -n "$MSYSTEM" ]; then
     #     (cd ${path}/build_ci_${board}/${app_path}; timeout ${TIMEOUT_S}s xrun --xscope ${application}.xe 2>&1 | tee -a ${application})
     # elif [ "$UNAME" == "Darwin" ] ; then
     #     (cd ${path}/build_ci_${board}/${app_path}; gtimeout ${TIMEOUT_S}s xrun --xscope ${application}.xe 2>&1 | tee -a ${application})

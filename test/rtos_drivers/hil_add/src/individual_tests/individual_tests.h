@@ -8,5 +8,6 @@
 
 #include "individual_tests/spi/spi_test.h"
 #include "individual_tests/uart/uart_test.h"
+#include "individual_tests/qspi_flash/qspi_flash_test.h"
 
 #endif /* INDIVIDUAL_TESTS_H_ */

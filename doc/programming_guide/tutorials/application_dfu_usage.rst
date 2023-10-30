@@ -1,4 +1,3 @@
-.. include:: ../../substitutions.rst
 
 ####################
 RTOS Application DFU

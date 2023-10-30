@@ -1,0 +1,17 @@
+---
+project: fwk_rtos
+title: XCORE RTOS Framework
+version: 3.0.5
+
+documentation:
+  exclude_patterns_path: doc/exclude_patterns.inc
+  doxygen_projects:
+    fwk_rtos:
+      doxyfile_path: doc/Doxyfile.inc
+  pdfs:
+    doc/programming_guide/index:
+      pdf_title: "{{title}} - Programming Guide"
+      pdf_filename: "{{project}}_programming_guide_v{{version}}"
+    doc/build_system_guide/index:
+      pdf_title: "{{title}} - Build System Guide"
+      pdf_filename: "{{project}}_build_system_guide_v{{version}}"

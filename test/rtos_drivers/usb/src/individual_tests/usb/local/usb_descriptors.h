@@ -6,24 +6,16 @@
 
 #include "tusb_config.h"
 
+// Number of Alternate Interface (each for 1 flash partition)
+#define ALT_COUNT   3
+
 enum {
-    ITF_NUM_AUDIO_CONTROL = 0,
-    ITF_NUM_AUDIO_STREAMING_SPK,
-    ITF_NUM_AUDIO_STREAMING_MIC,
+    ITF_NUM_CDC_0,
+    ITF_NUM_CDC_0_DATA,
+    ITF_NUM_CDC_1,
+    ITF_NUM_CDC_1_DATA,
+    ITF_NUM_DFU_MODE,
     ITF_NUM_TOTAL
 };
-
-// Unit numbers are arbitrary selected
-#define UAC2_ENTITY_CLOCK               0x01
-
-// Speaker path
-#define UAC2_ENTITY_SPK_INPUT_TERMINAL  0x11
-#define UAC2_ENTITY_SPK_FEATURE_UNIT    0x12
-#define UAC2_ENTITY_SPK_OUTPUT_TERMINAL 0x13
-
-// Microphone path
-#define UAC2_ENTITY_MIC_INPUT_TERMINAL  0x21
-#define UAC2_ENTITY_MIC_FEATURE_UNIT    0x22
-#define UAC2_ENTITY_MIC_OUTPUT_TERMINAL 0x23
 
 #endif /* USB_DESCRIPTORS_H_ */

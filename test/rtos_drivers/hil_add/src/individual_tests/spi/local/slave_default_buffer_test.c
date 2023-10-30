@@ -33,9 +33,7 @@ static uint8_t test_buf[SPI_TEST_BUF_SIZE] = {0};
 static uint32_t xfer_done_called = 0;
 
 static uint8_t default_in_buf[SPI_TEST_BUF_SIZE] = {0};
-static size_t default_in_buf_len = SPI_TEST_BUF_SIZE;
 static uint8_t default_out_buf[SPI_TEST_BUF_SIZE] = {0};
-static size_t default_out_buf_len = SPI_TEST_BUF_SIZE;
 #endif
 
 SPI_MAIN_TEST_ATTR

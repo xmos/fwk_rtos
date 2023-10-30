@@ -1,4 +1,3 @@
-.. include:: ../../../substitutions.rst
 
 #########################
 Device Control Shared API

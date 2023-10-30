@@ -6,10 +6,6 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "")
 project(datapartition_mkimage LANGUAGES C)
 set(TARGET_NAME datapartition_mkimage)
 
-file(READ ${FRAMEWORK_RTOS_ROOT_PATH}/settings.json JSON_STRING)
-# Get the "version" value from the JSON element
-string(JSON VERSION_VAL GET ${JSON_STRING} ${IDX} version)
-
 # Determine OS, set up output dirs
 if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
     set(DATAPARTITION_INSTALL_DIR "/opt/xmos/bin")

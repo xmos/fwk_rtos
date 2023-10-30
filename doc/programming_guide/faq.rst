@@ -1,4 +1,3 @@
-.. include:: ../substitutions.rst
 
 ####
 FAQs
@@ -8,7 +7,7 @@ FAQs
 What is the memory overhead of the FreeRTOS kernel?
 ***************************************************
 
-The FreeRTOS kernel requires approximately 9kB of RAM.
+The FreeRTOS kernel can be configured to require as little as 9kB of RAM (per tile).  In a typical applicaiton, expect the requirement to be closer to 16kB of RAM (per tile).
 
 *****************************************************************************
 How do I determine the number of words to allocate for use as a task's stack?

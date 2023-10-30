@@ -1,10 +1,16 @@
-// Copyright 2021-2022 XMOS LIMITED.
+// Copyright 2021-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT TUSB_DCD
-#define DEBUG_PRINT_ENABLE_TUSB_DCD 0
 
+#ifndef DEBUG_PRINT_ENABLE_TUSB_DCD
+#define DEBUG_PRINT_ENABLE_TUSB_DCD 0
+#endif
+
+#include <stdbool.h>
+#include <stdint.h>
 #include <xcore/hwtimer.h>
+#include "rtos_printf.h"
 
 #ifndef LIBXCORE_HWTIMER_HAS_REFERENCE_TIME
 #error This library requires reference time
@@ -36,27 +42,50 @@
 #define CFG_TUD_XCORE_IO_CORE_MASK (~(1 << 0))
 #endif
 
-TU_ATTR_WEAK bool tud_xcore_sof_cb(uint8_t rhport);
+TU_ATTR_WEAK bool tud_xcore_sof_cb(uint8_t rhport, uint32_t cur_time);
 TU_ATTR_WEAK bool tud_xcore_data_cb(uint32_t cur_time, uint32_t ep_num, uint32_t ep_dir, size_t xfer_len);
 
 #include "rtos_usb.h"
 
 static rtos_usb_t usb_ctx;
 
+/*
+ * lib_xud uses the provided data buffer to not only store the received data but
+ * also to receive the CRC (for output endpoints). This introduces a
+ * compatibility issue particularly around TinyUSB's _usbd_ctrl_buf[]. In other
+ * instances, the application can account for this by adding +4 bytes to the
+ * buffer's actual size, but advertize the endpoint's max size without this
+ * adjustment. 2 of the 4 bytes are for the actual CRC16, and an additional 2
+ * bytes are for the nature of operating on and storing 32-bit words.
+ * Additional checks are performed to determine when to use an intermediate
+ * buffer for EP0 control transfers.
+ */
+static void* dest_ctrl_buffer = NULL;
+static uint16_t dest_ctrl_buffer_len = 0;
+
+__attribute__ ((aligned(8)))
+static uint32_t intermediate_buffer[(CFG_TUD_ENDPOINT0_SIZE >> 2) + 1];
+
+__attribute__ ((aligned(8)))
 static union setup_packet_struct {
     tusb_control_request_t req;
     uint8_t pad[CFG_TUD_ENDPOINT0_SIZE]; /* In case an OUT data packet comes in instead of a SETUP packet */
 } setup_packet;
 
-static bool waiting_for_setup;
+static bool waiting_for_setup = false;
 
 static void prepare_setup(bool in_isr)
 {
     XUD_Result_t res;
+    const uint32_t ep0_out_addr = 0x00;
+    bool is_setup = true;
 
-//  rtos_printf("preparing for setup packet\n");
-    waiting_for_setup = true;
-    res = rtos_usb_endpoint_transfer_start(&usb_ctx, 0x00, (uint8_t *) &setup_packet, sizeof(setup_packet));
+    waiting_for_setup = is_setup;
+    res = rtos_usb_endpoint_transfer_start(&usb_ctx,
+                                           ep0_out_addr,
+                                           (uint8_t *)&setup_packet,
+                                           sizeof(setup_packet),
+                                           is_setup);
 
     xassert(res == XUD_RES_OKAY);
 
@@ -121,22 +150,27 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         bool cb_result;
 
         if (res == XUD_RES_OKAY) {
-            rtos_printf("xfer of %d bytes complete on %02x\n", xfer_len, ep_address);
             tu_result = XFER_RESULT_SUCCESS;
 
-            if (ep_address == 0x00) {
+            /*
+             * Preparing for a setup packet only after receiving the ZLP to avoid
+             * having the EP0 out interrupt for setup packet recv come in before the
+             * ZLP xfer complete interrupt on EP0 IN. If that happens, it overwrites the _ctrl_xfer.request
+             * and the code falls over when the ZLP xfer complete on EP0 IN is eventually received.
+             */
+            if ((ep_address == 0x80) && (xfer_len == 0)) {
+                prepare_setup(true);
+                rtos_printf("xfer ZLP on 80 complete\n");
+            }
+            else if (ep_address == 0x00) {
                 if (xfer_len == 0) {
                     /*
                      * A ZLP has presumably been received on the output endpoint 0.
                      * Ensure lib_xud is ready for the next setup packet. Hopefully
                      * it does not come in prior to setting this up.
-                     *
-                     * TODO:
-                     * Ideally this buffer would be prepared prior to receiving the ZLP,
-                     * but it doesn't appear that this is currently possible to do
-                     * with lib_xud. This is under investigation.
                      */
                     prepare_setup(true);
+                    rtos_printf("xfer ZLP on 00 complete\n");
                 } else if (waiting_for_setup) {
                     /*
                      * We are waiting for a setup packet but OUT data on EP0 came in
@@ -144,9 +178,15 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
                      * case just drop the data and prepare for the next setup packet.
                      */
                     prepare_setup(true);
-                    rtos_printf("Dropped unhandled OUT packet on EP0\n");
+                    rtos_printf("xfer error - unhandled OUT packet on EP0 (bytes: %d)\n", xfer_len);
                     return;
+                } else {
+                    xassert(dest_ctrl_buffer != NULL); // dest_ctrl_buffer cannot be NULL for ep_addr 0
+                    memcpy(dest_ctrl_buffer, intermediate_buffer, xfer_len);
+                    dest_ctrl_buffer = NULL;
                 }
+            } else {
+                rtos_printf("xfer %d bytes on %02x complete\n", xfer_len, ep_address);
             }
         } else {
             rtos_printf("xfer on %02x failed with status %d\n", ep_address, res);
@@ -165,12 +205,12 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
     }
     case rtos_usb_setup_packet:
         rtos_printf("Setup packet of %d bytes received on %02x\n", xfer_len, ep_address);
-        waiting_for_setup = 0;
+        waiting_for_setup = false;
         dcd_event_setup_received(0, (uint8_t *) &setup_packet, true);
         break;
     case rtos_usb_sof_packet:
         if (tud_xcore_sof_cb) {
-            if (tud_xcore_sof_cb(0)) {
+            if (tud_xcore_sof_cb(0, cur_time)) {
                 dcd_event_bus_signal(0, DCD_EVENT_SOF, true);
             }
         }
@@ -429,43 +469,36 @@ bool dcd_edpt_xfer(uint8_t rhport,
 {
     XUD_Result_t res;
     static uint32_t dummy_zlp_word;
+    bool is_ep0_output = (ep_addr == 0x00);
+    bool is_zlp = (total_bytes == 0) && (buffer == NULL);
+    bool is_setup = 0;
 
-    rtos_printf("xfer of %d bytes requested on %02x\n", total_bytes, ep_addr);
-
-    if (buffer == NULL) {
-        if (total_bytes == 0) {
-            /*
-             * lib_xud crashes if a NULL buffer is provided when
-             * transferring a zero length buffer.
-             */
-            rtos_printf("transferring ZLP on %02x\n", ep_addr);
-            buffer = (uint8_t *) &dummy_zlp_word;
-        }
+    if (is_zlp) {
+        /*
+        * lib_xud crashes if a NULL buffer is provided when
+        * transferring a zero length buffer.
+        */
+        rtos_printf("xfer ZLP on %02x\n", ep_addr);
+        buffer = (uint8_t *) &dummy_zlp_word;
+    } else {
+        rtos_printf("xfer %d bytes on %02x\n", total_bytes, ep_addr);
     }
+
+    dest_ctrl_buffer_len = total_bytes;
+
+    /*
+     * lib_xud requires additional space to receive the CRC16 (TinyUSB does not
+     * assume the CRC16 is to be written to its control buffer.
+     */
+    if (is_ep0_output) {
+        dest_ctrl_buffer = buffer;
+        buffer = (uint8_t *)intermediate_buffer;
+    }
+
 
     xassert(buffer != NULL);
 
-    /*
-     * If this is requesting the transfer of a ZLP status, then ensure that
-     * a buffer is ready for the next setup packet, as it may be transferred
-     * immediately following completion of this transfer.
-     */
-    if (tu_edpt_number(ep_addr) == 0 && total_bytes == 0 && tu_edpt_dir(ep_addr) != setup_packet.req.bmRequestType_bit.direction) {
-        if (ep_addr == 0x80) {
-            /*
-             * TODO: Ideally this would be prepared regardless of
-             * the data phase direction. But it doesn't appear to be
-             * possible to prepare lib_xud with a buffer for the next
-             * setup packet prior to preparing it for receipt of a ZLP
-             * status from the host.
-             * See related TODO in dcd_xcore_int_handler(). This is
-             * currently under investigation.
-             */
-            prepare_setup(false);
-        }
-    }
-
-    res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes);
+    res = rtos_usb_endpoint_transfer_start(&usb_ctx, ep_addr, buffer, total_bytes, is_setup);
     if (res == XUD_RES_OKAY) {
         return true;
     }
@@ -492,7 +525,7 @@ void dcd_edpt_stall (uint8_t rhport, uint8_t ep_addr)
 {
     (void) rhport;
 
-    rtos_printf("STALLING EP %02x\n", ep_addr);
+    rtos_printf("STALL EP %02x: Set\n", ep_addr);
     rtos_usb_endpoint_stall_set(&usb_ctx, ep_addr);
 
     if (ep_addr == 0x00 && !waiting_for_setup) {
@@ -505,5 +538,6 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
 {
     (void) rhport;
 
+    rtos_printf("STALL EP %02x: Clear\n", ep_addr);
     rtos_usb_endpoint_stall_clear(&usb_ctx, ep_addr);
 }
