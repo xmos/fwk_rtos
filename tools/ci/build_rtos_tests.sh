@@ -41,6 +41,6 @@ for ((i = 0; i < ${#applications[@]}; i += 1)); do
 
     (cd ${path}; rm -rf build_${board})
     (cd ${path}; mkdir -p build_${board})
-    (cd ${path}/build_${board}; log_errors cmake ../ -G "$CI_CMAKE_GENERATOR" -DCMAKE_TOOLCHAIN_FILE=${toolchain_file} -DBOARD=${board} -DFRAMEWORK_RTOS_TESTS=ON; log_errors $CI_BUILD_TOOL ${make_target} $CI_BUILD_TOOL_ARGS)
+    (cd ${path}/build_${board}; log_errors cmake ../ -G "$CI_CMAKE_GENERATOR" --toolchain=${toolchain_file} -DBOARD=${board} -DFRAMEWORK_RTOS_TESTS=ON; log_errors $CI_BUILD_TOOL ${make_target} $CI_BUILD_TOOL_ARGS)
     (cd ${path}/build_${board}; cp ${make_target}.xe ${DIST_DIR})
 done

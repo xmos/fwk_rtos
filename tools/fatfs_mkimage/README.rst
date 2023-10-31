@@ -9,26 +9,37 @@ This is the FAT file system image creation tool. This tool creates a FAT filesys
 Building the Application
 ************************
 
-This application is typically built and installed from tools/install.  
+This application is typically built and installed from tools/install.
 
-However, if you are modifying the application, it is possible to build the project using CMake. To build this application, run the following commands:
+However, if you are modifying the application, it is possible to build the project using CMake. To build this application on Linux and MacOS, run the following commands:
 
 .. tab:: Linux and MacOS
 
     .. code-block:: console
-    
+
         $ cmake -B build
         $ cd build
         $ make -j
 
-Note: You may need to run the ``make -j`` command as ``sudo``.  
+.. note::
 
-Note: Windows users must run the x86 native tools command prompt from Visual Studio
+   You may need to run the ``make -j`` command as ``sudo``.
+
+Windows users must run the x86 native tools command prompt from Visual Studio and we recommend the use of the Ninja build system.
+
+To install *Ninja* follow install instructions at https://ninja-build.org/ or on Windows
+install with ``winget`` by running the following commands in *PowerShell*:
+
+.. code-block:: PowerShell
+    # Install
+    winget install Ninja-build.ninja
+    # Reload user Path
+    $env:Path=[System.Environment]::GetEnvironmentVariable("Path","User")
 
 .. tab:: Windows
 
     .. code-block:: x86 native tools command prompt
-    
-        $ cmake -G "NMake Makefiles" -B build
+
+        $ cmake -G Ninja -B build
         $ cd build
-        $ nmake
+        $ ninja
