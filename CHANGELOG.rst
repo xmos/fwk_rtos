@@ -8,6 +8,7 @@ RTOS Framework change log
     avoid warnings when configNUM_CORES is set to 1.
   * UPDATED: Tested against fwk_io v3.3.0 updated from v3.0.1
   * UPDATED: Tested against fwk_core v1.0.2 updated from v1.0.0
+  * ADDED: Runtime check for I2S RPC functions called for I2S Slave
 
 3.0.4
 -----
