@@ -13,13 +13,12 @@ This application is typically built and installed from tools/install.
 
 However, if you are modifying the application, it is possible to build the project using CMake. To build this application on Linux and MacOS, run the following commands:
 
-.. tab:: Linux and MacOS
 
-    .. code-block:: console
+.. code-block:: console
 
-        $ cmake -B build
-        $ cd build
-        $ make -j
+    $ cmake -B build
+    $ cd build
+    $ make -j
 
 .. note::
 
@@ -37,10 +36,9 @@ install with ``winget`` by running the following commands in *PowerShell*:
     # Reload user Path
     $env:Path=[System.Environment]::GetEnvironmentVariable("Path","User")
 
-.. tab:: doscon
 
-    .. code-block:: x86 native tools command prompt
+.. code-block:: x86 native tools command prompt
 
-        $ cmake -G Ninja -B build
-        $ cd build
-        $ ninja
+    $ cmake -G Ninja -B build
+    $ cd build
+    $ ninja
