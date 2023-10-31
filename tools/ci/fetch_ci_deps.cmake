@@ -8,7 +8,7 @@
         FetchContent_Declare(
             fwk_io
             GIT_REPOSITORY https://github.com/xmos/fwk_io.git
-            GIT_TAG        f35192c19824d60740003be5448c67f5df927014
+            GIT_TAG        v3.3.0
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/fwk_io
@@ -25,7 +25,7 @@
         FetchContent_Declare(
             fwk_core
             GIT_REPOSITORY https://github.com/xmos/fwk_core.git
-            GIT_TAG        9e4f6196386995e2d7786b376091404638055639
+            GIT_TAG        v1.0.2
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/fwk_core
@@ -42,7 +42,7 @@
         FetchContent_Declare(
             lib_qspi_fast_read
             GIT_REPOSITORY git@github.com:xmos/lib_qspi_fast_read.git
-            GIT_TAG        85fe54188b5f3244c744f6d2aeebd757d8f25358
+            GIT_TAG        v1.0.1
             GIT_SHALLOW    FALSE
             GIT_SUBMODULES_RECURSE TRUE
             SOURCE_DIR     ${CMAKE_BINARY_DIR}/dependencies/lib_qspi_fast_read

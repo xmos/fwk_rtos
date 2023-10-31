@@ -38,9 +38,20 @@ static i2c_res_t i2c_master_remote_write(
             RPC_PARAM_LIST_END
     };
 
-    rpc_client_call_generic(
-            host_address->intertile_ctx, host_address->port, fcode_write, rpc_param_desc,
-            &host_ctx_ptr, &device_addr, buf, &n, num_bytes_sent, &send_stop_bit, &ret);
+    if(num_bytes_sent != NULL)
+    {
+        rpc_client_call_generic(
+                host_address->intertile_ctx, host_address->port, fcode_write, rpc_param_desc,
+                &host_ctx_ptr, &device_addr, buf, &n, num_bytes_sent, &send_stop_bit, &ret);
+    }
+    else
+    {
+        size_t tmp;
+        rpc_client_call_generic(
+                host_address->intertile_ctx, host_address->port, fcode_write, rpc_param_desc,
+                &host_ctx_ptr, &device_addr, buf, &n, &tmp, &send_stop_bit, &ret);
+
+    }
 
     return ret;
 }

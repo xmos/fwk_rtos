@@ -36,7 +36,7 @@ install with ``winget`` by running the following commands in *PowerShell*:
     # Reload user Path
     $env:Path=[System.Environment]::GetEnvironmentVariable("Path","User")
 
-.. tab:: Windows
+.. tab:: doscon
 
     .. code-block:: x86 native tools command prompt
 
