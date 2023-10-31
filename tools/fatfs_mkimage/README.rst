@@ -16,9 +16,9 @@ However, if you are modifying the application, it is possible to build the proje
 
 .. code-block:: console
 
-    $ cmake -B build
-    $ cd build
-    $ make -j
+    cmake -B build
+    cd build
+    make -j
 
 .. note::
 
@@ -40,6 +40,6 @@ To build this application on Windows, run the following commands:
 
 .. code-block:: console
 
-    $ cmake -G Ninja -B build
-    $ cd build
-    $ ninja
+    cmake -G Ninja -B build
+    cd build
+    ninja
