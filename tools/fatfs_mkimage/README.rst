@@ -31,6 +31,7 @@ To install *Ninja* follow install instructions at https://ninja-build.org/ or on
 install with ``winget`` by running the following commands in *PowerShell*:
 
 .. code-block:: PowerShell
+
     # Install
     winget install Ninja-build.ninja
     # Reload user Path
