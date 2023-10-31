@@ -19,6 +19,10 @@ pipeline {
             name: 'TOOLS_VERSION',
             defaultValue: '15.2.1',
             description: 'The XTC tools version'
+            PASS_1: "Welcome"
+            PASS_2: "2"
+            PASS_3: "Xmos"
+            PASS: PASS_1 + PASS_2 + PASS_3
         )
     }    
     environment {
@@ -26,12 +30,8 @@ pipeline {
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
         RTOS_TEST_RIG_TARGET = "XCORE-AI-EXPLORER"
-        PASS_1 = "Welcome"
-        PASS_2 = "2"
-        PASS_3 = "Xmos"
-        PASS = PASS_1 + PASS_2 + PASS_3
         LOCAL_WIFI_SSID = credentials('XMOSGUEST')
-        LOCAL_WIFI_PASS = credentials(PASS_1)
+        LOCAL_WIFI_PASS = credentials(PASS)
     }    
     stages {
         stage('Build and Docs') {
