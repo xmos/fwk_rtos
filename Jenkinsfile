@@ -29,8 +29,9 @@ pipeline {
         PASS_1 = "Welcome"
         PASS_2 = "2"
         PASS_3 = "Xmos"
+        PASS = PASS_1 + PASS_2 + PASS_3
         LOCAL_WIFI_SSID = credentials('XMOSGUEST')
-        LOCAL_WIFI_PASS = credentials(PASS_1 + PASS_2 + PASS_3)
+        LOCAL_WIFI_PASS = credentials(PASS_1)
     }    
     stages {
         stage('Build and Docs') {
