@@ -36,8 +36,9 @@ install with ``winget`` by running the following commands in *PowerShell*:
     # Reload user Path
     $env:Path=[System.Environment]::GetEnvironmentVariable("Path","User")
 
+To build this application on Windows, run the following commands:
 
-.. code-block:: x86 native tools command prompt
+.. code-block:: console
 
     $ cmake -G Ninja -B build
     $ cd build
