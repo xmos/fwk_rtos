@@ -1,4 +1,4 @@
-// Copyright 2021-2022 XMOS LIMITED.
+// Copyright 2021-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT TUSB_DCD
@@ -42,7 +42,7 @@
 #define CFG_TUD_XCORE_IO_CORE_MASK (~(1 << 0))
 #endif
 
-TU_ATTR_WEAK bool tud_xcore_sof_cb(uint8_t rhport);
+TU_ATTR_WEAK bool tud_xcore_sof_cb(uint8_t rhport, uint32_t cur_time);
 TU_ATTR_WEAK bool tud_xcore_data_cb(uint32_t cur_time, uint32_t ep_num, uint32_t ep_dir, size_t xfer_len);
 
 #include "rtos_usb.h"
@@ -210,7 +210,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
         break;
     case rtos_usb_sof_packet:
         if (tud_xcore_sof_cb) {
-            if (tud_xcore_sof_cb(0)) {
+            if (tud_xcore_sof_cb(0, cur_time)) {
                 dcd_event_bus_signal(0, DCD_EVENT_SOF, true);
             }
         }
