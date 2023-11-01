@@ -66,10 +66,10 @@
 
 #define IPconfig_MAC_ADDR_OCTET_0     0x00
 #define IPconfig_MAC_ADDR_OCTET_1     0x00
-#define IPconfig_MAC_ADDR_OCTET_2     0xde
-#define IPconfig_MAC_ADDR_OCTET_3     0xad
-#define IPconfig_MAC_ADDR_OCTET_4     0xbe
-#define IPconfig_MAC_ADDR_OCTET_5     0xef
+#define IPconfig_MAC_ADDR_OCTET_2     0x00
+#define IPconfig_MAC_ADDR_OCTET_3     0x00
+#define IPconfig_MAC_ADDR_OCTET_4     0x00
+#define IPconfig_MAC_ADDR_OCTET_5     0x00
 
 
 
