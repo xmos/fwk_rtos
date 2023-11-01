@@ -45,19 +45,19 @@
 
 /* User defined network parameters */
 #define IPconfig_IP_ADDR_OCTET_0    10
-#define IPconfig_IP_ADDR_OCTET_1    0
-#define IPconfig_IP_ADDR_OCTET_2    0
-#define IPconfig_IP_ADDR_OCTET_3    1
+#define IPconfig_IP_ADDR_OCTET_1    128
+#define IPconfig_IP_ADDR_OCTET_2    249
+#define IPconfig_IP_ADDR_OCTET_3    3
 
 #define IPconfig_NET_MASK_OCTET_0   255
-#define IPconfig_NET_MASK_OCTET_1     0
-#define IPconfig_NET_MASK_OCTET_2     0
-#define IPconfig_NET_MASK_OCTET_3     0
+#define IPconfig_NET_MASK_OCTET_1   255
+#define IPconfig_NET_MASK_OCTET_2   255
+#define IPconfig_NET_MASK_OCTET_3   0
 
 #define IPconfig_GATEWAY_OCTET_0     10
-#define IPconfig_GATEWAY_OCTET_1      0
-#define IPconfig_GATEWAY_OCTET_2      0
-#define IPconfig_GATEWAY_OCTET_3      1
+#define IPconfig_GATEWAY_OCTET_1     128
+#define IPconfig_GATEWAY_OCTET_2     249
+#define IPconfig_GATEWAY_OCTET_3     1
 
 #define IPconfig_DNS_SERVER_OCTET_0   8
 #define IPconfig_DNS_SERVER_OCTET_1   8
@@ -66,10 +66,11 @@
 
 #define IPconfig_MAC_ADDR_OCTET_0     0x00
 #define IPconfig_MAC_ADDR_OCTET_1     0x00
-#define IPconfig_MAC_ADDR_OCTET_2     0x00
-#define IPconfig_MAC_ADDR_OCTET_3     0x00
-#define IPconfig_MAC_ADDR_OCTET_4     0x00
-#define IPconfig_MAC_ADDR_OCTET_5     0x00
+#define IPconfig_MAC_ADDR_OCTET_2     0xde
+#define IPconfig_MAC_ADDR_OCTET_3     0xad
+#define IPconfig_MAC_ADDR_OCTET_4     0xbe
+#define IPconfig_MAC_ADDR_OCTET_5     0xef
+
 
 
 /* Prototype for the function used to print out.  In this case it prints to the
