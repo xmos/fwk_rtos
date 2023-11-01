@@ -1,5 +1,7 @@
-// Copyright 2021 XMOS LIMITED.
+// Copyright 2021-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
+
+#include <xs1.h>
 
 #include <xcore/swmem_fill.h>
 #include <xcore/swmem_evict.h>
@@ -7,7 +9,6 @@
 
 #include "rtos_interrupt.h"
 #include "rtos_swmem.h"
-
 static swmem_fill_t swmem_fill_res;
 static swmem_evict_t swmem_evict_res;
 
