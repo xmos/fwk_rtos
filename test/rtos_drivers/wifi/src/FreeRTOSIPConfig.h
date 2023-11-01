@@ -44,9 +44,9 @@
 #endif
 
 /* User defined network parameters */
-#define IPconfig_IP_ADDR_OCTET_0    10
-#define IPconfig_IP_ADDR_OCTET_1    128
-#define IPconfig_IP_ADDR_OCTET_2    249
+#define IPconfig_IP_ADDR_OCTET_0    192
+#define IPconfig_IP_ADDR_OCTET_1    168
+#define IPconfig_IP_ADDR_OCTET_2    5
 #define IPconfig_IP_ADDR_OCTET_3    3
 
 #define IPconfig_NET_MASK_OCTET_0   255
@@ -54,9 +54,9 @@
 #define IPconfig_NET_MASK_OCTET_2   255
 #define IPconfig_NET_MASK_OCTET_3   0
 
-#define IPconfig_GATEWAY_OCTET_0     10
-#define IPconfig_GATEWAY_OCTET_1     128
-#define IPconfig_GATEWAY_OCTET_2     249
+#define IPconfig_GATEWAY_OCTET_0     192
+#define IPconfig_GATEWAY_OCTET_1     168
+#define IPconfig_GATEWAY_OCTET_2     5
 #define IPconfig_GATEWAY_OCTET_3     1
 
 #define IPconfig_DNS_SERVER_OCTET_0   8
