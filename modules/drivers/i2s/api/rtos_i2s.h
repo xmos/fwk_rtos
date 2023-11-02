@@ -10,7 +10,7 @@
  * The public API for using the RTOS I2S driver.
  * @{
  */
-
+#include <stdbool.h>
 #include <xcore/clock.h>
 #include <xcore/port.h>
 #include "i2s.h"
@@ -148,6 +148,7 @@ struct rtos_i2s_struct{
         volatile size_t required_available_count;
     } recv_buffer;
     uint8_t isr_cmd;
+    bool is_slave;
 };
 
 #include "rtos_i2s_rpc.h"
