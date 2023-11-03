@@ -1,5 +1,3 @@
-// Copyright 2021-2023 XMOS LIMITED.
-// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 /*******************************************************************************
  * This file is part of the argtable3 library.
  *
@@ -1298,7 +1296,7 @@ extern int optreset;			/* getopt(3) external variable */
 #ifdef __cplusplus
 }
 #endif
- 
+
 #endif /* !_GETOPT_H_ */
 
 #endif /* ARG_REPLACE_GETOPT == 1 */
