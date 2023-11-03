@@ -27,7 +27,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls_support.h"
 
-/* Allow application override
+/* Allow application override 
  * This stack requirement will vary based on network port, tls configuration, etc.
  */
 #ifndef MQTT_TASK_STACK_SIZE
