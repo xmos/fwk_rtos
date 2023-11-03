@@ -1,6 +1,16 @@
 .. _fwk_rtos_copyright:
 
-.. include:: ../_templates/disclaimer.rst
+.. only:: html
+
+    Copyright & Disclaimer
+    ======================
+
+    |XMOS copyright|
+
+    |XMOS disclaimer|
+
+    |XMOS trademarks|
+
 
 Licenses
 ========
@@ -8,7 +18,7 @@ Licenses
 XMOS
 ^^^^
 
-All original source code is licensed under the `XMOS License <https://github.com/xmos/sln_voice/blob/develop/LICENSE.rst>`_.
+All original source code is licensed under the `XMOS License <https://github.com/xmos/sln_voice/blob/develop/LICENSE.rst>`__.
 
 Third-Party
 ^^^^^^^^^^^

@@ -1,3 +1,5 @@
+// Copyright 2022-2023 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #ifndef SPI_DEVICE_CONTROL_H_
 #define SPI_DEVICE_CONTROL_H_
 

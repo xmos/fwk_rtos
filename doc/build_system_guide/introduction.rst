@@ -1,4 +1,3 @@
-.. include:: ../substitutions.rst
 
 .. _build_system_guide:
 
