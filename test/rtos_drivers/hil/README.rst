@@ -63,7 +63,7 @@ To build the test application firmware, run the following command from the top o
 
     bash tools/ci/build_rtos_tests.sh
 
-The ``build_rtos_tests.sh``` script will copy the test applications to the ``dist`` folder.
+The ``build_rtos_tests.sh`` script will copy the test applications to the ``dist`` folder.
 
 Run the test with the following command from the top of the repository:
 

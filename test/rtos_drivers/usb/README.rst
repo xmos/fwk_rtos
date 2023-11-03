@@ -52,7 +52,7 @@ run the following command from the root of this repository:
 
     bash tools/ci/build_rtos_tests.sh
 
-The ``build_rtos_tests.sh``` script will copy the test applications to the ``dist`` folder.
+The ``build_rtos_tests.sh`` script will copy the test applications to the ``dist`` folder.
 
 *************
 Running Tests

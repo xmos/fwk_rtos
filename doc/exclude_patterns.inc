@@ -3,11 +3,11 @@ tools
 projects
 test
 xmos_cmake_toolchain
-modules/drivers
+modules/**/thirdparty
 modules/FreeRTOS
 modules/sw_services
 build
 build_*
-CHANGELOG.rst
-LICENSE.rst
-**README* 
+**CHANGELOG*
+**LICENSE*
+**README*
