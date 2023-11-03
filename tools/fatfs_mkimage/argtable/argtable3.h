@@ -1,3 +1,5 @@
+// Copyright 2021-2023 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 /*******************************************************************************
  * argtable3: Declares the main interfaces of the library
  *
