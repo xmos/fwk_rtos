@@ -1,5 +1,3 @@
-// Copyright 2020-2023 XMOS LIMITED.
-// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 /*******************************************************************************
  * Copyright (c) 2014, 2015 IBM Corp.
  *
@@ -29,7 +27,7 @@
 #include "mbedtls/pk.h"
 #include "mbedtls_support.h"
 
-/* Allow application override 
+/* Allow application override
  * This stack requirement will vary based on network port, tls configuration, etc.
  */
 #ifndef MQTT_TASK_STACK_SIZE
