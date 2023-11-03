@@ -9,7 +9,7 @@ Requirements
 The following software is required for running tests.
 
 * Linux, MacOS, or Windows Subsystem for Linux
-* `Python 3.8 <https://www.python.org/>`_
+* `Python 3.8 <https://www.python.org/>`__
 
 Python Virtual Environment
 ==========================
