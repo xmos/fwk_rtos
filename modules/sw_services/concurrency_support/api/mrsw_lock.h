@@ -1,5 +1,5 @@
-// Copyright 2022 XMOS LIMITED. This Software is subject to the terms of the
-// XMOS Public License: Version 1
+// Copyright 2022-2023 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #ifndef MRSW_LOCK_H_
 #define MRSW_LOCK_H_

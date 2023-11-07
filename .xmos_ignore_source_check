@@ -1,0 +1,5 @@
+modules/FreeRTOS
+modules/drivers/wifi
+fatfs_mkimage/argtable/
+fatfs_mkimage/src/tinydir.h
+thirdparty
