@@ -176,6 +176,9 @@ XUD_Result_t rtos_usb_endpoint_transfer_start(rtos_usb_t *ctx,
                                               size_t len,
                                               bool is_setup);
 
+void rtos_usb_set_test_mode(rtos_usb_t *ctx,
+                            unsigned test_mode);
+
 /**
  * This function will complete a reset on an endpoint. The address of the endpoint
  * to reset must be provided, and may be either direction (IN or OUT) endpoint. If
