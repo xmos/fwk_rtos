@@ -67,7 +67,9 @@ pipeline {
                         expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
                     }
                     agent {
-                        label 'xcore.ai-explorer && !usb_audio'
+                        // TODO: Remove usage of temporary label
+                        // label 'xcore.ai-explorer && !usb_audio'
+                        label 'xcore.ai-explorer-mod'
                     }
                     stages {
                         stage('Checkout') {
