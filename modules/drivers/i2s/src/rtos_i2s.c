@@ -1,4 +1,4 @@
-// Copyright 2020-2021 XMOS LIMITED.
+// Copyright 2020-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT RTOS_I2S
@@ -397,6 +397,7 @@ static void rtos_i2s_init(
     ctx->rpc_config = NULL;
     ctx->rx = i2s_local_rx;
     ctx->tx = i2s_local_tx;
+    ctx->is_slave = false;
 
     triggerable_setup_interrupt_callback(ctx->c_i2s_isr.end_b, ctx, RTOS_INTERRUPT_CALLBACK(rtos_i2s_isr));
 
@@ -490,4 +491,6 @@ void rtos_i2s_slave_init(
                   bclk,
                   (rtos_osal_entry_function_t) i2s_slave_thread,
                   RTOS_THREAD_STACK_SIZE(i2s_slave_thread));
+
+    i2s_ctx->is_slave = true;
 }

@@ -1,5 +1,5 @@
-// Copyright (c) 2021-2022 XMOS LIMITED. This Software is subject to the terms of the
-// XMOS Public License: Version 1
+// Copyright 2021-2023 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #ifndef I2C_DEVICE_CONTROL_H_
 #define I2C_DEVICE_CONTROL_H_

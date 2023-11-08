@@ -6,7 +6,6 @@ import sys
 import serial
 import serial.tools.list_ports
 import argparse
-import time
 
 # USB VID:PID for test application
 vid=0x20B1

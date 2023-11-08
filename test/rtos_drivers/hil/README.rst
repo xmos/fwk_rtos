@@ -57,13 +57,13 @@ Building and Running Tests
 
     The Python environment is required to run this test.  See the Requirements section of test/README.rst
 
-To build the test application firmware, run the following command from the top of the repository: 
+To build the test application firmware, run the following command from the top of the repository:
 
 .. code-block:: console
 
     bash tools/ci/build_rtos_tests.sh
 
-The `build_test.sh` script will copy the test applications to the `dist` folder.
+The ``build_rtos_tests.sh`` script will copy the test applications to the ``dist`` folder.
 
 Run the test with the following command from the top of the repository:
 
