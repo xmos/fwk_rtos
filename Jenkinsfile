@@ -57,7 +57,7 @@ pipeline {
                         expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
                     }
                     agent {
-                        label 'xcore.ai-explorer-mod'
+                        label 'xcore.ai-explorer-hil-tests'
                     }
                     stages {
                         stage('Checkout') {
