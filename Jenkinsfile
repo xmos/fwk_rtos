@@ -13,14 +13,14 @@ pipeline {
             numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '25' : '',
             artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '25' : ''
         ))
-    }    
+    }
     parameters {
         string(
             name: 'TOOLS_VERSION',
             defaultValue: '15.2.1',
             description: 'The XTC tools version'
         )
-    }    
+    }
     environment {
         PYTHON_VERSION = "3.8.11"
         VENV_DIRNAME = ".venv"
@@ -28,7 +28,7 @@ pipeline {
         RTOS_TEST_RIG_TARGET = "XCORE-AI-EXPLORER"
         LOCAL_WIFI_SSID = credentials('bristol-office-test-ssid')
         LOCAL_WIFI_PASS = credentials('bristol-office-test-wifi-password')
-    }    
+    }
     stages {
         stage('Build and Docs') {
             parallel {
@@ -81,7 +81,7 @@ pipeline {
                                 // List built files for log
                                 sh "ls -la dist/"
                                 sh "ls -la dist_host/"
-                                            }
+                            }
                         }
                         stage('Create virtual environment') {
                             steps {
@@ -168,7 +168,7 @@ pipeline {
                     post {
                         cleanup {
                             // cleanWs removes all output and artifacts of the Jenkins pipeline
-                            //   Comment out this post section to leave the workspace which can be useful for running items on the Jenkins agent. 
+                            //   Comment out this post section to leave the workspace which can be useful for running items on the Jenkins agent.
                             //   However, beware that this pipeline will not run if the workspace is not manually cleaned.
                             xcoreCleanSandbox()
                         }
