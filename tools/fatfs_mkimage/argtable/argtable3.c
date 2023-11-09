@@ -1296,7 +1296,7 @@ extern int optreset;			/* getopt(3) external variable */
 #ifdef __cplusplus
 }
 #endif
- 
+
 #endif /* !_GETOPT_H_ */
 
 #endif /* ARG_REPLACE_GETOPT == 1 */

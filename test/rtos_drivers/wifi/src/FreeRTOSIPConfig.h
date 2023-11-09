@@ -1,3 +1,5 @@
+// Copyright 2019-2023 XMOS LIMITED.
+// This Software is subject to the terms of the XMOS Public Licence: Version 1.
 /*
  * FreeRTOS Kernel V10.2.1
  * Copyright (C) 2017 Amazon.com, Inc. or its affiliates.  All Rights Reserved.

@@ -4,11 +4,11 @@
 
     Copyright & Disclaimer
     ======================
-    
+
     |XMOS copyright|
-    
+
     |XMOS disclaimer|
-    
+
     |XMOS trademarks|
 
 
@@ -18,7 +18,7 @@ Licenses
 XMOS
 ^^^^
 
-All original source code is licensed under the `XMOS License <https://github.com/xmos/sln_voice/blob/develop/LICENSE.rst>`_.
+All original source code is licensed under the `XMOS License <https://github.com/xmos/sln_voice/blob/develop/LICENSE.rst>`__.
 
 Third-Party
 ^^^^^^^^^^^
