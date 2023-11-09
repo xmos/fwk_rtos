@@ -542,7 +542,8 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
     rtos_usb_endpoint_stall_clear(&usb_ctx, ep_addr);
 }
 
-void dcd_set_test_mode(unsigned test_mode)
+// Set device to test mode
+void dcd_set_test_mode(uint16_t test_mode)
 {
     rtos_usb_set_test_mode(&usb_ctx, test_mode);
 }
