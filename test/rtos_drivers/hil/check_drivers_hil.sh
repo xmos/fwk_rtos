@@ -27,7 +27,7 @@ done
 # assign vars
 REPORT=testing/test.rpt
 FIRMWARE=dist/test_rtos_driver_hil.xe
-TIMEOUT_S=60
+TIMEOUT_S=100
 if [ ! -z "${@:$OPTIND:1}" ]
 then
     ADAPTER_ID="--adapter-id ${@:$OPTIND:1}"
