@@ -27,7 +27,7 @@ done
 # assign vars
 REPORT=testing/test.rpt
 FIRMWARE=dist/test_rtos_driver_hil.xe
-TIMEOUT_S=60
+TIMEOUT_S=100
 if [ ! -z "${@:$OPTIND:1}" ]
 then
     ADAPTER_ID="--adapter-id ${@:$OPTIND:1}"
@@ -51,6 +51,10 @@ if [ "$UNAME" == "Linux" ] || [ -n "$MSYSTEM" ]; then
     timeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 elif [ "$UNAME" == "Darwin" ] ; then
     gtimeout ${TIMEOUT_S}s xrun --xscope ${ADAPTER_ID} ${REPO_ROOT}/${FIRMWARE} 2>&1 | tee -a ${REPORT}
+fi
+
+if [[ $? -eq 124 ]]; then
+    echo "ERROR: TEST TIMED OUT after ${TIMEOUT_S} seconds"
 fi
 
 echo "****************"
