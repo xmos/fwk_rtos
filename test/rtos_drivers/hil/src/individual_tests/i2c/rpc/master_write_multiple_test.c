@@ -1,4 +1,4 @@
-// Copyright 2021-2022 XMOS LIMITED.
+// Copyright 2021-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 /* System headers */
@@ -25,11 +25,11 @@ static const char* test_name = "rpc_master_write_multiple_test";
 
 #if ON_TILE(I2C_MASTER_TILE) || ON_TILE(I2C_SLAVE_TILE)
 #define I2C_MASTER_WRITE_MULTIPLE_TEST_ITER   2
-#define I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE   4
+#define I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE   5
 static uint8_t test_vector[I2C_MASTER_WRITE_MULTIPLE_TEST_ITER][I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE] =
 {
-    {0x00, 0xFF, 0xAA, 0x55},
-    {0xDE, 0xAD, 0xBE, 0xEF},
+    {0x00, 0x23, 0xFF, 0xAA, 0x55},
+    {0xDE, 0xCB, 0xAD, 0xBE, 0xEF},
 };
 #endif
 
@@ -50,6 +50,7 @@ static int main_test(i2c_test_ctx_t *ctx)
             size_t sent = 0;
             local_printf("MASTER write multiple iteration %d", i);
 
+            // Do a 1 byte transfer
             ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i],
@@ -64,16 +65,32 @@ static int main_test(i2c_test_ctx_t *ctx)
             }
             local_printf("MASTER sent %d", sent);
 
+            // Do another 1 byte transfer but with num_bytes_sent ptr = NULL
             ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
                                         I2C_SLAVE_ADDR,
                                         (unsigned char*)&test_vector[i][1],
-                                        I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-1,
+                                        1,
+                                        NULL,
+                                        0);
+
+            if (ret != I2C_ACK)
+            {
+                local_printf("MASTER write failed to send 1");
+                return -1;
+            }
+            local_printf("MASTER sent 1");
+
+            // Transfer the remaining I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE - 2 bytes
+            ret = rtos_i2c_master_write(ctx->i2c_master_ctx,
+                                        I2C_SLAVE_ADDR,
+                                        (unsigned char*)&test_vector[i][2],
+                                        I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-2,
                                         &sent,
                                         0);
 
-            if ((ret != I2C_ACK) || (sent != I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-1))
+            if ((ret != I2C_ACK) || (sent != I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-2))
             {
-                local_printf("MASTER write failed to send %d", I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-1);
+                local_printf("MASTER write failed to send %d", I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-2);
                 return -1;
             }
             local_printf("MASTER sent %d", sent);
@@ -86,7 +103,7 @@ static int main_test(i2c_test_ctx_t *ctx)
 
     #if ON_TILE(I2C_SLAVE_TILE)
     {
-        while(test_slave_iters < (I2C_MASTER_WRITE_MULTIPLE_TEST_ITER << 1))    // each iter has 2 slave steps
+        while(test_slave_iters < (I2C_MASTER_WRITE_MULTIPLE_TEST_ITER * 3))    // each iter has 3 slave steps
         {
             vTaskDelay(pdMS_TO_TICKS(1));
         }
@@ -110,8 +127,25 @@ static void slave_rx(rtos_i2c_slave_t *ctx, void *app_data, uint8_t *data, size_
     local_printf("SLAVE read iteration %d", test_slave_iters);
     i2c_test_ctx_t *test_ctx = (i2c_test_ctx_t*)ctx->app_data;
 
-    size_t expected_len = ((test_slave_iters%2) == 0) ? 1 : (I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-1);
-    uint8_t *ptr = ((test_slave_iters%2) == 0) ? &test_vector[test_slave_iters>>1][0] : &test_vector[test_slave_iters>>1][1];
+    size_t expected_len;
+    uint8_t *ptr;
+    int index = test_slave_iters % 3;
+    if(index==0)
+    {
+        expected_len = 1;
+        ptr = &test_vector[test_slave_iters/3][0];
+    }
+    else if(index == 1)
+    {
+        expected_len = 1;
+        ptr = &test_vector[test_slave_iters/3][1];
+    }
+    else
+    {
+        expected_len = I2C_MASTER_WRITE_MULTIPLE_TEST_SIZE-2;
+        ptr = &test_vector[test_slave_iters/3][2];
+    }
+
     if (len != expected_len)
     {
         local_printf("SLAVE failed got len %d expected %d", len, expected_len);

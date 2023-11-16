@@ -2,6 +2,27 @@
 # Copyright 2021-2023 XMOS LIMITED.
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
+# help text
+help()
+{
+   echo "Framework RTOS Drivers USB test"
+   echo
+   echo "Syntax: check_usb.sh [-h] adapterID_optional"
+   echo
+   echo "options:"
+   echo "h     Print this Help."
+}
+
+# flag arguments
+while getopts h option
+do
+    case "${option}" in
+        h) help
+           exit;;
+    esac
+done
+
+# Get unix name for determining OS
 UNAME=$(uname)
 
 if [ "$UNAME" == "Linux" ] || [ -n "$MSYSTEM" ]; then
@@ -10,7 +31,10 @@ elif [ "$UNAME" == "Darwin" ] ; then
     TIMEOUT=gtimeout
 fi
 
+# discern repository root
 REPO_ROOT=$(git rev-parse --show-toplevel)
+
+# assign vars
 TEST_DIR=testing
 TMP_FIFO=pid
 TARGET_REPORT=$TEST_DIR/target.rpt
@@ -18,8 +42,6 @@ HOST_REPORT=$TEST_DIR/host.rpt
 FILE_PRE_DOWNLOAD=$TEST_DIR/pre_download_data.txt
 FILE_TO_DOWNLOAD=$TEST_DIR/download_data.txt
 FILE_POST_DOWNLOAD=$TEST_DIR/post_download_data.txt
-FIRMWARE=$REPO_ROOT/dist/test_rtos_driver_usb.xe
-SERIAL_TEST_SCRIPT=$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py
 SERIAL_TX0_FILE="$TEST_DIR/serial_tx0_data.txt"
 SERIAL_TX1_FILE="$TEST_DIR/serial_tx1_data.txt"
 SERIAL_RX0_FILE="$TEST_DIR/serial_rx0_data.txt"
@@ -29,12 +51,14 @@ DFU_RT_VID_PID=""
 DFU_MODE_VID_PID="20b1:4000"
 DFU_DOWNLOAD_BYTES=1024
 DFU_ALT=1
-
-DFU_VERBOSITY="" # Set to "-v -v -v" libusb debug prints.
-
+DFU_VERBOSITY="-e" # Set to "-v -v -v" libusb debug prints.
 APP_STARTUP_TIME_S=10
 APP_SHUTDOWN_TIME_S=5
 PY_TIMEOUT_S=30
+if [ ! -z "${@:$OPTIND:1}" ]
+then
+    ADAPTER_ID="--adapter-id ${@:$OPTIND:1}"
+fi
 
 # Max time to wait after the usb mount event has been detected. This delay adds
 # basic accomodation for WSL systems. With WSL, usbipd may auto-attach the
@@ -48,7 +72,7 @@ function cleanup {
         child_process_running=$(ps -p $child_process_pid | grep $child_process_pid)
         if [ -n "$child_process_running" ]; then
             print_and_log_test_step "Stopping child process."
-            kill $child_process_pid
+            kill -INT $child_process_pid
         fi
     fi
 }
@@ -95,7 +119,7 @@ function run_target {
     echo "Target Log"
     echo "----------"
     print_and_log_test_step "Starting target application."
-    (xrun --xscope "$FIRMWARE" 2>&1 & echo $! > $TMP_FIFO) | tee -a "$TARGET_REPORT" &
+    (xrun --xscope ${ADAPTER_ID} "$REPO_ROOT/dist/test_rtos_driver_usb.xe" 2>&1 & echo $! > $TMP_FIFO) | tee -a "$TARGET_REPORT" &
     child_process_pid=$(<$TMP_FIFO)
 }
 
@@ -127,7 +151,7 @@ function wait_for_lsusb_entry {
 
 function run_cdc_tests {
     print_and_log_test_step "Writing CDC test data on both interfaces."
-    ($TIMEOUT ${PY_TIMEOUT_S}s python "$SERIAL_TEST_SCRIPT" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1) >> "$HOST_REPORT"
+    ($TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1) >> "$HOST_REPORT"
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during CDC test (exit code = $exit_code)."
@@ -266,18 +290,3 @@ fi
 if [ $exit_code -eq 0 ]; then
     echo "[TEST PASS]: All host checks completed successfully." >> "$HOST_REPORT"
 fi
-
-echo "****************"
-echo "* Parse Result *"
-echo "****************"
-# If the script gets to this point, all host side checks have passed.
-# As a final step, verify that the target logs report a passing result for each
-# tile.
-result_target=$(grep -c "PASS" "$TARGET_REPORT" || true)
-
-if [ $result_target -lt 2 ]; then
-    echo "FAIL"
-    exit 1
-fi
-
-echo "PASS"

@@ -1,4 +1,4 @@
-// Copyright 2020-2021 XMOS LIMITED.
+// Copyright 2020-2023 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #include "rtos_rpc.h"
@@ -231,6 +231,8 @@ void rtos_i2s_rpc_host_init(
         rtos_intertile_t *client_intertile_ctx[],
         size_t remote_client_count)
 {
+    xassert(i2s_ctx->is_slave == false);
+
     i2s_ctx->rpc_config = rpc_config;
     rpc_config->rpc_host_start = i2s_rpc_start;
     rpc_config->remote_client_count = remote_client_count;
