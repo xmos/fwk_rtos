@@ -18,7 +18,7 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_uart_rx_isr, arg)
 
     /* Grab byte received from rx which triggered ISR */
     uint8_t byte = s_chan_in_byte(ctx->c.end_b);
-    
+
     BaseType_t pxHigherPriorityTaskWoken = pdFALSE;
 
     /* We already know the task handle of the receiver so cast to correct type */
@@ -44,6 +44,8 @@ static void uart_rx_error_callback(uart_callback_code_t callback_code, void * ap
 
 static void uart_rx_hil_thread(rtos_uart_rx_t *ctx)
 {
+    rtos_printf("UART Rx on tile %d core %d\n", THIS_XCORE_TILE, rtos_core_id_get());
+
     /* consume token (synch with RTOS driver) */
     (void) s_chan_in_byte(ctx->c.end_a);
 
@@ -80,7 +82,7 @@ static void uart_rx_app_thread(rtos_uart_rx_t *ctx)
             bytes_read += 1;
         } while(ret == UART_BUFFER_OK);
         bytes_read -= 1; /* important as we incremented this for the last read fail too */
-    
+
         if(bytes_read){
             size_t xBytesSent = xStreamBufferSend(ctx->app_byte_buffer, bytes, bytes_read, 0);
 
@@ -149,7 +151,7 @@ void rtos_uart_rx_init(
         uart_rx_error_callback,
         uart_rx_ctx
         );
- 
+
 
     uart_rx_ctx->c = s_chan_alloc();
 
@@ -177,7 +179,7 @@ void rtos_uart_rx_start(
         unsigned interrupt_core_id,
         unsigned priority,
         size_t app_rx_buff_size){
-    
+
     /* Init callbacks & args */
     uart_rx_ctx->app_data = app_data;
     uart_rx_ctx->rx_start_cb = rx_start;
