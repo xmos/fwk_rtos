@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT RTOS_UART_RX
-#define DEBUG_PRINT_ENABLE_RTOS_UART_RX 1
 
 #include <xcore/triggerable.h>
 #include <string.h>

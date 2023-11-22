@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT RTOS_UART_TX
-#define DEBUG_PRINT_ENABLE_RTOS_UART_TX 1
 
 #include "rtos_uart_tx.h"
 
@@ -21,7 +20,7 @@ static void uart_tx_local_write(
         uart_tx(&ctx->dev, buff[i]);
         rtos_interrupt_unmask_all();
     }
-    
+
     rtos_osal_mutex_put(&ctx->lock);
 }
 
@@ -44,7 +43,7 @@ void rtos_uart_tx_init(
         const uart_parity_t parity,
         const uint8_t stop_bits,
         hwtimer_t tmr){
-    
+
     //uart init
     uart_tx_blocking_init(
             &ctx->dev,
