@@ -26,8 +26,8 @@ pipeline {
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
         RTOS_TEST_RIG_TARGET = "XCORE-AI-EXPLORER"
-        LOCAL_WIFI_SSID = credentials('bristol-office-test-ssid')
-        LOCAL_WIFI_PASS = credentials('bristol-office-test-wifi-password')
+        LOCAL_WIFI_SSID = credentials('bristol-office-development-wifi-ssid')
+        LOCAL_WIFI_PASS = credentials('bristol-office-development-wifi-password')
     }
     stages {
         stage('Build and Docs') {
