@@ -218,6 +218,7 @@ static void dcd_xcore_int_handler(rtos_usb_t *ctx,
     }
 }
 
+
 /*------------------------------------------------------------------*/
 /* Device API
  *------------------------------------------------------------------*/
@@ -540,4 +541,10 @@ void dcd_edpt_clear_stall (uint8_t rhport, uint8_t ep_addr)
 
     rtos_printf("STALL EP %02x: Clear\n", ep_addr);
     rtos_usb_endpoint_stall_clear(&usb_ctx, ep_addr);
+}
+
+void dcd_sof_enable(uint8_t rhport, bool en)
+{
+  (void) rhport;
+  (void) en;
 }
