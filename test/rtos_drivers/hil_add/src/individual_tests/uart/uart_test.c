@@ -101,7 +101,7 @@ static void start_uart_devices(uart_test_ctx_t *test_ctx)
         rtos_uart_rx_started,
         rtos_uart_rx_complete,
         rtos_uart_rx_error,
-        (1 << UART_RX_ISR_CORE),
+        UART_RX_ISR_CORE,
         appconfSTARTUP_TASK_PRIORITY,
         1024 // Big enough to hold tx_buff[] many times over
         );

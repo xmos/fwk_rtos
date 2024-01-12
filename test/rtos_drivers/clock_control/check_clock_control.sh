@@ -53,6 +53,10 @@ elif [ "$UNAME" == "Darwin" ] ; then
     gtimeout ${TIMEOUT_S}s xrun --xscope ${REPO_ROOT}/dist/${FIRMWARE} 2>&1 | tee -a ${REPORT}
 fi
 
+if [[ $? -eq 124 ]]; then
+    echo "ERROR: TEST TIMED OUT after ${TIMEOUT_S} seconds"
+fi
+
 echo "****************"
 echo "* Parse Result *"
 echo "****************"
