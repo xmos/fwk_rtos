@@ -250,6 +250,9 @@ static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
     XUD_ClearStallByAddr(endpoint_addr);
 }
 
+void rtos_usb_enter_test_mode(rtos_usb_t *ctx,
+                            unsigned test_mode);
+
 /**
  * Starts the USB driver instance's low level USB I/O thread and enables its interrupts
  * on the requested core. This must only be called by the tile that owns the driver instance.
