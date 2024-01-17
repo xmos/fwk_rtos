@@ -54,20 +54,20 @@ const uint8_t ucMACAddress[ipMAC_ADDRESS_LENGTH_BYTES] = {
     (uint8_t)IPconfig_MAC_ADDR_OCTET_4, (uint8_t)IPconfig_MAC_ADDR_OCTET_5};
 
 static void scan(void) {
-    WIFIScanResult_t scan_results[10];
+    WIFIScanResult_t scan_results[25];
 
     if (sl_wfx_set_scan_parameters(550, 550, 2) == SL_STATUS_OK)
     {
-        local_printf("Scan parameters set");
+        local_printf("Wifi scan parameters set");
     } else {
-        local_printf("Failed to set scan parameters");
+        local_printf("Failed to set wifi scan parameters");
     }
 
-    if (WIFI_Scan(scan_results, 10) == eWiFiSuccess)
+    if (WIFI_Scan(scan_results, 25) == eWiFiSuccess)
     {
         WIFIScanResult_t *scan_result = scan_results;
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 25; i++)
         {
             uint8_t no_bssid[wificonfigMAX_BSSID_LEN] = {0};
 
