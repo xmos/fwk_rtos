@@ -116,7 +116,7 @@ int wifi_conn_mgr_event_cb(int event, char *ssid, char *password) {
         return WIFI_CONN_MGR_MODE_SOFT_AP;
 
     case WIFI_CONN_MGR_EVENT_CONNECTED:
-        local_printf("Connected to %s", ssid);
+        local_printf("Connected to %x", ssid);
         uint8_t ip[4];
 
         while (WIFI_GetIP(ip) != eWiFiSuccess) {
