@@ -51,7 +51,7 @@ pipeline {
                             xcoreCleanSandbox()
                         }
                     }
-                }
+                } // Stage
 
                 stage('Build and Test') {
                     when {
@@ -129,7 +129,7 @@ pipeline {
                                     }
                                 }
                             }
-                        // }
+                        }
                         // stage('Run RTOS Drivers HIL test') {
                         //     steps {
                         //         withTools(params.TOOLS_VERSION) {
@@ -183,8 +183,8 @@ pipeline {
                             xcoreCleanSandbox()
                         }
                     }
-                }
-            }
+                }// Stage
+            } // Parallel
         }
     }
 }
