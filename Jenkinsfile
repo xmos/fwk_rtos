@@ -36,14 +36,15 @@ pipeline {
                     agent { label "docker" }
                     environment { XMOSDOC_VERSION = "v4.0" }
                     steps {
-                        checkout scm
-                        sh 'git submodule update --init --recursive --depth 1'
-                        sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
-                        sh """docker run -u "\$(id -u):\$(id -g)" \
-                            --rm \
-                            -v ${WORKSPACE}:/build \
-                            ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v"""
-                        archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
+                        echo "Skipping Docs"
+                        // checkout scm
+                        // sh 'git submodule update --init --recursive --depth 1'
+                        // sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
+                        // sh """docker run -u "\$(id -u):\$(id -g)" \
+                        //     --rm \
+                        //     -v ${WORKSPACE}:/build \
+                        //     ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v"""
+                        // archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
                     }
                     post {
                         cleanup {
