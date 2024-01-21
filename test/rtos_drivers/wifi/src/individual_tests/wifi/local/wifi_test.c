@@ -143,12 +143,13 @@ int wifi_conn_mgr_event_cb(int event, char *ssid, char *password) {
 
     case WIFI_CONN_MGR_EVENT_CONNECTED:
         local_printf("Connected to %x", ssid);
-        ip_printf();
         uint8_t ip[4];
 
         while (WIFI_GetIP(ip) != eWiFiSuccess) {
             vTaskDelay(pdMS_TO_TICKS(100));
         }
+        ip_printf();
+        local_printf("Local Host IP address used: %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
         WIFI_GetHostIP("xmos.com", ip);
         local_printf("xmos.com has IP address %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
         local_printf("Attemping to ping xmos.com");
