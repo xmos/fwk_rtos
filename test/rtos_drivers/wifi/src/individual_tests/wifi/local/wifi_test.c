@@ -94,6 +94,32 @@ static void scan(void) {
     }
 }
 
+static void ip_printf(void) {
+    
+    uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
+    int8_t cBuffer[ 16 ];
+    
+    local_printf("Get FreeRTOS IP Configuration");
+    FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, 
+                    &ulDNSServerAddress );
+
+    /* Convert the IP address to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
+    local_printf( "IP Address: %s", cBuffer );
+
+    /* Convert the net mask to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
+    local_printf( "Subnet Mask: %s", cBuffer );
+
+    /* Convert the IP address of the gateway to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
+    local_printf( "Gateway IP Address: %s", cBuffer );
+
+    /* Convert the IP address of the DNS server to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
+    local_printf( "DNS server IP Address: %s", cBuffer );
+}
+
 int wifi_conn_mgr_event_cb(int event, char *ssid, char *password) {
     switch (event) {
     case WIFI_CONN_MGR_EVENT_STARTUP:
@@ -117,6 +143,7 @@ int wifi_conn_mgr_event_cb(int event, char *ssid, char *password) {
 
     case WIFI_CONN_MGR_EVENT_CONNECTED:
         local_printf("Connected to %x", ssid);
+        ip_printf();
         uint8_t ip[4];
 
         while (WIFI_GetIP(ip) != eWiFiSuccess) {
@@ -221,41 +248,18 @@ static void wifi_setup_task(wifi_devices_t *wifi_devs)
     rtos_spi_master_device_t *wifi_device_ctx = wifi_devs->wifi_device_ctx;
     rtos_gpio_t *gpio_ctx = wifi_devs->gpio_ctx;
 
-    uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
-    int8_t cBuffer[ 16 ];
-
     vTaskDelay(pdMS_TO_TICKS(100));
 
     sl_wfx_host_set_hif(wifi_device_ctx, gpio_ctx, wifi_irq_port, 0,
                         wifi_wup_rst_port, 0, wifi_wup_rst_port, 1);
 
-    local_printf("Start WiFi connection manager");
+    local_printf("Create WiFi connection manager xTask");
     wifi_conn_mgr_start(appconfWIFI_CONN_MNGR_TASK_PRIORITY,
                         appconfWIFI_DHCP_SERVER_TASK_PRIORITY);
 
-    local_printf("Start FreeRTOS_IP");
+    local_printf("Start FreeRTOS_IP Stack");
     FreeRTOS_IPInit(ucIPAddress, ucNetMask, ucGatewayAddress, ucDNSServerAddress,
                     ucMACAddress);
-    
-    local_printf("Get FreeRTOS IP Configuration");
-    FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, 
-                    &ulDNSServerAddress );
-
-    /* Convert the IP address to a string then print it out. */
-    FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
-    local_printf( "IP Address: %srn", cBuffer );
-
-    /* Convert the net mask to a string then print it out. */
-    FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
-    local_printf( "Subnet Mask: %srn", cBuffer );
-
-    /* Convert the IP address of the gateway to a string then print it out. */
-    FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
-    local_printf( "Gateway IP Address: %srn", cBuffer );
-
-    /* Convert the IP address of the DNS server to a string then print it out. */
-    FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
-    local_printf( "DNS server IP Address: %srn", cBuffer );
 
     vTaskDelete(NULL);
 }
