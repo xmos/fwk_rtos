@@ -1,6 +1,12 @@
 RTOS Framework change log
 =========================
 
+3.1.0
+-----
+
+  * UPDATED: To latest tinyusb_src
+  * ADDED: Support for transitioning to USB test mode in tinyusb_src
+
 3.0.5
 -----
 
