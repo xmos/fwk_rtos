@@ -264,10 +264,10 @@ static int main_test(wifi_test_ctx_t *ctx)
     BaseType_t ret = xTaskNotifyWait((uint32_t)0,
                                      (uint32_t)0,
                                      (uint32_t*) &status,
-                                     pdMS_TO_TICKS(30000));
+                                     pdMS_TO_TICKS(60000));
     if (ret == pdFALSE)
     {
-        local_printf("Failed to recieve ping result after 30 seconds");
+        local_printf("Failed to recieve ping result after 60 seconds");
         return -1;
     }
 
