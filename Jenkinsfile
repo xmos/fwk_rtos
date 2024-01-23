@@ -106,6 +106,7 @@ pipeline {
                                 sh "rm -f ~/.xtag/status.lock ~/.xtag/acquired"
                             }
                         }
+                        // TODO Disabled till https://xmosjira.atlassian.net/browse/AP-353 is fixed
                         //stage('Run RTOS Drivers WiFi test') {
                         //    steps {
                         //        withTools(params.TOOLS_VERSION) {
