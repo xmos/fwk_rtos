@@ -2,6 +2,7 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 #define DEBUG_UNIT WIFI_CONN_MGR
+#define DEBUG_PRINT_ENABLE_WIFI_CONN_MGR 1
 
 /* FreeRTOS headers */
 #include "FreeRTOS.h"
@@ -589,7 +590,7 @@ static void wifi_conn_mgr(void *arg)
                 if (sl_wfx_get_signal_strength(&rcpi) == SL_STATUS_OK) {
                     int8_t rssi = ((int) rcpi - 220) / 2;
                     update_ap_rssi(connected_ap, rssi);
-                    //rtos_printf("Current signal strength of " HWADDR_FMT " is %d dBm\n", HWADDR_ARG(connected_ap->bssid), connected_ap->rssi);
+                    rtos_printf("Current signal strength of " HWADDR_FMT " is %d dBm\n", HWADDR_ARG(connected_ap->bssid), connected_ap->rssi);
                 }
             }
         }
