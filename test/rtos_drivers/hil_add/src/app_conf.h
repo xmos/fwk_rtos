@@ -23,7 +23,7 @@
 #define SPI_TEST_BUF_SIZE       4096
 
 #define UART_RX_CORE_MASK       (1 << 2)
-#define UART_RX_ISR_CORE        2
+#define UART_RX_ISR_CORE        3
 #define UART_BAUD_RATE          921600
 
 

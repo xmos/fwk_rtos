@@ -10,6 +10,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     target_sources(framework_rtos_sw_services_usb
         INTERFACE
             portable/dcd_xcore.c
+            portable/tusb_nstackwords.S
             FreeRTOS/usb_support.c
             ${TUSB_ROOT_SOURCES}
             ${TUSB_CLASS_SOURCES}

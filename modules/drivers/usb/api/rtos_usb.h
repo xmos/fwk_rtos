@@ -251,6 +251,15 @@ static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
 }
 
 /**
+ * Calls the XUD function to enter the specified test mode.
+ *
+ * \param ctx           A pointer to the USB driver instance to use.
+ * \param test_mode     Desired test mode.
+ */
+void rtos_usb_enter_test_mode(rtos_usb_t *ctx,
+                            unsigned test_mode);
+
+/**
  * Starts the USB driver instance's low level USB I/O thread and enables its interrupts
  * on the requested core. This must only be called by the tile that owns the driver instance.
  * It must be called after starting the RTOS from an RTOS thread.

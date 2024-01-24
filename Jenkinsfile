@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.27.0') _
+@Library('xmos_jenkins_shared_library@v0.28.0') _
 
 getApproval()
 
@@ -13,22 +13,22 @@ pipeline {
             numToKeepStr:         env.BRANCH_NAME ==~ /develop/ ? '25' : '',
             artifactNumToKeepStr: env.BRANCH_NAME ==~ /develop/ ? '25' : ''
         ))
-    }    
+    }
     parameters {
         string(
             name: 'TOOLS_VERSION',
             defaultValue: '15.2.1',
             description: 'The XTC tools version'
         )
-    }    
+    }
     environment {
         PYTHON_VERSION = "3.8.11"
         VENV_DIRNAME = ".venv"
         BUILD_DIRNAME = "dist"
-        RTOS_TEST_RIG_TARGET = "xcore_sdk_test_rig"
-        LOCAL_WIFI_SSID = credentials('hampton-office-network-ssid')
-        LOCAL_WIFI_PASS = credentials('hampton-office-network-wifi-password')
-    }    
+        RTOS_TEST_RIG_TARGET = "XCORE-AI-EXPLORER"
+        LOCAL_WIFI_SSID = credentials('bristol-office-development-wifi-ssid')
+        LOCAL_WIFI_PASS = credentials('bristol-office-development-wifi-password')
+    }
     stages {
         stage('Build and Docs') {
             parallel {
@@ -57,7 +57,7 @@ pipeline {
                         expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
                     }
                     agent {
-                        label 'xcore.ai-explorer-us'
+                        label 'xcore.ai-explorer-hil-tests'
                     }
                     stages {
                         stage('Checkout') {
@@ -106,20 +106,21 @@ pipeline {
                                 sh "rm -f ~/.xtag/status.lock ~/.xtag/acquired"
                             }
                         }
-                        stage('Run RTOS Drivers WiFi test') {
-                            steps {
-                                withTools(params.TOOLS_VERSION) {
-                                    withVenv {
-                                        script {
-                                            withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                                sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
-                                            }
-                                            sh "pytest test/rtos_drivers/wifi"
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        // TODO Disabled till https://xmosjira.atlassian.net/browse/AP-353 is fixed
+                        //stage('Run RTOS Drivers WiFi test') {
+                        //    steps {
+                        //        withTools(params.TOOLS_VERSION) {
+                        //            withVenv {
+                        //                script {
+                        //                    withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                        //                        sh "test/rtos_drivers/wifi/check_wifi.sh " + adapterIDs[0]
+                        //                    }
+                        //                    sh "pytest test/rtos_drivers/wifi"
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
                         stage('Run RTOS Drivers HIL test') {
                             steps {
                                 withTools(params.TOOLS_VERSION) {
@@ -168,7 +169,7 @@ pipeline {
                     post {
                         cleanup {
                             // cleanWs removes all output and artifacts of the Jenkins pipeline
-                            //   Comment out this post section to leave the workspace which can be useful for running items on the Jenkins agent. 
+                            //   Comment out this post section to leave the workspace which can be useful for running items on the Jenkins agent.
                             //   However, beware that this pipeline will not run if the workspace is not manually cleaned.
                             xcoreCleanSandbox()
                         }
