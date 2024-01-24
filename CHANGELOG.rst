@@ -6,6 +6,7 @@ RTOS Framework change log
 
   * UPDATED: To latest tinyusb_src
   * ADDED: Support for transitioning to USB test mode in tinyusb_src
+  * UPDATED: Increase SPI tx/rx buffer sizes from 64 to 256 bytes
 
 3.0.5
 -----

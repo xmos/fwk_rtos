@@ -7,8 +7,8 @@
 #include "rtos_printf.h"
 #include "device_control.h"
 
-#define SPI_XFER_RX_SIZE (64)
-#define SPI_XFER_TX_SIZE (64)
+#define SPI_XFER_RX_SIZE (256)
+#define SPI_XFER_TX_SIZE (256)
 static uint8_t spi_xfer_rx_buf[SPI_XFER_RX_SIZE];
 static uint8_t spi_xfer_tx_buf[SPI_XFER_TX_SIZE];
 static uint8_t spi_xfer_rx_default_buf[SPI_XFER_RX_SIZE];
