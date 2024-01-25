@@ -250,6 +250,12 @@ static inline void rtos_usb_endpoint_stall_clear(rtos_usb_t *ctx,
     XUD_ClearStallByAddr(endpoint_addr);
 }
 
+/**
+ * Calls the XUD function to enter the specified test mode.
+ *
+ * \param ctx           A pointer to the USB driver instance to use.
+ * \param test_mode     Desired test mode.
+ */
 void rtos_usb_enter_test_mode(rtos_usb_t *ctx,
                             unsigned test_mode);
 
