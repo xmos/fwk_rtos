@@ -2,7 +2,11 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #if USE_USB
 #include <stdio.h>
+#if !defined(_MSC_VER) || (_MSC_VER >= 1800) // !MSVC or MSVC >=VS2013
 #include <stdbool.h>
+#else
+typedef enum { false = 0, true = 1} bool;
+#endif // MSC
 #include <stdlib.h>
 #ifdef _WIN32
 #include <windows.h>
