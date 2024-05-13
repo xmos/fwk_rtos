@@ -24,7 +24,7 @@
     .issue_mode single; \
     .cc_top _XCORE_INTERRUPT_PERMITTED(root_function).function,_XCORE_INTERRUPT_PERMITTED(root_function); \
     _XCORE_INTERRUPT_PERMITTED(root_function):; \
-      _XCORE_ENTSP(_XCORE_STACK_ALIGN(5)); \
+      ENTSP_lu6 _XCORE_STACK_ALIGN(5); \
       /* Save CP into SP[4] */ \
       ldaw r11, cp[0]; \
       stw r11, sp[4];  \
