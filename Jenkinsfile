@@ -34,7 +34,7 @@ pipeline {
             parallel {
                 stage('Build Docs') {
                     agent { label "docker" }
-                    environment { XMOSDOC_VERSION = "v4.0" }
+                    environment { XMOSDOC_VERSION = "v5.0" }
                     steps {
                         script {
                             def skip_linkcheck = ""
