@@ -1,6 +1,11 @@
 RTOS Framework change log
 =========================
 
+UNRELEASED
+----------
+
+  * FIXED: Windows host issue with pre-2013 Visual Studio Compiler and stdbool.h.
+  
 3.1.0
 -----
 
