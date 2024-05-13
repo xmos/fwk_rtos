@@ -38,18 +38,19 @@ pipeline {
                     steps {
                         script {
                             def skip_linkcheck = ""
-                            if (env.GH_LABEL_ALL?.contains("skip_linkcheck")) {
+                            if (env.GH_LABEL_ALL.contains("skip_linkcheck")) {
+                                println "skip_linkcheck set, skipping link check..."
                                 skip_linkcheck = "clean html pdf"
                             }
-                        }
-                        checkout scm
-                        sh 'git submodule update --init --recursive --depth 1'
-                        sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
-                        sh """docker run -u "\$(id -u):\$(id -g)" \
-                            --rm \
-                            -v ${WORKSPACE}:/build \
-                            ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v $skip_linkcheck"""
-                        archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
+                            checkout scm
+                            sh 'git submodule update --init --recursive --depth 1'
+                            sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
+                            sh """docker run -u "\$(id -u):\$(id -g)" \
+                                --rm \
+                                -v ${WORKSPACE}:/build \
+                                ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v $skip_linkcheck"""
+                            archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
+                        } // script
                     } // steps
                     post {
                         cleanup {
