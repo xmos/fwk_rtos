@@ -36,13 +36,17 @@ pipeline {
                     agent { label "docker" }
                     environment { XMOSDOC_VERSION = "v4.0" }
                     steps {
+                        def skip_linkcheck = ""
+                        if (env.GH_LABEL_ALL.contains("skip_linkcheck")) {
+                            skip_linkcheck = "clean html pdf"
+                        }
                         checkout scm
                         sh 'git submodule update --init --recursive --depth 1'
                         sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
                         sh """docker run -u "\$(id -u):\$(id -g)" \
                             --rm \
                             -v ${WORKSPACE}:/build \
-                            ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v"""
+                            ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v $skip_linkcheck"""
                         archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
                     }
                     post {
