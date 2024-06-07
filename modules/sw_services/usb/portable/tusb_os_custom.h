@@ -105,6 +105,13 @@ static inline bool osal_mutex_unlock(osal_mutex_t mutex_hdl)
   return xSemaphoreGive(mutex_hdl);
 }
 
+static inline bool osal_mutex_delete(osal_mutex_t mutex_hdl)
+{
+  vSemaphoreDelete(mutex_hdl);
+
+  return true;
+}
+
 //--------------------------------------------------------------------+
 // QUEUE API
 //--------------------------------------------------------------------+
