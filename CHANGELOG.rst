@@ -5,7 +5,7 @@ UNRELEASED
 ----------
 
   * FIXED: Windows host issue with pre-2013 Visual Studio Compiler and stdbool.h.
-  * UPDATED: To tinyusb_src commit c61f5f42, it includes official support for USB test mode.
+  * UPDATED: To tinyusb_src commit c61f5f4, it includes official support for USB test mode.
 
 3.1.0
 -----
