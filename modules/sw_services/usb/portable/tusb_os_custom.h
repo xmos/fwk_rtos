@@ -174,6 +174,12 @@ static inline bool osal_queue_empty(osal_queue_t qhdl)
   return uxQueueMessagesWaiting(qhdl) == 0;
 }
 
+static inline bool osal_queue_delete(osal_queue_t qhdl)
+{
+  vQueueDelete(qhdl);
+  return true;
+}
+
 #ifdef __cplusplus
  }
 #endif
