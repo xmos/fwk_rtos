@@ -105,6 +105,13 @@ static inline bool osal_mutex_unlock(osal_mutex_t mutex_hdl)
   return xSemaphoreGive(mutex_hdl);
 }
 
+static inline bool osal_mutex_delete(osal_mutex_t mutex_hdl)
+{
+  vSemaphoreDelete(mutex_hdl);
+
+  return true;
+}
+
 //--------------------------------------------------------------------+
 // QUEUE API
 //--------------------------------------------------------------------+
@@ -165,6 +172,12 @@ static inline bool osal_queue_send(osal_queue_t qhdl, void const * data, bool in
 static inline bool osal_queue_empty(osal_queue_t qhdl)
 {
   return uxQueueMessagesWaiting(qhdl) == 0;
+}
+
+static inline bool osal_queue_delete(osal_queue_t qhdl)
+{
+  vQueueDelete(qhdl);
+  return true;
 }
 
 #ifdef __cplusplus
