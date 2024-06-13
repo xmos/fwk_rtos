@@ -45,7 +45,7 @@ control_ret_t control_init_i2c(unsigned char i2c_slave_address)
   }
 
   if (ioctl(fd, I2C_SLAVE, address) < 0) {          // Set the port options and set the address of the device we wish to speak to
-    PRINT_ERROR("Unable to set i2c configuration at address 0x%x: ", address);
+    PRINT_ERROR("unable to set i2c configuration at address 0x%x: ", address);
     perror( "" );
     return CONTROL_ERROR;
   }
