@@ -1,5 +1,10 @@
 @Library('xmos_jenkins_shared_library@v0.28.0') _
 
+def runningOn(machine) {
+  println "Stage running on:"
+  println machine
+}
+
 getApproval()
 
 pipeline {
@@ -69,6 +74,7 @@ pipeline {
                     stages {
                         stage('Checkout') {
                             steps {
+                                runningOn(env.NODE_NAME)
                                 checkout scm
                                 sh 'git submodule update --init --recursive --depth 1 --jobs \$(nproc)'
                             }
