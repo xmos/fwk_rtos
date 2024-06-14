@@ -168,7 +168,7 @@ pipeline {
                                     withVenv {
                                         script {
                                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                                sh "bash -l test/rtos_drivers/usb/check_usb.sh" + adapterIDs[0]
+                                                sh "bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
                                             }
                                             sh "pytest test/rtos_drivers/usb"
                                         }
