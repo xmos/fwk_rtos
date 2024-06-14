@@ -10,6 +10,8 @@ target_test_regex = r"^Tile\[(\d{1})\]\|FCore\[(\d{1})\]\|(\d+)\|TEST\|(\w{4}) U
 host_test_results_filename = "testing/host.rpt"
 host_test_regex = r"^\[TEST PASS\]:"
 
+required_ports = 2
+
 def test_results():
     with open(target_test_results_filename, "r") as f:
         cnt = 0
@@ -17,7 +19,8 @@ def test_results():
             line = f.readline()
 
             if not line:
-                assert cnt == 2 # each tile should report PASS
+                # each tile should report PASS
+                assert cnt == required_ports, f"cnt = {cnt}"
                 break
 
             p = re.match(target_test_regex, line)
@@ -39,3 +42,7 @@ def test_results():
 
             if p:
                 cnt += 1
+
+
+if __name__ == "__main__":
+    test_results() # manual debug

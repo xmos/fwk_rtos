@@ -35,7 +35,7 @@ def find_ports_by_vid_pid(rq=2, msg="COM ports missing"):
     all_ports = serial.tools.list_ports.comports()
     test_ports = [port for port in all_ports if port.vid == vid and port.pid == pid]
     assert (len(test_ports) >= rq), msg
-    test_ports=test_ports[:rq]
+    test_ports=test_ports[0:rq] # TODO needs to be choosen more intelligently
     return test_ports
 
 def transfer_data(input_file, output_file, write_port, read_port, max_read_size):
