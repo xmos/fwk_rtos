@@ -60,6 +60,7 @@ pipeline {
                         runningOn(env.NODE_NAME)
                         dir('fwk_rtos'){
                             checkout scm
+                            createVenv()
                             withTools(params.TOOLS_VERSION) {
                                 buildDocs("fwk_rtos_docs.zip")
                             } // withTools
