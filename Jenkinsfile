@@ -5,6 +5,23 @@ def runningOn(machine) {
   println machine
 }
 
+def checkSkipLink() {
+    def skip_linkcheck = ""
+    if (env.GH_LABEL_ALL.contains("skip_linkcheck")) {
+        println "skip_linkcheck set, skipping link check..."
+        skip_linkcheck = "clean html pdf"
+    }
+    return skip_linkcheck
+}
+
+def buildDocs(String zipFileName) {
+  withVenv {
+    sh 'pip install git+ssh://git@github.com/xmos/xmosdoc@v5.2.0'
+    sh "xmosdoc ${checkSkipLink()}"
+    zip zipFile: zipFileName, archive: true, dir: "doc/_build"
+  }
+}
+
 getApproval()
 
 pipeline {
@@ -38,24 +55,15 @@ pipeline {
         stage('Build and Docs') {
             parallel {
                 stage('Build Docs') {
-                    agent { label "docker" }
-                    environment { XMOSDOC_VERSION = "v5.0" }
+                    agent { label "documentation" }
                     steps {
-                        script {
-                            def skip_linkcheck = ""
-                            if (env.GH_LABEL_ALL.contains("skip_linkcheck")) {
-                                println "skip_linkcheck set, skipping link check..."
-                                skip_linkcheck = "clean html pdf"
-                            }
+                        runningOn(env.NODE_NAME)
+                        dir('fwk_rtos'){
                             checkout scm
-                            sh 'git submodule update --init --recursive --depth 1'
-                            sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
-                            sh """docker run -u "\$(id -u):\$(id -g)" \
-                                --rm \
-                                -v ${WORKSPACE}:/build \
-                                ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v $skip_linkcheck"""
-                            archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
-                        } // script
+                            withTools(params.TOOLS_VERSION) {
+                                buildDocs("fwk_rtos_docs.zip")
+                            } // withTools
+                        } // dir
                     } // steps
                     post {
                         cleanup {
