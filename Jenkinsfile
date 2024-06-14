@@ -161,10 +161,8 @@ pipeline {
                                 withTools(params.TOOLS_VERSION) {
                                     withVenv {
                                         script {
-                                            uid = sh(returnStdout: true, script: 'id -u').trim()
-                                            gid = sh(returnStdout: true, script: 'id -g').trim()
                                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                                sh "docker run --rm -u $uid:$gid --privileged -v /dev:/dev -w /fwk_rtos -v $WORKSPACE:/fwk_rtos ghcr.io/xmos/xcore_voice_tester:develop bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
+                                                sh "bash -l test/rtos_drivers/usb/check_usb.sh" + adapterIDs[0]
                                             }
                                             sh "pytest test/rtos_drivers/usb"
                                         }
