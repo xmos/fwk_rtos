@@ -1,5 +1,27 @@
 @Library('xmos_jenkins_shared_library@v0.28.0') _
 
+def runningOn(machine) {
+  println "Stage running on:"
+  println machine
+}
+
+def checkSkipLink() {
+    def skip_linkcheck = ""
+    if (env.GH_LABEL_ALL.contains("skip_linkcheck")) {
+        println "skip_linkcheck set, skipping link check..."
+        skip_linkcheck = "clean html pdf"
+    }
+    return skip_linkcheck
+}
+
+def buildDocs(String zipFileName) {
+  withVenv {
+    sh 'pip install git+ssh://git@github.com/xmos/xmosdoc@v5.2.0'
+    sh "xmosdoc ${checkSkipLink()}"
+    zip zipFile: zipFileName, archive: true, dir: "doc/_build"
+  }
+}
+
 getApproval()
 
 pipeline {
@@ -33,24 +55,16 @@ pipeline {
         stage('Build and Docs') {
             parallel {
                 stage('Build Docs') {
-                    agent { label "docker" }
-                    environment { XMOSDOC_VERSION = "v5.0" }
+                    agent { label "documentation" }
                     steps {
-                        script {
-                            def skip_linkcheck = ""
-                            if (env.GH_LABEL_ALL.contains("skip_linkcheck")) {
-                                println "skip_linkcheck set, skipping link check..."
-                                skip_linkcheck = "clean html pdf"
-                            }
+                        runningOn(env.NODE_NAME)
+                        dir('fwk_rtos'){
                             checkout scm
-                            sh 'git submodule update --init --recursive --depth 1'
-                            sh "docker pull ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION"
-                            sh """docker run -u "\$(id -u):\$(id -g)" \
-                                --rm \
-                                -v ${WORKSPACE}:/build \
-                                ghcr.io/xmos/xmosdoc:$XMOSDOC_VERSION -v $skip_linkcheck"""
-                            archiveArtifacts artifacts: "doc/_build/**", allowEmptyArchive: true
-                        } // script
+                            createVenv()
+                            withTools(params.TOOLS_VERSION) {
+                                buildDocs("fwk_rtos_docs.zip")
+                            } // withTools
+                        } // dir
                     } // steps
                     post {
                         cleanup {
@@ -69,6 +83,7 @@ pipeline {
                     stages {
                         stage('Checkout') {
                             steps {
+                                runningOn(env.NODE_NAME)
                                 checkout scm
                                 sh 'git submodule update --init --recursive --depth 1 --jobs \$(nproc)'
                             }
@@ -161,10 +176,8 @@ pipeline {
                                 withTools(params.TOOLS_VERSION) {
                                     withVenv {
                                         script {
-                                            uid = sh(returnStdout: true, script: 'id -u').trim()
-                                            gid = sh(returnStdout: true, script: 'id -g').trim()
                                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
-                                                sh "docker run --rm -u $uid:$gid --privileged -v /dev:/dev -w /fwk_rtos -v $WORKSPACE:/fwk_rtos ghcr.io/xmos/xcore_voice_tester:develop bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
+                                                sh "bash -l test/rtos_drivers/usb/check_usb.sh " + adapterIDs[0]
                                             }
                                             sh "pytest test/rtos_drivers/usb"
                                         }
