@@ -35,7 +35,6 @@ def find_ports_by_vid_pid(rq=2, msg="COM ports missing"):
     all_ports = serial.tools.list_ports.comports()
     test_ports = [port for port in all_ports if port.vid == vid and port.pid == pid]
     assert (len(test_ports) >= rq), msg
-    test_ports=test_ports[0:rq] # TODO needs to be choosen more intelligently
     return test_ports
 
 def transfer_data(input_file, output_file, write_port, read_port, max_read_size):
@@ -53,12 +52,15 @@ def main(if0, if1, of0, of1):
     port0 = None
     port1 = None
         
-    try:    
-        print(f'Opening port 0 ({test_ports[0].device}).')
-        port0 = serial.Serial(test_ports[0].device)
+    try:
+        d0 = test_ports[0].device
+        d1 = test_ports[1].device
+
+        print(f'Opening port 0 ({d0}).')
+        port0 = serial.Serial(d0)
         
-        print(f'Opening port 1 ({test_ports[1].device}).')
-        port1 = serial.Serial(test_ports[1].device)
+        print(f'Opening port 1 ({d1}).')
+        port1 = serial.Serial(d1)
 
         print('Writing CDC test data to port 0, reading from port 1.')
         transfer_data(if0, of1, port0, port1, max_read_size)
