@@ -18,6 +18,7 @@ host_test_required_count = 1
 
 def validate_results(filename, regex, required_count):
     """Counts the number of matching elements in a file given a regex
+    and ensures mathes the required count, will raise an exception if not. 
 
     Args:
         filename (str): path to the file
@@ -31,6 +32,7 @@ def validate_results(filename, regex, required_count):
     pass_count = len(matches)
 
     assert pass_count == required_count, f"Expected {required_count} passes, but found {pass_count}"
+    return pass_count
 
 
 def test_results():
