@@ -78,7 +78,7 @@ pipeline {
                         expression { !env.GH_LABEL_DOC_ONLY.toBoolean() }
                     }
                     agent {
-                        label 'sw-hw-xcai-exp1' //TODO remove this label to previous one!!!
+                        label 'xcore.ai-explorer-hil-tests'
                     }
                     stages {
                         stage('Checkout') {
