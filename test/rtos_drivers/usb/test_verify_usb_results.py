@@ -17,7 +17,7 @@ host_test_required_count = 1
 
 
 def validate_results(filename, regex, required_count):
-    """Counts the number of matching eleements in a file given a regex
+    """Counts the number of matching elements in a file given a regex
 
     Args:
         filename (str): path to the file
