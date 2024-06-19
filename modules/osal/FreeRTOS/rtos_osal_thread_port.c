@@ -9,7 +9,7 @@
 
 // The functions below are declared in the third-party file:
 // ./modules/fwk_xvf/modules/rtos/modules/FreeRTOS/FreeRTOS-SMP-Kernel/include/task.h
-#if ( configUSE_CORE_AFFINITY == 1 ) && ( configNUM_CORES == 1 )
+#if ( configNUMBER_OF_CORES == 1 )
 
     void vTaskCoreAffinitySet( const TaskHandle_t xTask,
                                UBaseType_t uxCoreAffinityMask )
@@ -22,7 +22,15 @@
         (void) xTask;
         return 0;
     }
-#endif /* configUSE_CORE_AFFINITY and configNUM_CORES */
+    void vTaskPreemptionEnable( const TaskHandle_t xTask )
+    {
+        (void) xTask;
+    }
+    void vTaskPreemptionDisable( const TaskHandle_t xTask )
+    {
+        (void) xTask;
+    }
+#endif /* configNUMBER_OF_CORES */
 
 int rtos_osal_critical_enter(void)
 {

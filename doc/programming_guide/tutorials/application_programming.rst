@@ -44,7 +44,7 @@ Together, these API enable a developer to take full advantage of xcore's perform
 
 Some additional configuration options are also available to the FreeRTOS-SMP Kernel:
 
-- configNUM_CORES
+- configNUMBER_OF_CORES
 - configRUN_MULTIPLE_PRIORITIES
 - configUSE_CORE_AFFINITY
 - configUSE_TASK_PREEMPTION_DISABLE

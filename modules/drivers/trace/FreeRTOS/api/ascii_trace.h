@@ -12,7 +12,7 @@ extern "C" {
 
 int xscope_gettime( void );
 
-#ifdef configNUM_CORES
+#ifdef configNUMBER_OF_CORES
 #define asciitraceGET_CORE_ID()		rtos_core_id_get()
 #else
 #define asciitraceGET_CORE_ID()		({(int)0;})
