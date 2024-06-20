@@ -16,8 +16,11 @@ your application. */
 #define configTICK_RATE_HZ                      1000
 #define configMAX_PRIORITIES                    32
 #define configRUN_MULTIPLE_PRIORITIES           1
+#if (configNUMBER_OF_CORES != 1)
 #define configUSE_TASK_PREEMPTION_DISABLE       1
 #define configUSE_CORE_AFFINITY                 1
+#endif
+#define configUSE_PASSIVE_IDLE_HOOK             0
 #define configMINIMAL_STACK_SIZE                ( configSTACK_DEPTH_TYPE ) 256
 #define configMAX_TASK_NAME_LEN                 32
 #define configUSE_16_BIT_TICKS                  0
@@ -58,7 +61,9 @@ your application. */
 #else
 #define configUSE_TRACE_FACILITY                0
 #endif
+#if (configGENERATE_RUN_TIME_STATS || configUSE_TRACE_FACILITY)
 #define configUSE_STATS_FORMATTING_FUNCTIONS    2 /* Setting to 2 does not include <stdio.h> in tasks.c */
+#endif
 
 /* Co-routine related definitions. */
 #define configUSE_CO_ROUTINES                   0
