@@ -10,6 +10,7 @@
 
 # Build & debug cruft
 **/.build*/*
+**/build*/*
 **/bin/*
 *.o
 *.so*
