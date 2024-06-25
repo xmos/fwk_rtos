@@ -1,4 +1,4 @@
-// Copyright 2016-2023 XMOS LIMITED.
+// Copyright 2016-2024 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #if USE_USB
 #include <stdio.h>
@@ -21,6 +21,7 @@ typedef enum { false = 0, true = 1} bool;
 
 //#define DBG(x) x
 #define DBG(x)
+#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
 static unsigned num_commands = 0;
 
@@ -38,11 +39,11 @@ static const int sync_timeout_ms = 500;
 void debug_libusb_error(int err_code)
 {
 #if defined _WIN32
-  printf("libusb_control_transfer returned %s\n", usb_strerror());
+  PRINT_ERROR("libusb_control_transfer returned %s\n", usb_strerror());
 #elif defined __APPLE__
-  printf("libusb_control_transfer returned %s\n", libusb_error_name(err_code));
+  PRINT_ERROR("libusb_control_transfer returned %s\n", libusb_error_name(err_code));
 #elif defined __linux
-  printf("libusb_control_transfer returned %d\n", err_code);
+  PRINT_ERROR("libusb_control_transfer returned %d\n", err_code);
 #endif
 
 }
@@ -210,7 +211,7 @@ static control_ret_t find_xmos_device(int vendor_id, int product_id)
               (dev->descriptor.idProduct == product_id)) {
         devh = usb_open(dev);
         if (!devh) {
-          fprintf(stderr, "failed to open device\n");
+          PRINT_ERROR("Failed to open device\n");
           return CONTROL_ERROR;
         }
         break;
@@ -219,7 +220,7 @@ static control_ret_t find_xmos_device(int vendor_id, int product_id)
   }
 
   if (!devh) {
-    fprintf(stderr, "could not find device\n");
+    PRINT_ERROR("Could not find device\n");
     return CONTROL_ERROR;
   }
 
@@ -237,14 +238,14 @@ control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num)
 
   int r = usb_set_configuration(devh, 1);
   if (r < 0) {
-    fprintf(stderr, "Error setting config 1\n");
+    PRINT_ERROR("Setting config 1\n");
     usb_close(devh);
     return CONTROL_ERROR;
   }
 
   r = usb_claim_interface(devh, interface_num);
   if (r < 0) {
-    fprintf(stderr, "Error claiming interface %d %d\n", interface_num, r);
+    PRINT_ERROR("Claiming interface %d %d\n", interface_num, r);
     return CONTROL_ERROR;
   }
 
@@ -264,7 +265,7 @@ control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num)
 {
   int ret = libusb_init(NULL);
   if (ret < 0) {
-    fprintf(stderr, "failed to initialise libusb\n");
+    PRINT_ERROR("Failed to initialise libusb\n");
     return CONTROL_ERROR;
   }
 
@@ -282,12 +283,12 @@ control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num)
   }
 
   if (dev == NULL) {
-    fprintf(stderr, "could not find device\n");
+    PRINT_ERROR("Could not find device\n");
     return CONTROL_ERROR;
   }
 
   if (libusb_open(dev, &devh) < 0) {
-    fprintf(stderr, "failed to open device. Ensure adequate permissions\n");
+    PRINT_ERROR("Failed to open device. Ensure adequate permissions\n");
     return CONTROL_ERROR;
   }
 
