@@ -164,8 +164,8 @@ things such as a DHCP transaction number or initial sequence number.  Random
 number generation is performed via this macro to allow applications to use their
 own random number generation method.  For example, it might be possible to
 generate a random number by sampling noise on an analogue input. */
-extern UBaseType_t uxRand();
-#define ipconfigRAND32()	uxRand()
+// extern UBaseType_t uxRand();
+// #define ipconfigRAND32()	uxRand()
 
 /* If ipconfigUSE_NETWORK_EVENT_HOOK is set to 1 then FreeRTOS+TCP will call the
 network event hook at the appropriate times.  If ipconfigUSE_NETWORK_EVENT_HOOK
@@ -334,8 +334,11 @@ block occasionally to allow other tasks to run. */
  * the frame from the FreeRTOS+TCP network buffer into it.
  *
  * The + 2 is so that the 14 byte Ethernet frame starts 2 bytes after a 32-bit
- * boundary so that the IP header can begin on one. */
-#define ipconfigPACKET_FILLER_SIZE ( sizeof(sl_wfx_send_frame_req_t) + 2 )
+ * boundary so that the IP header can begin on one. 
+ * TODO: This used to be (sizeof(slsl_wfx_send_frame_req_t) + 2) but 
+ * FreeRTOS+TCP updated and started using this value in preprocessor macros.
+ * Hardcode the value for now. */
+#define ipconfigPACKET_FILLER_SIZE ( 12 + 2 )
 #endif
 
 /* Define the size of the pool of TCP window descriptors.  On the average, each
