@@ -34,6 +34,7 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
     rtos_spi_slave_t *ctx = arg;
     int isr_action;
     xfer_done_queue_item_t item;
+    BaseType_t yield_required = pdFALSE;
 
     isr_action = s_chan_in_byte(ctx->c.end_b);
 
@@ -58,26 +59,24 @@ DEFINE_RTOS_INTERRUPT_CALLBACK(rtos_spi_slave_isr, arg)
             /*
              * TODO: FIXME, FreeRTOS specific, not using OSAL here
              */
-            xTaskNotifyGive(ctx->app_thread.thread);
+            vTaskNotifyGiveFromISR(ctx->app_thread.thread, &yield_required);
         }
     } else {
         rtos_printf("Lost SPI slave transfer\n");
     }
+    portYIELD_FROM_ISR(yield_required);
 }
 
 void slave_transaction_started(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t *outbuf_len, uint8_t **in_buf, size_t *inbuf_len)
 {
     if (ctx->user_data_ready) {
-        rtos_printf("Slave transaction started with user data\n");
         *out_buf = ctx->out_buf;
         *outbuf_len = ctx->outbuf_len;
         *in_buf = ctx->in_buf;
         *inbuf_len = ctx->inbuf_len;
         ctx->user_data_ready = 0;
-        rtos_printf("item to write %d, to read %d\n", ctx->outbuf_len, ctx->inbuf_len);
 
     } else {
-        rtos_printf("Slave transaction started with default data\n");
         *out_buf = ctx->default_out_buf;
         *outbuf_len = ctx->default_outbuf_len;
         *in_buf = ctx->default_in_buf;
@@ -94,14 +93,12 @@ void slave_transaction_ended(rtos_spi_slave_t *ctx, uint8_t **out_buf, size_t by
     if ((*out_buf == ctx->default_out_buf) && (*in_buf == ctx->default_in_buf)) {
         ctx->default_bytes_written = bytes_written;
         ctx->default_bytes_read = bytes_read;
-        rtos_printf("default transaction ended\n");
         if (!(ctx->drop_default_buffers)) {
             s_chan_out_byte(ctx->c.end_a, XFER_DONE_DEFAULT_BUF_CB_CODE);
         }
     } else {
         ctx->bytes_written = bytes_written;
         ctx->bytes_read = bytes_read;
-        rtos_printf("app transaction ended\n");
         s_chan_out_byte(ctx->c.end_a, XFER_DONE_USER_BUF_CB_CODE);
     }
 }
