@@ -19,7 +19,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
         INTERFACE
             rtos::osal
             rtos::drivers::qspi_io
-            rtos::FreeRTOS::FreeRTOS_SMP
+            rtos::FreeRTOS::FreeRTOS
     )
     target_compile_definitions(framework_rtos_sw_services_fatfs
         INTERFACE

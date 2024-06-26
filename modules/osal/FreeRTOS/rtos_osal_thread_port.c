@@ -8,7 +8,7 @@
 #include "rtos_osal.h"
 
 // The functions below are declared in the third-party file:
-// ./modules/fwk_xvf/modules/rtos/modules/FreeRTOS/FreeRTOS-SMP-Kernel/include/task.h
+// ./modules/fwk_xvf/modules/rtos/modules/FreeRTOS/FreeRTOS-Kernel/include/task.h
 #if ( configNUMBER_OF_CORES == 1 )
 
     void vTaskCoreAffinitySet( const TaskHandle_t xTask,

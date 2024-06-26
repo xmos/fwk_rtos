@@ -27,7 +27,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
         INTERFACE
             rtos::osal
             rtos::drivers::usb
-            rtos::FreeRTOS::FreeRTOS_SMP
+            rtos::FreeRTOS::FreeRTOS
     )
     ## These definitions are only needed while we our port is not upstreamed
     target_compile_definitions(framework_rtos_sw_services_usb

@@ -3,62 +3,35 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     add_library(framework_rtos_freertos_smp INTERFACE)
     target_sources(framework_rtos_freertos_smp
         INTERFACE
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCOREAI/port.xc
-            FreeRTOS-SMP-Kernel/croutine.c
-            FreeRTOS-SMP-Kernel/event_groups.c
-            FreeRTOS-SMP-Kernel/list.c
-            FreeRTOS-SMP-Kernel/queue.c
-            FreeRTOS-SMP-Kernel/stream_buffer.c
-            FreeRTOS-SMP-Kernel/tasks.c
-            FreeRTOS-SMP-Kernel/timers.c
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCOREAI/port.c
-            FreeRTOS-SMP-Kernel/portable/MemMang/heap_4.c
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCOREAI/portasm.S
+            FreeRTOS-Kernel/portable/ThirdParty/xClang/XCOREAI/port.xc
+            FreeRTOS-Kernel/croutine.c
+            FreeRTOS-Kernel/event_groups.c
+            FreeRTOS-Kernel/list.c
+            FreeRTOS-Kernel/queue.c
+            FreeRTOS-Kernel/stream_buffer.c
+            FreeRTOS-Kernel/tasks.c
+            FreeRTOS-Kernel/timers.c
+            FreeRTOS-Kernel/portable/ThirdParty/xClang/XCOREAI/port.c
+            FreeRTOS-Kernel/portable/MemMang/heap_4.c
+            FreeRTOS-Kernel/portable/ThirdParty/xClang/XCOREAI/portasm.S
     )
     target_include_directories(framework_rtos_freertos_smp
         INTERFACE
-            FreeRTOS-SMP-Kernel/include
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCOREAI
+            FreeRTOS-Kernel/include
+            FreeRTOS-Kernel/portable/ThirdParty/xClang/XCOREAI
     )
     # Use O2 for tasks.c to give it a slight speedup
-    set_source_files_properties(FreeRTOS-SMP-Kernel/tasks.c PROPERTIES COMPILE_FLAGS "-O2")
+    set_source_files_properties(FreeRTOS-Kernel/tasks.c PROPERTIES COMPILE_FLAGS "-O2")
 
     ## Create an alias
-    add_library(rtos::FreeRTOS::FreeRTOS_SMP ALIAS framework_rtos_freertos_smp)
-elseif(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS2A)
-    ## Create FreeRTOS kernel library target
-    add_library(framework_rtos_freertos_smp INTERFACE)
-    target_sources(framework_rtos_freertos_smp
-        INTERFACE
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCORE200/port.xc
-            FreeRTOS-SMP-Kernel/croutine.c
-            FreeRTOS-SMP-Kernel/event_groups.c
-            FreeRTOS-SMP-Kernel/list.c
-            FreeRTOS-SMP-Kernel/queue.c
-            FreeRTOS-SMP-Kernel/stream_buffer.c
-            FreeRTOS-SMP-Kernel/tasks.c
-            FreeRTOS-SMP-Kernel/timers.c
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCORE200/port.c
-            FreeRTOS-SMP-Kernel/portable/MemMang/heap_4.c
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCORE200/portasm.S
-    )
-    target_include_directories(framework_rtos_freertos_smp
-        INTERFACE
-            FreeRTOS-SMP-Kernel/include
-            FreeRTOS-SMP-Kernel/portable/ThirdParty/xClang/XCORE200
-    )
-    # Use O2 for tasks.c to give it a slight speedup
-    set_source_files_properties(FreeRTOS-SMP-Kernel/tasks.c PROPERTIES COMPILE_FLAGS "-O2")
-
-    ## Create an alias
-    add_library(rtos::FreeRTOS::FreeRTOS_SMP ALIAS framework_rtos_freertos_smp)
+    add_library(rtos::FreeRTOS::FreeRTOS ALIAS framework_rtos_freertos_smp)
 else()
     message(STATUS "FreeRTOS port does not exist for ${CMAKE_SYSTEM_NAME}!  No RTOS targets made.")
 endif()
 
 
 
-if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS2A))
+if(${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A)
     ## Create FreeRTOS-Plus-TCP target
     add_library(framework_rtos_freertos_plus_tcp INTERFACE)
     target_sources(framework_rtos_freertos_plus_tcp
@@ -83,7 +56,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_link_libraries(framework_rtos_freertos_plus_tcp
         INTERFACE
-            rtos::FreeRTOS::FreeRTOS_SMP
+            rtos::FreeRTOS::FreeRTOS
             lib_random
     )
 

@@ -16,7 +16,7 @@ if((${CMAKE_SYSTEM_NAME} STREQUAL XCORE_XS3A) OR (${CMAKE_SYSTEM_NAME} STREQUAL 
     )
     target_link_libraries(framework_rtos_rtos_support
         INTERFACE
-            rtos::FreeRTOS::FreeRTOS_SMP
+            rtos::FreeRTOS::FreeRTOS
     )
 
     ## Create an alias
