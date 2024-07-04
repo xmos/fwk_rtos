@@ -8,13 +8,12 @@
 typedef enum { false = 0, true = 1} bool;
 #endif // MSC
 #include <stdlib.h>
-#ifdef _WIN32
+#ifdef WIN32
 #include <windows.h>
-#include "usb.h"
 #else
 #include <unistd.h>
-#include <libusb.h>
 #endif
+#include <libusb.h>
 #include "device_control_host.h"
 #include "control_host_support.h"
 #include "util.h"
@@ -25,11 +24,7 @@ typedef enum { false = 0, true = 1} bool;
 
 static unsigned num_commands = 0;
 
-#ifdef _WIN32
-static usb_dev_handle *devh = NULL;
-#else
 static libusb_device_handle *devh = NULL;
-#endif
 
 static const int sync_timeout_ms = 500;
 
@@ -39,7 +34,7 @@ static const int sync_timeout_ms = 500;
 void debug_libusb_error(int err_code)
 {
 #if defined _WIN32
-  PRINT_ERROR("libusb_control_transfer returned %s\n", usb_strerror());
+  PRINT_ERROR("libusb_control_transfer returned %s\n", libusb_error_name(errno));
 #elif defined __APPLE__
   PRINT_ERROR("libusb_control_transfer returned %s\n", libusb_error_name(err_code));
 #elif defined __linux
@@ -59,15 +54,9 @@ control_ret_t control_query_version(control_version_t *version)
   DBG(printf("%u: send version command: 0x%04x 0x%04x 0x%04x\n",
     num_commands, windex, wvalue, wlength));
 
-#ifdef _WIN32
-  int ret = usb_control_msg(devh,
-    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-    0, wvalue, windex, (char*)request_data, wlength, sync_timeout_ms);
-#else
   int ret = libusb_control_transfer(devh,
     LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
     0, wvalue, windex, request_data, wlength, sync_timeout_ms);
-#endif
 
   num_commands++;
 
@@ -123,15 +112,9 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
     num_commands, windex, wvalue, wlength));
   DBG(print_bytes(payload, payload_len));
 
-#ifdef _WIN32
-  int ret = usb_control_msg(devh,
-    USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-    0, wvalue, windex, (char*)payload, wlength, sync_timeout_ms);
-#else
   int ret = libusb_control_transfer(devh,
     LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
     0, wvalue, windex, (unsigned char*)payload, wlength, sync_timeout_ms);
-#endif
 
   num_commands++;
 
@@ -145,15 +128,9 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   control_usb_fill_header(&windex, &wvalue, &wlength,
     resid, CONTROL_CMD_SET_WRITE(cmd), 1);
 
-#ifdef _WIN32
-  ret = usb_control_msg(devh,
-    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-    0, wvalue, windex, (char*)&status, wlength, sync_timeout_ms);
-#else
   ret = libusb_control_transfer(devh,
     LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
     0, wvalue, windex, &status, wlength, sync_timeout_ms);
-#endif
 
   if (ret != (int)1) {
     debug_libusb_error(ret);
@@ -178,15 +155,9 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   DBG(printf("%u: send read command: 0x%04x 0x%04x 0x%04x\n",
     num_commands, windex, wvalue, wlength));
 
-#ifdef _WIN32
-  int ret = usb_control_msg(devh,
-    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-    0, wvalue, windex, (char*)payload, wlength, sync_timeout_ms);
-#else
   int ret = libusb_control_transfer(devh,
     LIBUSB_ENDPOINT_IN | LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE,
     0, wvalue, windex, payload, wlength, sync_timeout_ms);
-#endif
 
   num_commands++;
 
@@ -200,66 +171,6 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
 
   return CONTROL_SUCCESS;
 }
-
-#ifdef _WIN32
-
-static control_ret_t find_xmos_device(int vendor_id, int product_id)
-{
-  for (struct usb_bus *bus = usb_get_busses(); bus && !devh; bus = bus->next) {
-    for (struct usb_device *dev = bus->devices; dev; dev = dev->next) {
-      if ((dev->descriptor.idVendor == vendor_id) &&
-              (dev->descriptor.idProduct == product_id)) {
-        devh = usb_open(dev);
-        if (!devh) {
-          PRINT_ERROR("Failed to open device\n");
-          return CONTROL_ERROR;
-        }
-        break;
-      }
-    }
-  }
-
-  if (!devh) {
-    PRINT_ERROR("Could not find device\n");
-    return CONTROL_ERROR;
-  }
-
-  return CONTROL_SUCCESS;
-}
-
-control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num)
-{
-  usb_init();
-  usb_find_busses(); /* find all busses */
-  usb_find_devices(); /* find all connected devices */
-
-  if (find_xmos_device(vendor_id, product_id) != CONTROL_SUCCESS)
-      return CONTROL_ERROR;
-
-  int r = usb_set_configuration(devh, 1);
-  if (r < 0) {
-    PRINT_ERROR("Setting config 1\n");
-    usb_close(devh);
-    return CONTROL_ERROR;
-  }
-
-  r = usb_claim_interface(devh, interface_num);
-  if (r < 0) {
-    PRINT_ERROR("Claiming interface %d %d\n", interface_num, r);
-    return CONTROL_ERROR;
-  }
-
-  return CONTROL_SUCCESS;
-}
-
-control_ret_t control_cleanup_usb(void)
-{
-  usb_release_interface(devh, 0);
-  usb_close(devh);
-  return CONTROL_SUCCESS;
-}
-
-#else
 
 control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num)
 {
@@ -304,7 +215,5 @@ control_ret_t control_cleanup_usb(void)
 
   return CONTROL_SUCCESS;
 }
-
-#endif // _WIN32
 
 #endif // USE_USB

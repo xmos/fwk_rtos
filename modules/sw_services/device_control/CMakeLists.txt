@@ -47,7 +47,7 @@ else()
     elseif (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
         target_link_directories(framework_rtos_sw_services_device_control_host_usb INTERFACE "host/libusb/Win32")
         set(libusb-1.0_INCLUDE_DIRS "host/libusb/Win32")
-        set(LINK_LIBS libusb)
+        set(LINK_LIBS libusb-1.0)
     endif()
 
     target_sources(framework_rtos_sw_services_device_control_host_usb
