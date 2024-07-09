@@ -199,7 +199,7 @@ control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num)
   }
 
   if (libusb_open(dev, &devh) < 0) {
-    PRINT_ERROR("Failed to open device. Ensure adequate permissions\n");
+    PRINT_ERROR("Failed to open device. Ensure adequate permissions if using Linux\nor remove any pre-installed drivers with Device Manager on Windows.\n");
     return CONTROL_ERROR;
   }
 
