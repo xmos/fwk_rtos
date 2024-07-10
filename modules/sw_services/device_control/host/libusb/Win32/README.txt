@@ -1,4 +1,4 @@
-To create the file libusb-1.0 follow the steps below on a Windows machine:
+To generate the files in this folder, use a Windows machine and follow the steps below:
 
   1. install VisualStudio 2022 tools
   2. download the libusb-1.0 source code from https://github.com/libusb/libusb/archive/refs/tags/v1.0.27.zip
