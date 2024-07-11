@@ -5,6 +5,7 @@ UNRELEASED
 ----------
 
   * FIXED: Windows host issue with pre-2013 Visual Studio Compiler and stdbool.h.
+  * UPDATED: libusb host drivers for Windows to v1.0.27. The device must now use WinUSB drivers on Windows.
   * UPDATED: To tinyusb_src commit c61f5f4, it includes official support for USB test mode.
   * FIXED: Adopted common format in error printouts of device control host drivers.
 
