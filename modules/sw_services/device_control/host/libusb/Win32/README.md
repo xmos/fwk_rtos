@@ -19,7 +19,7 @@ This guide outlines the steps to generate necessary files in this folder using a
 
 4. **Copy Header File**:
    - Locate the `libusb.h` file in the extracted folder at `libusb-1.0.27\libusb`.
-   - Copy `libusb.h` to the current folder where you want the generated files to reside.
+   - Copy `libusb.h` to the folder where you want the generated files to reside.
 
 5. **Open Command Prompt**:
    - Open an "x86 Native Tools Command Prompt for VS 2022". This can be found in the Start Menu under Visual Studio 2022 Tools.
@@ -34,7 +34,7 @@ This guide outlines the steps to generate necessary files in this folder using a
 
 7. **Copy Generated Library**:
    - After the build completes, locate the generated `libusb-1.0.lib` file in `libusb-1.0.27\build\v143\Win32\Release\lib`.
-   - Copy `libusb-1.0.lib` to the current folder.
+   - Copy `libusb-1.0.lib` to the folder where you want the generated files to reside.
 
 ## Notes
 
