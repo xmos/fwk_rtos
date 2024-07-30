@@ -1,8 +1,8 @@
 RTOS Framework change log
 =========================
 
-UNRELEASED
-----------
+3.2.0
+-----
 
   * FIXED: Windows host issue with pre-2013 Visual Studio Compiler and stdbool.h.
   * UPDATED: libusb host drivers for Windows to v1.0.27. The device must now use WinUSB drivers on Windows.
