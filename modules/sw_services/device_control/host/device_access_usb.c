@@ -18,10 +18,6 @@ typedef enum { false = 0, true = 1} bool;
 #include "control_host_support.h"
 #include "util.h"
 
-//#define DBG(x) x
-#define DBG(x)
-#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
-
 static unsigned num_commands = 0;
 
 static libusb_device_handle *devh = NULL;

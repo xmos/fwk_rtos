@@ -9,10 +9,6 @@
 #include "bcm2835.h"
 #include <time.h>
 
-//#define DBG(x) x
-#define DBG(x)
-#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
-
 // Number of nsec to delay between spi transactions
 static long intertransaction_delay;
 
