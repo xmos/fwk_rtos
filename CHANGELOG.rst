@@ -1,6 +1,15 @@
 RTOS Framework change log
 =========================
 
+3.2.0
+-----
+
+  * UPDATED: Tested against fwk_io v3.5.1 updated from v3.3.0
+  * FIXED: Windows host issue with pre-2013 Visual Studio Compiler and stdbool.h.
+  * UPDATED: libusb host drivers for Windows to v1.0.27. The device must now use WinUSB drivers on Windows.
+  * UPDATED: To tinyusb_src commit c61f5f4, it includes official support for USB test mode.
+  * FIXED: Adopted common format in error printouts of device control host drivers.
+
 3.1.0
 -----
 
@@ -26,12 +35,12 @@ RTOS Framework change log
 
 3.0.3
 -----
-  
+
   * FIXED: Now fully supports overriding implementations for FatFS IO functions.
 
 3.0.2
 -----
-  
+
   * UPDATED: To test again fwk_io v3.0.1
   * UPDATED: To test again lib_qspi_fast_read v1.0.1
   * ADDED: Retry connect behavior to lib_quadflash portion of RTOS flash driver
@@ -39,12 +48,12 @@ RTOS Framework change log
 
 3.0.1
 -----
-  
+
   * FIXED: Fix to stop dest_ctrl_buffer being overwritten when xfers on EPs other than EP0 are initiated
 
 3.0.0
 -----
-  
+
   * REMOVED: QSPI IO based RTOS flash driver
   * ADDED: lib_qspi_fast_read and lib_quadflash based RTOS flash driver
   * ADDED: RTOS flash driver function to set core affinity for QSPI transactions
@@ -53,12 +62,12 @@ RTOS Framework change log
 
 2.0.0
 -----
-  
+
   * CHANGE: USB driver now supports XUD v2.2.2
 
 1.1.0
 -----
-  
+
   * ADDED: Improved SPI device control support
 
 1.0.0

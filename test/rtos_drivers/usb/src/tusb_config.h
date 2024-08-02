@@ -69,6 +69,7 @@
 #define CFG_TUD_AUDIO             0
 #define CFG_TUD_VENDOR            0
 #define CFG_TUD_DFU               1
+#define CFG_TUD_TEST_MODE         1
 
 //--------------------------------------------------------------------
 // DFU DRIVER CONFIGURATION

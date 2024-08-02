@@ -3,39 +3,43 @@
 # This Software is subject to the terms of the XMOS Public Licence: Version 1.
 
 import re
+from pathlib import Path
 
-target_test_results_filename = "testing/target.rpt"
-target_test_regex = r"^Tile\[(\d{1})\]\|FCore\[(\d{1})\]\|(\d+)\|TEST\|(\w{4}) USB$"
+top_level = Path(__file__).parents[3].absolute() # if changes, make sure this relative path is correct
 
-host_test_results_filename = "testing/host.rpt"
+target_test_results_filename = top_level / "testing/target.rpt"
+target_test_regex = r"^Tile\[\d\]\|FCore\[\d\]\|\d+\|TEST\|PASS USB$"
+target_test_required_count = 2
+
+host_test_results_filename = top_level / "testing/host.rpt"
 host_test_regex = r"^\[TEST PASS\]:"
+host_test_required_count = 1
+
+
+def validate_results(filename, regex, required_count):
+    """Counts the number of matching elements in a file given a regex
+    and ensures mathes the required count, will raise an exception if not. 
+
+    Args:
+        filename (str): path to the file
+        regex (regex): regex expression
+        required_count (int): number of elements expected
+    """
+    with open(filename, "r") as file:
+        content = file.read()
+    
+    matches = re.findall(regex, content, re.MULTILINE)
+    pass_count = len(matches)
+
+    assert pass_count == required_count, f"Expected {required_count} passes, but found {pass_count}"
+    return pass_count
+
 
 def test_results():
-    with open(target_test_results_filename, "r") as f:
-        cnt = 0
-        while 1:
-            line = f.readline()
+    validate_results(target_test_results_filename, target_test_regex, target_test_required_count)
+    validate_results(host_test_results_filename, host_test_regex, host_test_required_count)
 
-            if not line:
-                assert cnt == 2 # each tile should report PASS
-                break
 
-            p = re.match(target_test_regex, line)
-
-            if p:
-                cnt += 1
-                assert p.group(4).find("PASS") != -1
-
-    with open(host_test_results_filename, "r") as f:
-        cnt = 0
-        while 1:
-            line = f.readline()
-
-            if not line:
-                assert cnt == 1
-                break
-
-            p = re.match(host_test_regex, line)
-
-            if p:
-                cnt += 1
+if __name__ == "__main__":
+    test_results() # manual debug
+    

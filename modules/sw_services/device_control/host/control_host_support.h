@@ -9,6 +9,9 @@
 #include <assert.h>
 #include "device_control_shared.h"
 
+#define DBG(x)
+#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
+
 #if USE_XSCOPE
 static inline size_t
 control_xscope_create_upload_buffer(uint32_t buffer[XSCOPE_UPLOAD_MAX_WORDS],
