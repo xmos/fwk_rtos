@@ -16,10 +16,6 @@
 #include "control_host_support.h"
 #include "util.h"
 
-//#define DBG(x) x
-#define DBG(x)
-#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
-
 /*Note there is an issue with RPI/Jessie where I2C repeated starts are not enabled by default.
 Try the following at the bash command line to enable them:
 

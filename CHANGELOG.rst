@@ -4,6 +4,7 @@ RTOS Framework change log
 3.2.0
 -----
 
+  * UPDATED: Tested against fwk_io v3.5.1 updated from v3.3.0
   * FIXED: Windows host issue with pre-2013 Visual Studio Compiler and stdbool.h.
   * UPDATED: libusb host drivers for Windows to v1.0.27. The device must now use WinUSB drivers on Windows.
   * UPDATED: To tinyusb_src commit c61f5f4, it includes official support for USB test mode.

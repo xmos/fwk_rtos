@@ -1,4 +1,4 @@
-@Library('xmos_jenkins_shared_library@v0.28.0') _
+@Library('xmos_jenkins_shared_library@v0.33.0') _
 
 def runningOn(machine) {
   println "Stage running on:"
@@ -39,6 +39,7 @@ pipeline {
     parameters {
         string(
             name: 'TOOLS_VERSION',
+            // Dropped back from 15.3.0 on 2nd August 2024 because of http://bugzilla.xmos.local/show_bug.cgi?id=18895
             defaultValue: '15.2.1',
             description: 'The XTC tools version'
         )
