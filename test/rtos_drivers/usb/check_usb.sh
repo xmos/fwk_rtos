@@ -51,6 +51,7 @@ DFU_RT_VID_PID=""
 DFU_MODE_VID_PID="20b1:4000"
 DFU_DOWNLOAD_BYTES=1024
 DFU_ALT=1
+DFU_SERIAL="123456"
 DFU_VERBOSITY="-e" # Set to "-v -v -v" libusb debug prints.
 APP_STARTUP_TIME_S=10
 APP_SHUTDOWN_TIME_S=5
@@ -150,6 +151,7 @@ function wait_for_lsusb_entry {
 }
 
 function run_cdc_tests {
+    dfu-util --list
     print_and_log_test_step "Writing CDC test data on both interfaces."
     ($TIMEOUT ${PY_TIMEOUT_S}s python3 "$REPO_ROOT/test/rtos_drivers/usb/serial_send_receive.py" -if0 "$SERIAL_TX0_FILE" -if1 "$SERIAL_TX1_FILE" -of0 "$SERIAL_RX0_FILE" -of1 "$SERIAL_RX1_FILE" 2>&1) >> "$HOST_REPORT"
     exit_code=$?
@@ -184,9 +186,9 @@ function run_dfu_tests {
     # First determine the state of the image currently on the target, then download
     # the test image, and then read it back a final time to verify that it changed.
     # Finally issue a DFU detach, to allow the device to terminate its application.
-
+    dfu-util --list # debug info
     print_and_log_test_step "Reading DFU initial state of device's test partition."
-    dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT -U "$FILE_PRE_DOWNLOAD" >> "$HOST_REPORT" 2>&1
+    dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT --serial="$DFU_SERIAL" -U "$FILE_PRE_DOWNLOAD" >> "$HOST_REPORT" 2>&1
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during upload of pre-test image (exit code = $exit_code)."
@@ -194,7 +196,7 @@ function run_dfu_tests {
     fi
 
     print_and_log_test_step "Writing DFU test image to target's test partition."
-    dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT -D "$FILE_TO_DOWNLOAD" >> "$HOST_REPORT" 2>&1
+    dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT --serial="$DFU_SERIAL" -D "$FILE_TO_DOWNLOAD" >> "$HOST_REPORT" 2>&1
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during download of test image (exit code = $exit_code)."
@@ -202,7 +204,7 @@ function run_dfu_tests {
     fi
 
     print_and_log_test_step "Reading back DFU test image from the device's test partition."
-    dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT -U "$FILE_POST_DOWNLOAD" >> "$HOST_REPORT" 2>&1
+    dfu-util $DFU_VERBOSITY -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT --serial="$DFU_SERIAL" -U "$FILE_POST_DOWNLOAD" >> "$HOST_REPORT" 2>&1
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during upload of post-test image (exit code = $exit_code)."
@@ -210,7 +212,7 @@ function run_dfu_tests {
     fi
 
     print_and_log_test_step "Issuing DFU detach request."
-    dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT >> "$HOST_REPORT" 2>&1
+    dfu-util $DFU_VERBOSITY -e -d "$DFU_RT_VID_PID,$DFU_MODE_VID_PID" -a $DFU_ALT --serial="$DFU_SERIAL" >> "$HOST_REPORT" 2>&1
     exit_code=$?
     if [ $exit_code -ne 0 ]; then
         print_and_log_failure "An error occurred during DFU detach request (exit code = $exit_code)."

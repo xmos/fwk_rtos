@@ -1,4 +1,4 @@
-// Copyright 2017-2023 XMOS LIMITED.
+// Copyright 2017-2024 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #if USE_SPI && RPI
 
@@ -8,10 +8,6 @@
 #include "control_host_support.h"
 #include "bcm2835.h"
 #include <time.h>
-
-//#define DBG(x) x
-#define DBG(x)
-#define PRINT_ERROR(...)   fprintf(stderr, "Error  : " __VA_ARGS__)
 
 // Number of nsec to delay between spi transactions
 static long intertransaction_delay;
@@ -31,7 +27,7 @@ control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, l
 {
   if(!bcm2835_init() ||
      !bcm2835_spi_begin()) {
-    fprintf(stderr, "BCM2835 initialisation failed. Possibly not running as root\n");
+    PRINT_ERROR("BCM2835 initialisation failed. Possibly not running as root\n");
     return CONTROL_ERROR;
   }
 
@@ -41,7 +37,7 @@ control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, l
   bcm2835_spi_setClockDivider(clock_divider);
   bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
   bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
-	
+
   return CONTROL_SUCCESS;
 }
 control_ret_t
@@ -77,7 +73,7 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   {
       // get status
       memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
-      unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
+      unsigned transaction_length = payload_len < 8 ? 8 : payload_len;
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
       apply_intertransaction_delay();
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
@@ -112,11 +108,11 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
       apply_intertransaction_delay();
 
   }while(data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
-  
+
   do
   {
       memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
-      unsigned transaction_length = payload_len < 8 ? 8 : payload_len;  
+      unsigned transaction_length = payload_len < 8 ? 8 : payload_len;
 
       bcm2835_spi_transfern((char *)data_sent_recieved, payload_len);
       apply_intertransaction_delay();

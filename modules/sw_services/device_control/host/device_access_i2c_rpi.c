@@ -1,4 +1,4 @@
-// Copyright 2016-2023 XMOS LIMITED.
+// Copyright 2016-2024 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #if USE_I2C && RPI
 
@@ -15,9 +15,6 @@
 #include "device_control_host.h"
 #include "control_host_support.h"
 #include "util.h"
-
-//#define DBG(x) x
-#define DBG(x)
 
 /*Note there is an issue with RPI/Jessie where I2C repeated starts are not enabled by default.
 Try the following at the bash command line to enable them:
@@ -38,14 +35,13 @@ control_ret_t control_init_i2c(unsigned char i2c_slave_address)
   address = i2c_slave_address;
 
   if ((fd = open(devName, O_RDWR)) < 0) {          // Open port for reading and writing
-    fprintf(stderr, "Failed to open i2c port: ");
-    perror( "" );
+    PRINT_ERROR("Failed to open i2c port: ");
     return CONTROL_ERROR;
   }
-  
+
   if (ioctl(fd, I2C_SLAVE, address) < 0) {          // Set the port options and set the address of the device we wish to speak to
-    fprintf(stderr, "Unable to set i2c configuration at address 0x%x: ", address);
-    perror( "" );
+    PRINT_ERROR("Unable to set i2c configuration at address 0x%x: ", address);
+    perror("Error  :");
     return CONTROL_ERROR;
   }
 
@@ -84,17 +80,17 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   {
     len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
   }
-#else  
+#else
   len = control_build_i2c_data(buffer_to_send, resid, cmd, payload, payload_len);
 #endif
-  
+
   // Not doing ioctl I2C_RDWR due to the issue seen when write length is a multiple of 12 bytes
   // https://github.com/xmos/sw_xvf3800/issues/314
   int numbytes = write(fd, buffer_to_send, len);
   if(numbytes < 0)
   {
-    printf("I2C write() returned error %d\n",numbytes);
-    perror( "Error  :" );
+    PRINT_ERROR("I2C write() returned error %d\n",numbytes);
+    perror("Error  :");
     return CONTROL_ERROR;
   }
   else if(numbytes != len)
@@ -104,8 +100,8 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
   numbytes = read(fd, command_status, 1);
   if(numbytes < 0)
   {
-    printf("I2C read() returned error %d\n",numbytes);
-    perror( "Error  :" );
+    PRINT_ERROR("I2C read() returned error %d\n",numbytes);
+    perror("Error  :");
     return CONTROL_ERROR;
   }
 
@@ -133,14 +129,14 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   {
     len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
     if (len != 3){
-      fprintf(stderr, "Error building read command section of read_device. len should be 3 but is %d\n", len);
+      PRINT_ERROR("Building read command section of read_device failed. 'len' should be 3 but is %d\n", len);
       return CONTROL_ERROR;
     }
   }
 #else
   len = control_build_i2c_data(read_hdr, resid, cmd, payload, payload_len);
   if (len != 3){
-    fprintf(stderr, "Error building read command section of read_device. len should be 3 but is %d\n", len);
+    PRINT_ERROR("Building read command section of read_device failed. 'len' should be 3 but is %d\n", len);
     return CONTROL_ERROR;
   }
 #endif
@@ -172,8 +168,8 @@ control_read_command(control_resid_t resid, control_cmd_t cmd,
   int errno = ioctl( fd, I2C_RDWR, &rdwr_data );
 
   if ( errno < 0 ) {
-    fprintf(stderr, "Failed to transfer data, rdwr ioctl error number %d: ", errno );
-    perror( "Error  :" );
+    PRINT_ERROR("Failed to transfer data, rdwr ioctl error number %d: ", errno );
+    perror("Error  :");
     return CONTROL_ERROR;
   }
 

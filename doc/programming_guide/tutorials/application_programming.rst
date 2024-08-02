@@ -17,11 +17,7 @@ While XC elegantly enables the intrinsic, unique capabilities of the xcore archi
 
 A symmetric multiprocessing (SMP) real time operating system (RTOS) can be used to simplify xcore application designs, as well as to preserve the hard real-time benefits provided by the xcore architecture for the lower level software functions that require it.
 
-This document assumes familiarity with real time operating systems in general. Familiarity with FreeRTOS specifically should not be required, but will be helpful. For current up to date documentation on FreeRTOS see the following links on the `FreeRTOS website <https://www.freertos.org/>`_.
-
-- `Overview <https://www.freertos.org/RTOS.html>`_
-- `Developer Documentation <https://www.freertos.org/features.html>`_
-- `API <https://www.freertos.org/a00106.html>`_
+This document assumes familiarity with real time operating systems in general. Familiarity with FreeRTOS specifically should not be required, but will be helpful. For current up to date documentation on FreeRTOS see the documentation section on the `FreeRTOS website <https://www.freertos.org/>`_.
 
 ************
 SMP FreeRTOS
@@ -33,7 +29,7 @@ One of xcore’s primary strengths is its guarantee of deterministic behavior an
 
 Another xcore strength is it's performance. xcore.ai provides lightning fast general purpose compute, AI acceleration, powerful DSP and instantaneous I/O control. RTOS threads can also benefit from the performance provided by the xcore architecture, allowing an application developer to dynamically shift performance usage from one application feature to another.
 
-The standard FreeRTOS kernel supports `dynamic task priorities <https://freertos.org/a00112.html>`_, while the FreeRTOS-SMP kernel adds the following additional APIs:  
+The standard FreeRTOS kernel supports `dynamic task priorities <https://www.freertos.org/Documentation/02-Kernel/04-API-references/02-Task-control/00-Task-control>`_, while the FreeRTOS-SMP kernel adds the following additional APIs:  
 
 - vTaskCoreAffinitySet
 - vTaskCoreAffinityGet

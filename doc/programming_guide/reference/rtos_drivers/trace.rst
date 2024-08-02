@@ -10,11 +10,11 @@ integration.
 
 For general usage of the FreeRTOS trace functionality please refer to FreeRTOS'
 documentation here:
-`RTOS Trace Macros <https://www.freertos.org/rtos-trace-macros.html>`_
+`RTOS Trace Macros <https://freertos.org/Documentation/02-Kernel/02-Kernel-features/09-RTOS-trace-feature>`_
 
 For basic information on printf debugging using xscope please refer to the tools
 guide here:
-`XSCOPE debugging <https://www.xmos.ai/documentation/XM-014363-PC-6/html/tools-guide/quick-start/fast-printf.html>`_
+`XSCOPE debugging <https://www.xmos.ai/documentation/XM-014363-PC-LATEST/html/tools-guide/quick-start/fast-printf.html>`_
 
 *******************
 Trace Configuration
