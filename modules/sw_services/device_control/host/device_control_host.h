@@ -16,8 +16,8 @@ extern "C" {
 
 #if USE_SPI
 typedef enum spi_mode_t {
-  SPI_MODE_0, /**< SPI Mode 0 - Polarity = 0, Clock Edge = 1 */
-  SPI_MODE_1, /**< SPI Mode 1 - Polarity = 0, Clock Edge = 0 */
+  SPI_MODE_0, /**< SPI Mode 0 - Polarity = 0, Clock Edge = 0 */
+  SPI_MODE_1, /**< SPI Mode 1 - Polarity = 0, Clock Edge = 1 */
   SPI_MODE_2, /**< SPI Mode 2 - Polarity = 1, Clock Edge = 0 */
   SPI_MODE_3, /**< SPI Mode 3 - Polarity = 1, Clock Edge = 1 */
 } spi_mode_t;
@@ -121,20 +121,17 @@ control_ret_t control_cleanup_usb(void);
 #endif
 #if USE_SPI || __DOXYGEN__
 #if RPI || __DOXYGEN__
-#include "bcm2835.h"
-/** Initialize the SPI host (master) interface for the Raspberry Pi
+/** Initialize the SPI host (master) interface using the spidev
  *
- *  \param spi_mode             Mode that the SPI will run in
- *  \param clock_divider        The amount to divide the Raspberry Pi's clock by, e.g.
- *                              BCM2835_SPI_CLOCK_DIVIDER_1024 gives a clock of ~122kHz
- *                              on the RPI 2.
- *  \param intertransaction_delay Delay in nanoseconds that will be applied between each
+ *  \param spi_mode     Mode that the SPI will run in.
+ *  \param speed_hz     The SPI frequency to use.
+ *  \param delay_ns     Delay in nanoseconds that will be applied between each
  *                                spi transaction. This is implemented with nanosleep() from
  *                                time.h.
  *
  *  \returns                    Whether the initialization was successful or not
  */
-control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long intertransation_delay_ns);
+control_ret_t control_init_spidev(spi_mode_t spi_mode, uint32_t speed_hz, long delay_ns);
 #else
 /** Initialize the SPI host (master) interface
  *
