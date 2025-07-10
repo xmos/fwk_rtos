@@ -125,7 +125,7 @@ control_ret_t control_cleanup_usb(void);
  *
  *  \returns                    Whether the initialization was successful or not
  */
-control_ret_t control_init_spidev(int spi_mode, uint32_t speed_hz,
+control_ret_t control_init_spidev(uint8_t spi_mode, uint32_t speed_hz,
                                   int spidev_bus, int spidev_cs, long delay_ns);
 #else
 /** Initialize the SPI host (master) interface
