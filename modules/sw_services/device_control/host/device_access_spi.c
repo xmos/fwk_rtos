@@ -52,7 +52,7 @@ static void apply_intertransaction_delay()
 }
 
 // Initialise the spidev with the given SPI mode, frequency, bus, cs, and intertransaction delay
-control_ret_t control_init_spidev(spi_mode_t spi_mode, uint32_t speed_hz,
+control_ret_t control_init_spidev(int spi_mode, uint32_t speed_hz,
                                   int spidev_bus, int spidev_cs, long delay_ns)
 {
     char device[SPIDEV_PATH_MAX];
