@@ -26,7 +26,7 @@
 static int spi_fd = -1;
 
 // Number of nsec to delay between spi transactions
-static long intertransaction_delay;
+static long intertransaction_delay = 0;
 
 // Maximum transfer size
 static const size_t MAX_TRANSFER_SIZE = 64;
@@ -34,9 +34,9 @@ static const size_t MAX_TRANSFER_SIZE = 64;
 // Bits per word
 static const uint8_t SPI_BITS_PER_WORD = 8;
 
-// Sleep for intertransaction_delay nanoseconds. Yields to the OS so expect minimum delay to be hundreds
-// of microseconds at least.
-static void apply_intertransaction_delay()
+// Sleep for intertransaction_delay nanoseconds. Yield to kernel so expect minimum delay
+// to be hundreds of microseconds at least.
+static void apply_intertransaction_delay(void)
 {
     if (intertransaction_delay > 0) {
         struct timespec req = {
@@ -49,6 +49,45 @@ static void apply_intertransaction_delay()
             req = rem;
         }
     }
+}
+
+// SPI transfer function using spidev ioctl
+static int spi_transfer_chunked(uint8_t *data, size_t len)
+{
+    // Make sure we have a handle on the spidev
+    if (spi_fd < 0)
+        return -1;
+
+    size_t remaining = len;
+    size_t offset = 0;
+
+    // Allocate space for transfers
+    const size_t max_xfers = (len + MAX_TRANSFER_SIZE - 1) / MAX_TRANSFER_SIZE;
+    struct spi_ioc_transfer *xfers = calloc(max_xfers, sizeof(*xfers));
+
+    // Build transfer array
+    size_t xfer_count = 0;
+    while (remaining > 0) {
+        size_t chunk =
+                (remaining > MAX_TRANSFER_SIZE) ? MAX_TRANSFER_SIZE : remaining;
+
+        xfers[xfer_count] = (struct spi_ioc_transfer){
+            .tx_buf = (unsigned long)(data + offset),
+            .rx_buf = (unsigned long)(data + offset),
+            .len = chunk,
+            .cs_change = 0,
+        };
+
+        offset += chunk;
+        remaining -= chunk;
+        xfer_count++;
+    }
+
+    // Send all transfers
+    int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(xfer_count), xfers);
+    free(xfers);
+
+    return (ret < 0) ? -1 : 0;
 }
 
 // Initialise the spidev with the given SPI mode, frequency, bus, cs, and intertransaction delay
@@ -95,44 +134,6 @@ control_ret_t control_init_spidev(uint8_t spi_mode, uint32_t speed_hz,
     return CONTROL_SUCCESS;
 }
 
-// SPI transfer function using spidev ioctl
-static int spi_transfer_chunked(uint8_t *data, size_t len)
-{
-    // Make sure we have a handle on the spidev
-    if (spi_fd < 0)
-        return -1;
-
-    size_t remaining = len;
-    size_t offset = 0;
-
-    // Allocate space for transfers
-    const size_t max_xfers = (len + MAX_TRANSFER_SIZE - 1) / MAX_TRANSFER_SIZE;
-    struct spi_ioc_transfer *xfers = calloc(max_xfers, sizeof(*xfers));
-
-    // Build transfer array
-    size_t xfer_count = 0;
-    while (remaining > 0) {
-        size_t chunk =
-                (remaining > MAX_TRANSFER_SIZE) ? MAX_TRANSFER_SIZE : remaining;
-
-        xfers[xfer_count] = (struct spi_ioc_transfer){
-            .tx_buf = (unsigned long)(data + offset),
-            .rx_buf = (unsigned long)(data + offset),
-            .len = chunk,
-        };
-
-        offset += chunk;
-        remaining -= chunk;
-        xfer_count++;
-    }
-
-    // Send all transfers
-    int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(xfer_count), xfers);
-    free(xfers);
-
-    return (ret < 0) ? -1 : 0;
-}
-
 control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
                                     const uint8_t payload[], size_t payload_len)
 {
@@ -155,7 +156,7 @@ control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
 // This allows the user to write a stream of bytes directly into the device allowing for low level testing like testing the
 // error handling mechanism.
 #if LOW_LEVEL_TESTING
-        if ((resid == 0) && (cmd == 0)) {
+        if (resid == 0 && cmd == 0) {
             memcpy(data_sent_received, payload, payload_len);
             data_len = payload_len;
         } else {
@@ -208,7 +209,7 @@ control_ret_t control_read_command(control_resid_t resid, control_cmd_t cmd,
         int data_len;
 
 #if LOW_LEVEL_TESTING
-        if ((resid == 0) && (cmd == 0)) {
+        if (resid == 0 && cmd == 0) {
             memcpy(data_sent_received, payload, payload_len);
             data_len = payload_len;
         } else {
