@@ -28,6 +28,12 @@ static int spi_fd = -1;
 // Number of nsec to delay between spi transactions
 static long intertransaction_delay;
 
+// Maximum transfer size
+static const size_t MAX_TRANSFER_SIZE = 64;
+
+// Bits per word
+static const uint8_t SPI_BITS_PER_WORD = 8;
+
 // Sleep for intertransaction_delay nanoseconds. Yields to the OS so expect minimum delay to be hundreds
 // of microseconds at least.
 static void apply_intertransaction_delay()
