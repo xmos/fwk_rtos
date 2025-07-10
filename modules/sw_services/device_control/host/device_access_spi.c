@@ -2,7 +2,6 @@
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
 #if USE_SPI && RPI
 
-#include <asm-generic/errno-base.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -41,7 +40,7 @@ static void apply_intertransaction_delay()
 
 // Initialise the spidev with the given SPI mode, frequency, and intertransaction delay
 control_ret_t control_init_spidev(spi_mode_t spi_mode, uint32_t speed_hz,
-                               long delay_ns)
+                                  long delay_ns)
 {
     // TODO: Make this configurable with command map
     const char *device = "/dev/spidev0.0";
@@ -124,12 +123,17 @@ static int spi_transfer_chunked(uint8_t *data, size_t len)
 control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
                                     const uint8_t payload[], size_t payload_len)
 {
-    uint8_t data_sent_recieved[SPI_TRANSACTION_MAX_BYTES];
+    // Avoid buffer overflow
+    if (payload_len > SPI_DATA_MAX_BYTES) {
+        return CONTROL_ERROR;
+    }
 
     // Make sure we have a handle on the spidev
     if (spi_fd < 0) {
         return CONTROL_ERROR;
     }
+
+    uint8_t data_sent_received[SPI_TRANSACTION_MAX_BYTES] = { 0 };
 
     do {
         int data_len;
@@ -139,14 +143,14 @@ control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
 // error handling mechanism.
 #if LOW_LEVEL_TESTING
         if ((resid == 0) && (cmd == 0)) {
-            memcpy(data_sent_recieved, payload, payload_len);
+            memcpy(data_sent_received, payload, payload_len);
             data_len = payload_len;
         } else {
-            data_len = control_build_spi_data(data_sent_recieved, resid, cmd,
+            data_len = control_build_spi_data(data_sent_received, resid, cmd,
                                               payload, payload_len);
         }
 #else
-        data_len = control_build_spi_data(data_sent_recieved, resid, cmd,
+        data_len = control_build_spi_data(data_sent_received, resid, cmd,
                                           payload, payload_len);
 #endif
 
@@ -155,56 +159,74 @@ control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
         }
 
         apply_intertransaction_delay();
-    } while (data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+    } while (data_sent_received[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
-    return data_sent_recieved[0];
+    do {
+        // Get status
+        memset(data_sent_received, 0, SPI_TRANSACTION_MAX_BYTES);
+        size_t transaction_length = (payload_len < 8) ? 8 : payload_len;
+
+        if (spi_transfer_chunked(data_sent_received, transaction_length) < 0) {
+            return CONTROL_ERROR;
+        }
+
+        apply_intertransaction_delay();
+    } while (data_sent_received[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+
+    return data_sent_received[0];
 }
 
 control_ret_t control_read_command(control_resid_t resid, control_cmd_t cmd,
                                    uint8_t payload[], size_t payload_len)
 {
-    uint8_t data_sent_recieved[SPI_TRANSACTION_MAX_BYTES] = { 0 };
+    // Avoid buffer overflow
+    if (payload_len > SPI_DATA_MAX_BYTES) {
+        return CONTROL_ERROR;
+    }
 
     // Make sure we have a handle on the spidev
     if (spi_fd < 0) {
         return CONTROL_ERROR;
     }
 
+    uint8_t data_sent_received[SPI_TRANSACTION_MAX_BYTES] = { 0 };
+
     do {
         int data_len;
-        
+
 #if LOW_LEVEL_TESTING
         if ((resid == 0) && (cmd == 0)) {
-            memcpy(data_sent_recieved, payload, payload_len);
+            memcpy(data_sent_received, payload, payload_len);
             data_len = payload_len;
         } else {
-            data_len = control_build_spi_data(data_sent_recieved, resid, cmd,
+            data_len = control_build_spi_data(data_sent_received, resid, cmd,
                                               payload, payload_len);
         }
 #else
-        data_len = control_build_spi_data(data_sent_recieved, resid, cmd,
+        data_len = control_build_spi_data(data_sent_received, resid, cmd,
                                           payload, payload_len);
 #endif
 
-        if (spi_transfer_chunked(data_sent_recieved, (size_t)data_len) < 0) {
+        if (spi_transfer_chunked(data_sent_received, (size_t)data_len) < 0) {
             return CONTROL_ERROR;
         }
 
         apply_intertransaction_delay();
-    } while (data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+    } while (data_sent_received[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
     do {
-        memset(data_sent_recieved, 0, SPI_TRANSACTION_MAX_BYTES);
+        // Get status
+        memset(data_sent_received, 0, SPI_TRANSACTION_MAX_BYTES);
         size_t transaction_length = (payload_len < 8) ? 8 : payload_len;
 
-        if (spi_transfer_chunked(data_sent_recieved, transaction_length < 0) {
+        if (spi_transfer_chunked(data_sent_received, transaction_length) < 0) {
             return CONTROL_ERROR;
         }
 
         apply_intertransaction_delay();
-    } while (data_sent_recieved[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
+    } while (data_sent_received[0] == CONTROL_COMMAND_IGNORED_IN_DEVICE);
 
-    memcpy(payload, data_sent_recieved, payload_len);
+    memcpy(payload, data_sent_received, payload_len);
     // TODO - For write commands, control_write_command() is returning status from the device. For read commands payload[0] has the
     // status from the device and control_read_command() always returns CONTROL_SUCCESS. Make status returning consistent across
     // for read and write command functions.
@@ -213,9 +235,10 @@ control_ret_t control_read_command(control_resid_t resid, control_cmd_t cmd,
 }
 
 // Close the spidev FD if still open.
-control_ret_t control_cleanup_spi(void) {
+control_ret_t control_cleanup_spi(void)
+{
     if (spi_fd >= 0) {
-        close (spi_fd);
+        close(spi_fd);
         spi_fd = -1;
     }
     return CONTROL_SUCCESS;
