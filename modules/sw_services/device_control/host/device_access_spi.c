@@ -15,6 +15,12 @@
 #include "device_control_host.h"
 #include "control_host_support.h"
 
+// Ensure we have enough space to store the path in a buffer
+#define SPIDEV_PATH_MAX (55)
+// Convenience macro
+#define FMT_SPIDEV(buf, bus, cs)                                               \
+    snprintf(buf, sizeof(buf), "/dev/spidev%d.%d", bus, cs)
+
 // SPI device file descriptor
 static int spi_fd = -1;
 
@@ -38,12 +44,12 @@ static void apply_intertransaction_delay()
     }
 }
 
-// Initialise the spidev with the given SPI mode, frequency, and intertransaction delay
+// Initialise the spidev with the given SPI mode, frequency, bus, cs, and intertransaction delay
 control_ret_t control_init_spidev(spi_mode_t spi_mode, uint32_t speed_hz,
-                                  long delay_ns)
+                                  int spidev_bus, int spidev_cs, long delay_ns)
 {
-    // TODO: Make this configurable with command map
-    const char *device = "/dev/spidev0.0";
+    char device[SPIDEV_PATH_MAX];
+    FMT_SPIDEV(device, spidev_bus, spidev_cs);
 
     // Open SPI device
     spi_fd = open(device, O_RDWR);
