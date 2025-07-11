@@ -16,12 +16,6 @@
 #include "device_control_host.h"
 #include "control_host_support.h"
 
-// Ensure we have enough space to store the path in a buffer
-#define SPIDEV_PATH_MAX (55)
-// Convenience macro
-#define FMT_SPIDEV(buf, bus, cs)                                               \
-    snprintf(buf, sizeof(buf), "/dev/spidev%d.%d", bus, cs)
-
 // SPI device file descriptor
 static int spi_fd = -1;
 
@@ -33,6 +27,9 @@ static const size_t MAX_TRANSFER_SIZE = 64;
 
 // Bits per word
 static const uint8_t SPI_BITS_PER_WORD = 8;
+
+// Should be plenty enough for the max length of `/dev/spidev%d.%d` with int max or min
+static const size_t SPIDEV_PATH_MAX = 55;
 
 // Sleep for intertransaction_delay nanoseconds. Yield to kernel so expect minimum delay
 // to be hundreds of microseconds at least.
@@ -95,7 +92,7 @@ control_ret_t control_init_spidev(uint8_t spi_mode, uint32_t speed_hz,
                                   int spidev_bus, int spidev_cs, long delay_ns)
 {
     char device[SPIDEV_PATH_MAX];
-    FMT_SPIDEV(device, spidev_bus, spidev_cs);
+    snprintf(device, sizeof(device), "/dev/spidev%d.%d", spidev_bus, spidev_cs);
 
     // Open SPI device
     spi_fd = open(device, O_RDWR);
