@@ -1,6 +1,6 @@
 // Copyright 2025 XMOS LIMITED.
 // This Software is subject to the terms of the XMOS Public Licence: Version 1.
-#if USE_SPI && RPI
+#if USE_SPI
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -232,4 +232,4 @@ control_ret_t control_cleanup_spi(void)
     return CONTROL_SUCCESS;
 }
 
-#endif /* USE_SPI && RPI */
+#endif /* USE_SPI */
