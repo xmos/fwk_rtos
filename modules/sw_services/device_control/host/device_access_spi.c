@@ -22,9 +22,6 @@ static int spi_fd = -1;
 // Number of nsec to delay between spi transactions
 static long intertransaction_delay = 0;
 
-// Maximum transfer size
-static const size_t MAX_TRANSFER_SIZE = 64;
-
 // Bits per word
 static const uint8_t SPI_BITS_PER_WORD = 8;
 
@@ -49,40 +46,20 @@ static void apply_intertransaction_delay(void)
 }
 
 // SPI transfer function using spidev ioctl
-static int spi_transfer_chunked(uint8_t *data, size_t len)
+static int spi_transfer(uint8_t *data, size_t len)
 {
     // Make sure we have a handle on the spidev
     if (spi_fd < 0)
         return -1;
 
-    size_t remaining = len;
-    size_t offset = 0;
+    struct spi_ioc_transfer xfer = {
+        .tx_buf = (unsigned long)data,
+        .rx_buf = (unsigned long)data,
+        .len = len,
+    };
 
-    // Allocate space for transfers
-    const size_t max_xfers = (len + MAX_TRANSFER_SIZE - 1) / MAX_TRANSFER_SIZE;
-    struct spi_ioc_transfer *xfers = calloc(max_xfers, sizeof(*xfers));
-
-    // Build transfer array
-    size_t xfer_count = 0;
-    while (remaining > 0) {
-        size_t chunk =
-                (remaining > MAX_TRANSFER_SIZE) ? MAX_TRANSFER_SIZE : remaining;
-
-        xfers[xfer_count] = (struct spi_ioc_transfer){
-            .tx_buf = (unsigned long)(data + offset),
-            .rx_buf = (unsigned long)(data + offset),
-            .len = chunk,
-            .cs_change = 0,
-        };
-
-        offset += chunk;
-        remaining -= chunk;
-        xfer_count++;
-    }
-
-    // Send all transfers
-    int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(xfer_count), xfers);
-    free(xfers);
+    // Send transfer
+    int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(1), xfer);
 
     return (ret < 0) ? -1 : 0;
 }
@@ -165,7 +142,7 @@ control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
                                           payload, payload_len);
 #endif
 
-        if (spi_transfer_chunked(data_sent_received, (size_t)data_len) < 0) {
+        if (spi_transfer(data_sent_received, (size_t)data_len) < 0) {
             return CONTROL_ERROR;
         }
 
@@ -177,7 +154,7 @@ control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
         memset(data_sent_received, 0, SPI_TRANSACTION_MAX_BYTES);
         size_t transaction_length = (payload_len < 8) ? 8 : payload_len;
 
-        if (spi_transfer_chunked(data_sent_received, transaction_length) < 0) {
+        if (spi_transfer(data_sent_received, transaction_length) < 0) {
             return CONTROL_ERROR;
         }
 
@@ -218,7 +195,7 @@ control_ret_t control_read_command(control_resid_t resid, control_cmd_t cmd,
                                           payload, payload_len);
 #endif
 
-        if (spi_transfer_chunked(data_sent_received, (size_t)data_len) < 0) {
+        if (spi_transfer(data_sent_received, (size_t)data_len) < 0) {
             return CONTROL_ERROR;
         }
 
@@ -230,7 +207,7 @@ control_ret_t control_read_command(control_resid_t resid, control_cmd_t cmd,
         memset(data_sent_received, 0, SPI_TRANSACTION_MAX_BYTES);
         size_t transaction_length = (payload_len < 8) ? 8 : payload_len;
 
-        if (spi_transfer_chunked(data_sent_received, transaction_length) < 0) {
+        if (spi_transfer(data_sent_received, transaction_length) < 0) {
             return CONTROL_ERROR;
         }
 
