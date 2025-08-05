@@ -61,7 +61,7 @@ static int spi_transfer(uint8_t *data, size_t len)
     // Send transfer
     int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer);
 
-    return (ret < 0) ? -1 : 0;
+    return (ret == len) ? 0 : -1;
 }
 
 // Initialise the spidev with the given SPI mode, frequency, bus, cs, and intertransaction delay
