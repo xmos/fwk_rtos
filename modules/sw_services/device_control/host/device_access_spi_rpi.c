@@ -59,7 +59,7 @@ static int spi_transfer(uint8_t *data, size_t len)
     };
 
     // Send transfer
-    int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(1), xfer);
+    int ret = ioctl(spi_fd, SPI_IOC_MESSAGE(1), &xfer);
 
     return (ret < 0) ? -1 : 0;
 }
