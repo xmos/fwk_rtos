@@ -158,6 +158,9 @@ pipeline {
                                     withVenv {
                                         script {
                                             withXTAG(["$RTOS_TEST_RIG_TARGET"]) { adapterIDs ->
+                                                // command needed in tools 15.3.0 and 15.3.1 to reset board in case it gets locked
+                                                // http://bugzilla.xmos.local/show_bug.cgi?id=18895
+                                                sh "xgdb --batch --ex \"attach --adapter-id " + adapterIDs[0] + "\" --ex \"monitor reset\""
                                                 sh "test/rtos_drivers/hil_add/check_drivers_hil_add.sh " + adapterIDs[0]
                                             }
                                             sh "pytest test/rtos_drivers/hil_add"
