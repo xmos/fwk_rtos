@@ -5,7 +5,7 @@
 
 #include "device_control_shared.h"
 
-#ifdef __cplusplus 
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -14,7 +14,7 @@ extern "C" {
 #include <xccompat.h>
 #endif
 
-#if USE_SPI
+#if USE_SPI && !RPI
 typedef enum spi_mode_t {
   SPI_MODE_0, /**< SPI Mode 0 - Polarity = 0, Clock Edge = 1 */
   SPI_MODE_1, /**< SPI Mode 1 - Polarity = 0, Clock Edge = 0 */
@@ -112,7 +112,8 @@ control_ret_t control_cleanup_i2c(void);
  *
  *  \returns           Whether the initialization was successful or not
  */
-control_ret_t control_init_usb(int vendor_id, int product_id, int interface_num);
+control_ret_t control_init_usb(int vendor_id, int product_id,
+                               int interface_num);
 /** Shutdown the USB host interface connection
  *
  *  \returns           Whether the shutdown was successful or not
@@ -121,20 +122,20 @@ control_ret_t control_cleanup_usb(void);
 #endif
 #if USE_SPI || __DOXYGEN__
 #if RPI || __DOXYGEN__
-#include "bcm2835.h"
-/** Initialize the SPI host (master) interface for the Raspberry Pi
+/** Initialize the SPI host (master) interface using the spidev
  *
- *  \param spi_mode             Mode that the SPI will run in
- *  \param clock_divider        The amount to divide the Raspberry Pi's clock by, e.g.
- *                              BCM2835_SPI_CLOCK_DIVIDER_1024 gives a clock of ~122kHz
- *                              on the RPI 2.
- *  \param intertransaction_delay Delay in nanoseconds that will be applied between each
+ *  \param spi_mode     Mode that the SPI will run in.
+ *  \param speed_hz     The SPI frequency to use.
+ *  \param spidev_bus   The spidev bus to use, the B in /dev/spidevB.C
+ *  \param spidev_cs    The spidev cs to use, the C in /dev/spidevB.C
+ *  \param delay_ns     Delay in nanoseconds that will be applied between each
  *                                spi transaction. This is implemented with nanosleep() from
  *                                time.h.
  *
  *  \returns                    Whether the initialization was successful or not
  */
-control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider clock_divider, long intertransation_delay_ns);
+control_ret_t control_init_spidev(uint8_t spi_mode, uint32_t speed_hz,
+                                  int spidev_bus, int spidev_cs, long delay_ns);
 #else
 /** Initialize the SPI host (master) interface
  *
@@ -144,7 +145,8 @@ control_ret_t control_init_spi_pi(spi_mode_t spi_mode, bcm2835SPIClockDivider cl
  *
  *  \returns                    Whether the initialization was successful or not
  */
-control_ret_t control_init_spi(spi_mode_t spi_mode, int spi_bitrate, unsigned delay_for_read);
+control_ret_t control_init_spi(spi_mode_t spi_mode, int spi_bitrate,
+                               unsigned delay_for_read);
 #endif // RPI || __DOXYGEN__
 /** Shutdown the SPI host (master) interface connection
  *
@@ -156,7 +158,7 @@ control_ret_t control_cleanup_spi(void);
 #if (!USE_USB && !USE_I2C && !USE_SPI)
 #error "Please specify transport for device control using USE_xxx define in build file"
 #error "Eg. -DUSE_I2C=1 or -DUSE_USB=1 or -DUSE_SPI=1"
-#endif 
+#endif
 
 #if USE_I2C && __xcore__
 /** Checks to see that the version of control library in the device is the same as the host
@@ -189,12 +191,12 @@ control_ret_t control_query_version(control_version_t *version);
  *
  *  \returns            Whether the write to the device was successful or not
  */
-control_ret_t
-control_write_command(control_resid_t resid, control_cmd_t cmd,
+control_ret_t control_write_command(control_resid_t resid, control_cmd_t cmd,
 #if USE_I2C && __xcore__
-                      CLIENT_INTERFACE(i2c_master_if, i_i2c),
+                                    CLIENT_INTERFACE(i2c_master_if, i_i2c),
 #endif
-                      const uint8_t payload[], size_t payload_len);
+                                    const uint8_t payload[],
+                                    size_t payload_len);
 
 /** Request to read from controllable resource inside the device. The command consists of a resource ID,
  *  command and a byte payload of length payload_len.
@@ -207,12 +209,11 @@ control_write_command(control_resid_t resid, control_cmd_t cmd,
  *
  *  \returns            Whether the read from the device was successful or not
  */
-control_ret_t
-control_read_command(control_resid_t resid, control_cmd_t cmd,
+control_ret_t control_read_command(control_resid_t resid, control_cmd_t cmd,
 #if USE_I2C && __xcore__
-                     CLIENT_INTERFACE(i2c_master_if, i_i2c),
+                                   CLIENT_INTERFACE(i2c_master_if, i_i2c),
 #endif
-                     uint8_t payload[], size_t payload_len);
+                                   uint8_t payload[], size_t payload_len);
 
 #ifdef __cplusplus
 }

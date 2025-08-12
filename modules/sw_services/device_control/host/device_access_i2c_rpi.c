@@ -49,7 +49,7 @@ control_ret_t control_init_i2c(unsigned char i2c_slave_address)
 
   // This writes command zero to register zero. It is a workaround for RPI kernel 4.4 which seems to ignore the first data bytes otherwise
   // It is a benign operation for lib_device_control as register zero, command zero is the version and is read only
-  unsigned char data[3];
+  unsigned char data[256];
   control_build_i2c_data(data, 0, 0, data, 0);
   write(fd, data, 3);
 
