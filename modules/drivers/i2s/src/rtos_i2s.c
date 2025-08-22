@@ -45,6 +45,9 @@ static void i2s_init(rtos_i2s_t *ctx, i2s_config_t *i2s_config)
 I2S_CALLBACK_ATTR
 static i2s_restart_t i2s_restart_check(rtos_i2s_t *ctx)
 {
+    if (ctx->restart_cb) {
+        ctx->restart_cb(ctx, ctx->restart_app_data);
+    }
     return I2S_NO_RESTART;
 }
 
@@ -329,6 +332,7 @@ void rtos_i2s_start(
 {
     uint32_t core_exclude_map;
 
+    printf("mclk bclk ratio: %d\n", mclk_bclk_ratio);
     i2s_ctx->mclk_bclk_ratio = mclk_bclk_ratio;
     i2s_ctx->mode = mode;
     i2s_ctx->isr_cmd = 0;
