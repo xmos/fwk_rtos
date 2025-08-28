@@ -46,7 +46,7 @@ I2S_CALLBACK_ATTR
 static i2s_restart_t i2s_restart_check(rtos_i2s_t *ctx)
 {
     if (ctx->restart_cb) {
-        ctx->restart_cb(ctx, ctx->restart_app_data);
+        return ctx->restart_cb(ctx, ctx->restart_app_data);
     }
     return I2S_NO_RESTART;
 }

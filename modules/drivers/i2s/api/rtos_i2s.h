@@ -108,9 +108,9 @@ typedef size_t (*rtos_i2s_receive_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, 
  *                           by the application. Used to share data between
  *                           this callback function and the application.
  *
- * \returns void.
+ * \returns restart command to signal I2S driver.
  */
-typedef void (*rtos_i2s_restart_cb_t)(rtos_i2s_t *ctx, void *app_data);
+typedef i2s_restart_t (*rtos_i2s_restart_cb_t)(rtos_i2s_t *ctx, void *app_data);
 
 /**
  * Struct representing an RTOS I2S driver instance.
