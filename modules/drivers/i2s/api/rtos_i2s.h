@@ -96,7 +96,21 @@ typedef size_t (*rtos_i2s_send_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, int
  */
 typedef size_t (*rtos_i2s_receive_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_frame, size_t i2s_frame_size, int32_t *receive_buf, size_t sample_spaces_free);
 
-typedef size_t (*rtos_i2s_restart_cb_t)(rtos_i2s_t *ctx, void *app_data);
+/**
+ * Function pointer type for application provided RTOS I2S restart callback functions.
+ *
+ * These callback functions are called when an I2S driver instance has received an I2S frame.
+ *
+ * These functions must not block.
+ *
+ * \param ctx                A pointer to the associated I2C slave driver instance.
+ * \param app_data           A pointer to application specific data provided
+ *                           by the application. Used to share data between
+ *                           this callback function and the application.
+ *
+ * \returns void.
+ */
+typedef void (*rtos_i2s_restart_cb_t)(rtos_i2s_t *ctx, void *app_data);
 
 /**
  * Struct representing an RTOS I2S driver instance.
