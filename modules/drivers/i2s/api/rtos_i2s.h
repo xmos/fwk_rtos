@@ -51,7 +51,7 @@ typedef struct rtos_i2s_struct rtos_i2s_t;
  *
  * These functions must not block.
  *
- * \param ctx               A pointer to the associated I2C slave driver instance.
+ * \param ctx               A pointer to the associated I2S slave driver instance.
  * \param app_data          A pointer to application specific data provided
  *                          by the application. Used to share data between
  *                          this callback function and the application.
@@ -78,7 +78,7 @@ typedef size_t (*rtos_i2s_send_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, int
  *
  * These functions must not block.
  *
- * \param ctx                A pointer to the associated I2C slave driver instance.
+ * \param ctx                A pointer to the associated I2S slave driver instance.
  * \param app_data           A pointer to application specific data provided
  *                           by the application. Used to share data between
  *                           this callback function and the application.
@@ -103,7 +103,7 @@ typedef size_t (*rtos_i2s_receive_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, 
  *
  * These functions must not block.
  *
- * \param ctx                A pointer to the associated I2C slave driver instance.
+ * \param ctx                A pointer to the associated I2S slave driver instance.
  * \param app_data           A pointer to application specific data provided
  *                           by the application. Used to share data between
  *                           this callback function and the application.
