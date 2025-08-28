@@ -332,7 +332,6 @@ void rtos_i2s_start(
 {
     uint32_t core_exclude_map;
 
-    printf("mclk bclk ratio: %d\n", mclk_bclk_ratio);
     i2s_ctx->mclk_bclk_ratio = mclk_bclk_ratio;
     i2s_ctx->mode = mode;
     i2s_ctx->isr_cmd = 0;
