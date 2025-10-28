@@ -31,6 +31,12 @@
 #define RTOS_I2S_APP_RECEIVE_FILTER_CALLBACK_ATTR __attribute__((fptrgroup("rtos_i2s_receive_filter_cb_fptr_grp")))
 
 /**
+ * This attribute must be specified on all RTOS I2S restart callback functions
+ * provided by the application.
+ */
+#define RTOS_I2S_APP_RESTART_CALLBACK_ATTR __attribute__((fptrgroup("rtos_i2s_restart_cb_fptr_grp")))
+
+/**
  * Typedef to the RTOS I2S driver instance struct.
  */
 typedef struct rtos_i2s_struct rtos_i2s_t;
@@ -45,7 +51,7 @@ typedef struct rtos_i2s_struct rtos_i2s_t;
  *
  * These functions must not block.
  *
- * \param ctx               A pointer to the associated I2C slave driver instance.
+ * \param ctx               A pointer to the associated I2S slave driver instance.
  * \param app_data          A pointer to application specific data provided
  *                          by the application. Used to share data between
  *                          this callback function and the application.
@@ -72,7 +78,7 @@ typedef size_t (*rtos_i2s_send_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, int
  *
  * These functions must not block.
  *
- * \param ctx                A pointer to the associated I2C slave driver instance.
+ * \param ctx                A pointer to the associated I2S slave driver instance.
  * \param app_data           A pointer to application specific data provided
  *                           by the application. Used to share data between
  *                           this callback function and the application.
@@ -89,6 +95,22 @@ typedef size_t (*rtos_i2s_send_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, int
  * \returns the number of samples written to \p receive_buf.
  */
 typedef size_t (*rtos_i2s_receive_filter_cb_t)(rtos_i2s_t *ctx, void *app_data, int32_t *i2s_frame, size_t i2s_frame_size, int32_t *receive_buf, size_t sample_spaces_free);
+
+/**
+ * Function pointer type for application provided RTOS I2S restart callback functions.
+ *
+ * These callback functions are called when an I2S driver instance has received an I2S frame.
+ *
+ * These functions must not block.
+ *
+ * \param ctx                A pointer to the associated I2S slave driver instance.
+ * \param app_data           A pointer to application specific data provided
+ *                           by the application. Used to share data between
+ *                           this callback function and the application.
+ *
+ * \returns restart command to signal I2S driver.
+ */
+typedef i2s_restart_t (*rtos_i2s_restart_cb_t)(rtos_i2s_t *ctx, void *app_data);
 
 /**
  * Struct representing an RTOS I2S driver instance.
@@ -120,6 +142,9 @@ struct rtos_i2s_struct{
 
     void *receive_filter_app_data;
     RTOS_I2S_APP_RECEIVE_FILTER_CALLBACK_ATTR rtos_i2s_receive_filter_cb_t receive_filter_cb;
+
+    void *restart_app_data;
+    RTOS_I2S_APP_RESTART_CALLBACK_ATTR rtos_i2s_restart_cb_t restart_cb;
 
     rtos_osal_mutex_t mutex;
     streaming_channel_t c_i2s_isr;
@@ -186,6 +211,15 @@ inline void rtos_i2s_receive_filter_cb_set(
 {
     ctx->receive_filter_app_data = receive_filter_app_data;
     ctx->receive_filter_cb = receive_filter_cb;
+}
+
+inline void rtos_i2s_restart_cb_set(
+        rtos_i2s_t *ctx,
+        rtos_i2s_restart_cb_t restart_cb,
+        void *restart_app_data)
+{
+    ctx->restart_app_data = restart_app_data;
+    ctx->restart_cb = restart_cb;
 }
 
 /**
