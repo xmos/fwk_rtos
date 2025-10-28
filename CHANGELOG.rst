@@ -4,6 +4,7 @@ RTOS Framework change log
 3.3.0
 -----
 
+  * UPDATED: To tinyusb_src v0.17.0.
   * ADDED: Support for MSOS2.0 descriptor to automatically assign the WinUSB drivers to the DFU interface
     during enumeration on Windows. This enhancement is included in the USB descriptors of the USB tests.
   * ADDED: Support for multiread and multiwrite functions to the I2C master drivers.

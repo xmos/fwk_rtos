@@ -549,12 +549,12 @@ void dcd_sof_enable(uint8_t rhport, bool en)
   (void) en;
 }
 
-bool dcd_check_test_mode_support(test_mode_t test_selector)
+bool dcd_check_test_mode_support(tusb_feature_test_mode_t test_selector)
 {
     return true;
 }
 
-void dcd_enter_test_mode(uint8_t rhport, test_mode_t test_selector)
+void dcd_enter_test_mode(uint8_t rhport, tusb_feature_test_mode_t test_selector)
 {
     rtos_usb_enter_test_mode(&usb_ctx, ((unsigned)test_selector) << 8);
 }
