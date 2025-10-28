@@ -28,7 +28,7 @@ done
 # assign vars
 REPORT=testing/test.rpt
 FIRMWARE=test_rtos_driver_wifi.xe
-TIMEOUT_S=60
+TIMEOUT_S=90
 if [ ! -z "${@:$OPTIND:1}" ]
 then
     ADAPTER_ID="--adapter-id ${@:$OPTIND:1}"

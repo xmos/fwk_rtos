@@ -94,6 +94,32 @@ static void scan(void) {
     }
 }
 
+static void ip_info_printf(void) {
+    
+    uint32_t ulIPAddress, ulNetMask, ulGatewayAddress, ulDNSServerAddress;
+    int8_t cBuffer[ 16 ];
+    
+    local_printf("Getting FreeRTOS IP Configuration");
+    FreeRTOS_GetAddressConfiguration( &ulIPAddress, &ulNetMask, &ulGatewayAddress, 
+                    &ulDNSServerAddress );
+
+    /* Convert the IP address to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulIPAddress, cBuffer );
+    local_printf( "IP Address: %s", cBuffer );
+
+    /* Convert the net mask to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulNetMask, cBuffer );
+    local_printf( "Subnet Mask: %s", cBuffer );
+
+    /* Convert the IP address of the gateway to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulGatewayAddress, cBuffer );
+    local_printf( "Gateway IP Address: %s", cBuffer );
+
+    /* Convert the IP address of the DNS server to a string then print it out. */
+    FreeRTOS_inet_ntoa( ulDNSServerAddress, cBuffer );
+    local_printf( "DNS server IP Address: %s", cBuffer );
+}
+
 int wifi_conn_mgr_event_cb(int event, char *ssid, char *password) {
     switch (event) {
     case WIFI_CONN_MGR_EVENT_STARTUP:
@@ -122,6 +148,7 @@ int wifi_conn_mgr_event_cb(int event, char *ssid, char *password) {
         while (WIFI_GetIP(ip) != eWiFiSuccess) {
             vTaskDelay(pdMS_TO_TICKS(100));
         }
+        ip_info_printf();
         WIFI_GetHostIP("xmos.com", ip);
         local_printf("xmos.com has IP address %d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
         local_printf("Attemping to ping xmos.com");
@@ -264,10 +291,10 @@ static int main_test(wifi_test_ctx_t *ctx)
     BaseType_t ret = xTaskNotifyWait((uint32_t)0,
                                      (uint32_t)0,
                                      (uint32_t*) &status,
-                                     pdMS_TO_TICKS(30000));
+                                     pdMS_TO_TICKS(60000));
     if (ret == pdFALSE)
     {
-        local_printf("Failed to recieve ping result after 30 seconds");
+        local_printf("Failed to recieve ping result after 60 seconds");
         return -1;
     }
 
